@@ -1,9 +1,7 @@
-﻿using System;
-
-namespace Plugin.FirebasePushNotifications
+﻿namespace Plugin.FirebasePushNotifications
 {
+    // All the code in this file is included in all platforms.
     public class Class1
     {
-
     }
 }
