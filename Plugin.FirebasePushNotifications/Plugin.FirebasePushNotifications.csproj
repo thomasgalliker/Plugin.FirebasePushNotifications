@@ -29,7 +29,12 @@
 			<Version>118.0.2.3</Version>
 		</PackageReference>
 		<PackageReference Include="Xamarin.Firebase.Common" Version="120.3.3.1" />
+
+		<!--Temporary workaround for issue in AndroidX: https://github.com/xamarin/AndroidX/issues/742-->
+		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2" />
+		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2" />
 	</ItemGroup>
+
 	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
 		<PackageReference Include="Xamarin.Firebase.iOS.CloudMessaging" Version="8.10.0.3" />
 	</ItemGroup>

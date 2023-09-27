@@ -15,9 +15,12 @@ namespace MauiSampleApp
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-#if DEBUG
-		builder.Logging.AddDebug();
-#endif
+            builder.Services.AddLogging(b =>
+            {
+                b.ClearProviders();
+                b.SetMinimumLevel(LogLevel.Trace);
+                b.AddDebug();
+            });
 
             return builder.Build();
         }
