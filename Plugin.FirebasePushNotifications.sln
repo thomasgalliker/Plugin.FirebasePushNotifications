@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugin.FirebasePushNotifications", "Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj", "{5DB81207-57C2-420A-84A9-9A276E7F5B92}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{43D800CC-EC47-409A-94E4-1C6960F1EA6F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5DB81207-57C2-420A-84A9-9A276E7F5B92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DB81207-57C2-420A-84A9-9A276E7F5B92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DB81207-57C2-420A-84A9-9A276E7F5B92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DB81207-57C2-420A-84A9-9A276E7F5B92}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7B8DC381-9814-41DE-BF03-5CDA4E66F53A}
+	EndGlobalSection
+EndGlobal
