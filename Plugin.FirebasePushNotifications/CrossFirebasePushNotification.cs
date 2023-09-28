@@ -1,10 +1,9 @@
-﻿#if (ANDROID || IOS)
+﻿#if ANDROID || IOS
 #define ANDROID_OR_IOS
 using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Platforms;
 #endif
 
-using Plugin.FirebasePushNotifications;
 
 namespace Plugin.FirebasePushNotifications
 {

@@ -1,7 +1,6 @@
 ﻿using Firebase.CloudMessaging;
 using Firebase.Core;
 using Foundation;
-using Plugin.FirebasePushNotifications;
 using UIKit;
 using UserNotifications;
 

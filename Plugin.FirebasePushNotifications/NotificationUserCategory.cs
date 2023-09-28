@@ -1,6 +1,4 @@
-﻿using Plugin.FirebasePushNotifications;
-
-namespace Plugin.FirebasePushNotifications
+﻿namespace Plugin.FirebasePushNotifications
 {
     public class NotificationUserCategory
     {

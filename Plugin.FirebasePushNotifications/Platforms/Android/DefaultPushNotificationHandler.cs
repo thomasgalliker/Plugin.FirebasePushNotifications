@@ -6,7 +6,6 @@ using Android.Media;
 using Android.OS;
 using AndroidX.Core.App;
 using Java.Util;
-using Plugin.FirebasePushNotifications;
 using static Android.App.ActivityManager;
 using Application = Android.App.Application;
 

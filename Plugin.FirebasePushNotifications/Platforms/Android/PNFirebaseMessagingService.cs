@@ -1,7 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
 using Firebase.Messaging;
-using Plugin.FirebasePushNotifications;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
