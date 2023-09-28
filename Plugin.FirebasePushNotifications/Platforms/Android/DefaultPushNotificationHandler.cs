@@ -14,7 +14,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class DefaultPushNotificationHandler : IPushNotificationHandler
     {
-        public const string DomainTag = "DefaultPushNotificationHandler";
+        public const string DomainTag = nameof(DefaultPushNotificationHandler);
+
         /// <summary>
         /// Title
         /// </summary>
@@ -145,7 +146,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             Debug.WriteLine($"{DomainTag} - OnReceived");
 
-            if ((parameters.TryGetValue(SilentKey, out var silent) && (silent.ToString() == "true" || silent.ToString() == "1")) || (this.IsInForeground() && (!(!parameters.ContainsKey(ChannelIdKey) && parameters.TryGetValue(PriorityKey, out var imp) && ($"{imp}" == "high" || $"{imp}" == "max")) || (!parameters.ContainsKey(PriorityKey) && !parameters.ContainsKey(ChannelIdKey) && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.High && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.Max))))
+            if ((parameters.TryGetValue(SilentKey, out var silent) && (silent.ToString() == "true" || silent.ToString() == "1")) || (IsInForeground() && (!(!parameters.ContainsKey(ChannelIdKey) && parameters.TryGetValue(PriorityKey, out var imp) && ($"{imp}" == "high" || $"{imp}" == "max")) || (!parameters.ContainsKey(PriorityKey) && !parameters.ContainsKey(ChannelIdKey) && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.High && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.Max))))
             {
                 return;
             }
@@ -338,7 +339,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            var resultIntent = typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType) ? new Intent(Application.Context, FirebasePushNotificationManager.NotificationActivityType) : (FirebasePushNotificationManager.DefaultNotificationActivityType == null ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName) : new Intent(Application.Context, FirebasePushNotificationManager.DefaultNotificationActivityType));
+            var resultIntent = typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType) 
+                ? new Intent(Application.Context, FirebasePushNotificationManager.NotificationActivityType)
+                : (FirebasePushNotificationManager.DefaultNotificationActivityType == null ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName) : new Intent(Application.Context, FirebasePushNotificationManager.DefaultNotificationActivityType));
 
             var extras = new Bundle();
             foreach (var p in parameters)
@@ -520,17 +523,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                         }
                     }
                 }
-
-
             }
 
             this.OnBuildNotification(notificationBuilder, parameters);
 
             var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
             notificationManager.Notify(tag, notifyId, notificationBuilder.Build());
-
-
-
         }
 
         /// <summary>
@@ -594,7 +592,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// <param name="parameters">Notification parameters.</param>
         public virtual void OnBuildNotification(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters) { }
 
-        private bool IsInForeground()
+        private static bool IsInForeground()
         {
             bool isInForeground;
 
