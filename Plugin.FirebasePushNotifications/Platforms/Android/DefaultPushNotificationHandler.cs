@@ -8,6 +8,7 @@ using AndroidX.Core.App;
 using Java.Util;
 using static Android.App.ActivityManager;
 using Application = Android.App.Application;
+using Debug = System.Diagnostics.Debug;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -137,12 +138,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public virtual void OnOpened(NotificationResponse response)
         {
-            System.Diagnostics.Debug.WriteLine($"{DomainTag} - OnOpened");
+            Debug.WriteLine($"{DomainTag} - OnOpened");
         }
 
         public virtual void OnReceived(IDictionary<string, object> parameters)
         {
-            System.Diagnostics.Debug.WriteLine($"{DomainTag} - OnReceived");
+            Debug.WriteLine($"{DomainTag} - OnReceived");
 
             if ((parameters.TryGetValue(SilentKey, out var silent) && (silent.ToString() == "true" || silent.ToString() == "1")) || (this.IsInForeground() && (!(!parameters.ContainsKey(ChannelIdKey) && parameters.TryGetValue(PriorityKey, out var imp) && ($"{imp}" == "high" || $"{imp}" == "max")) || (!parameters.ContainsKey(PriorityKey) && !parameters.ContainsKey(ChannelIdKey) && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.High && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.Max))))
             {
@@ -213,7 +214,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 catch (Exception ex)
                 {
                     // Keep the default value of zero for the notify_id, but log the conversion problem.
-                    System.Diagnostics.Debug.WriteLine($"Failed to convert {id} to an integer {ex}");
+                    Debug.WriteLine($"Failed to convert {id} to an integer {ex}");
                 }
             }
 
@@ -253,11 +254,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             catch (Resources.NotFoundException ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                Debug.WriteLine(ex.ToString());
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                Debug.WriteLine(ex.ToString());
             }
 
             soundUri ??= RingtoneManager.GetDefaultUri(RingtoneType.Notification);
@@ -276,7 +277,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     }
                     catch (Resources.NotFoundException ex)
                     {
-                        System.Diagnostics.Debug.WriteLine(ex.ToString());
+                        Debug.WriteLine(ex.ToString());
                     }
                 }
 
@@ -296,7 +297,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             catch (Resources.NotFoundException ex)
             {
                 smallIconResource = context.ApplicationInfo.Icon;
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                Debug.WriteLine(ex.ToString());
             }
 
             try
@@ -322,7 +323,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             catch (Resources.NotFoundException ex)
             {
                 largeIconResource = 0;
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                Debug.WriteLine(ex.ToString());
             }
 
             if (parameters.TryGetValue(ColorKey, out var color) && color != null)
@@ -333,7 +334,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"{DomainTag} - Failed to parse color {ex}");
+                    Debug.WriteLine($"{DomainTag} - Failed to parse color {ex}");
                 }
             }
 
@@ -442,7 +443,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"{DomainTag} - Failed to set sound {ex}");
+                    Debug.WriteLine($"{DomainTag} - Failed to set sound {ex}");
                 }
             }
 
@@ -550,7 +551,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 { return resources.GetString(identifier, sanitizedArgs ?? new Java.Lang.Object[] { }); }
                 catch (UnknownFormatConversionException ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"{DomainTag}.ResolveLocalizedParameters - Incorrect string arguments {ex}");
+                    Debug.WriteLine($"{DomainTag}.ResolveLocalizedParameters - Incorrect string arguments {ex}");
                     return null;
                 }
             }
@@ -583,7 +584,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public virtual void OnError(string error)
         {
-            System.Diagnostics.Debug.WriteLine($"{DomainTag} - OnError - {error}");
+            Debug.WriteLine($"{DomainTag} - OnError - {error}");
         }
 
         /// <summary>
