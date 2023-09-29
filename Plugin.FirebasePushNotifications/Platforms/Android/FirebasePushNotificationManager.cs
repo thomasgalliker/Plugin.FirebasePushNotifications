@@ -11,7 +11,8 @@ using Application = Android.App.Application;
 namespace Plugin.FirebasePushNotifications.Platforms
 {
     /// <summary>
-    /// Implementation for Feature
+    /// Implementation of <see cref="IFirebasePushNotification"/>
+    /// for Android.
     /// </summary>
     public partial class FirebasePushNotificationManager : Java.Lang.Object, IFirebasePushNotification, IOnCompleteListener
     {

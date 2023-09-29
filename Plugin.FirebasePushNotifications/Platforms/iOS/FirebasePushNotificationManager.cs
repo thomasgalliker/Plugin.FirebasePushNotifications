@@ -7,7 +7,8 @@ using UserNotifications;
 namespace Plugin.FirebasePushNotifications.Platforms
 {
     /// <summary>
-    /// Implementation for FirebasePushNotification
+    /// Implementation of <see cref="IFirebasePushNotification"/>
+    /// for iOS.
     /// </summary>
     public partial class FirebasePushNotificationManager : NSObject, IFirebasePushNotification, IUNUserNotificationCenterDelegate, IMessagingDelegate
     {
@@ -16,11 +17,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private static readonly Queue<Tuple<string, bool>> pendingTopics = new Queue<Tuple<string, bool>>();
         private static bool hasToken = false;
         private static readonly NSString FirebaseTopicsKey = new NSString("FirebaseTopics");
+
         private const string FirebaseTokenKey = "FirebaseToken";
+
         private static readonly NSMutableArray currentTopics = (NSUserDefaults.StandardUserDefaults.ValueForKey(FirebaseTopicsKey) as NSArray ?? new NSArray()).MutableCopy() as NSMutableArray;
+
         public string Token => string.IsNullOrEmpty(Messaging.SharedInstance.FcmToken) ? NSUserDefaults.StandardUserDefaults.StringForKey(FirebaseTokenKey) ?? string.Empty : Messaging.SharedInstance.FcmToken;
 
         private static readonly IList<NotificationUserCategory> usernNotificationCategories = new List<NotificationUserCategory>();
+
         private static FirebasePushNotificationTokenEventHandler _onTokenRefresh;
         public event FirebasePushNotificationTokenEventHandler OnTokenRefresh
         {
