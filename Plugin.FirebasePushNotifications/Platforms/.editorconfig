@@ -1,0 +1,10 @@
+####################################################################
+# Editor Configuration (Updated 2022-08-21)
+#
+# (c)2022 superdev GmbH
+####################################################################
+
+root = false
+
+[*.cs]
+dotnet_style_namespace_match_folder = false:suggestion
