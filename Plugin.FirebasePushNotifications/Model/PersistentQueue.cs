@@ -13,7 +13,6 @@ namespace Plugin.FirebasePushNotifications.Model
     internal class PersistentQueue<T>
     {
         private readonly Queue<T> queue;
-        private readonly DirectoryInfo directory;
         private readonly FileInfo fileInfo;
         private readonly PersistentQueueOptions options;
 
@@ -34,13 +33,6 @@ namespace Plugin.FirebasePushNotifications.Model
             this.options = options ?? throw new ArgumentNullException(nameof(options));
 
             var baseDirectory = string.IsNullOrEmpty(options.BaseDirectory) ? "." : options.BaseDirectory;
-            this.directory = new DirectoryInfo(baseDirectory);
-
-            if (!this.directory.Exists)
-            {
-                this.directory.Create();
-            }
-
             this.fileInfo = new FileInfo(Path.Combine(baseDirectory, this.options.FileNameSelector(typeof(T))));
             this.queue = ReadQueueFile(this.fileInfo);
         }
@@ -88,6 +80,35 @@ namespace Plugin.FirebasePushNotifications.Model
             }
         }
 
+        /// <inheritdoc cref="Queue{T}.TryDequeue(out T)"/>
+        public bool TryDequeue([MaybeNullWhen(false)] out T result)
+        {
+            lock (this)
+            {
+                var success = this.queue.TryDequeue(out result);
+                WriteQueueFile(this.fileInfo, this.queue);
+                return success;
+            }
+        }
+
+        /// <inheritdoc cref="Queue{T}.Peek()"/>
+        public T Peek()
+        {
+            lock (this)
+            {
+                return this.queue.Peek();
+            }
+        }
+
+        /// <inheritdoc cref="Queue{T}.TryPeek(out T)"/>
+        public bool TryPeek([MaybeNullWhen(false)] out T result)
+        {
+            lock (this)
+            {
+                return this.queue.TryPeek(out result);
+            }
+        }
+
         private static Queue<T> ReadQueueFile(FileInfo fileInfo)
         {
             if (fileInfo.Exists)
@@ -126,15 +147,6 @@ namespace Plugin.FirebasePushNotifications.Model
             {
                 var json = JsonConvert.SerializeObject(queue);
                 writer.Write(json);
-            }
-        }
-
-        /// <inheritdoc cref="Queue{T}.TryDequeue(out T)"/>
-        public bool TryDequeue([MaybeNullWhen(false)] out T result)
-        {
-            lock (this)
-            {
-                return this.queue.TryDequeue(out result);
             }
         }
     }
