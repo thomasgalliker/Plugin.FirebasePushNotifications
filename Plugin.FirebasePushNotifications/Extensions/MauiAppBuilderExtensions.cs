@@ -29,6 +29,10 @@ namespace Plugin.FirebasePushNotifications.Extensions
                     // TODO: Setup Android specific services
                     //FirebasePushNotificationManager.Initialize(activity, firebaseSettings)));
                 }));
+                events.AddAndroid(android => android.OnNewIntent((activity, _) =>
+                {
+                    // TODO: CheckAndProcess... here
+                }));
 #endif
             });
 
