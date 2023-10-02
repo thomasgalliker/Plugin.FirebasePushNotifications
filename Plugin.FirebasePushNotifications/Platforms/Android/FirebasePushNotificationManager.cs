@@ -158,10 +158,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                         editor.Commit();
                     }
 
-
                     CrossFirebasePushNotification.Current.RegisterForPushNotifications();
-
-
                 });
             }
 
@@ -193,10 +190,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         [Obsolete]
         public static void Initialize(Context context, NotificationUserCategory[] notificationCategories, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
-
             Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
             RegisterUserNotificationCategories(notificationCategories);
-
         }
 
         public static void Reset()
@@ -226,7 +221,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     SaveToken(token);
                 }
             });
-
         }
 
         public async Task<string> GetTokenAsync()
@@ -246,13 +240,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             return retVal;
-
-
         }
 
         public void OnComplete(Android.Gms.Tasks.Task task)
         {
-
             try
             {
                 if (task.IsSuccessful)
@@ -568,7 +559,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
                 manager.Cancel(tag, id);
             }
-
         }
     }
 }

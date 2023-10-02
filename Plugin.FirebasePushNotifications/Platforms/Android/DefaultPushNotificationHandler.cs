@@ -450,8 +450,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-
-
             // Try to resolve (and apply) localized parameters
             this.ResolveLocalizedParameters(notificationBuilder, parameters);
 
