@@ -18,15 +18,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         private static NotificationResponse delayedNotificationResponse = null;
         private static TaskCompletionSource<string> _tokenTcs;
-        internal const string KeyGroupName = "Plugin.FirebasePushNotification";
-        internal const string FirebaseTopicsKey = "FirebaseTopicsKey";
-        internal const string FirebaseTokenKey = "FirebaseTokenKey";
         internal const string AppVersionCodeKey = "AppVersionCodeKey";
         internal const string AppVersionNameKey = "AppVersionNameKey";
         internal const string AppVersionPackageNameKey = "AppVersionPackageNameKey";
 
         // internal const string NotificationDeletedActionId = "Plugin.PushNotification.NotificationDeletedActionId";
-        private static readonly ICollection<string> currentTopics = new HashSet<string>(Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).GetStringSet(FirebaseTopicsKey, new Collection<string>()));
+        private static readonly ICollection<string> currentTopics = new HashSet<string>(Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).GetStringSet(Constants.FirebaseTopicsKey, new Collection<string>()));
         private static readonly IList<NotificationUserCategory> userNotificationCategories = new List<NotificationUserCategory>();
         public static string NotificationContentTitleKey { get; set; }
         public static string NotificationContentTextKey { get; set; }
@@ -48,6 +45,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         //internal static PushNotificationActionReceiver ActionReceiver = new PushNotificationActionReceiver();
 
+        // TODO: Remove enableDelayedResponse... very dangerous to use delayedNotificationResponse across different events!
         public static void ProcessIntent(Activity activity, Intent intent, bool enableDelayedResponse = true)
         {
             DefaultNotificationActivityType = activity.GetType();
@@ -128,7 +126,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     var packageName = packageInfo.PackageName;
                     var versionCode = packageInfo.VersionCode;
                     var versionName = packageInfo.VersionName;
-                    var prefs = Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private);
+                    var prefs = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private);
 
                     try
                     {
@@ -292,7 +290,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             userNotificationCategories.Clear();
         }
 
-        public string Token => Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).GetString(FirebaseTokenKey, string.Empty);
+        public string Token => Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).GetString(Constants.FirebaseTokenKey, string.Empty);
 
         private static FirebasePushNotificationDataEventHandler _onNotificationReceived;
         public event FirebasePushNotificationDataEventHandler OnNotificationReceived
@@ -461,8 +459,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 FirebaseMessaging.Instance.SubscribeToTopic(topic);
                 currentTopics.Add(topic);
-                var editor = Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).Edit();
-                editor.PutStringSet(FirebaseTopicsKey, currentTopics);
+                var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
+                editor.PutStringSet(Constants.FirebaseTopicsKey, currentTopics);
                 editor.Commit();
             }
         }
@@ -487,8 +485,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             currentTopics.Clear();
 
-            var editor = Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutStringSet(FirebaseTopicsKey, currentTopics);
+            var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
+            editor.PutStringSet(Constants.FirebaseTopicsKey, currentTopics);
             editor.Commit();
         }
 
@@ -499,8 +497,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
                 currentTopics.Remove(topic);
 
-                var editor = Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).Edit();
-                editor.PutStringSet(FirebaseTopicsKey, currentTopics);
+                var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
+                editor.PutStringSet(Constants.FirebaseTopicsKey, currentTopics);
                 editor.Commit();
             }
 
@@ -531,8 +529,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         internal static void SaveToken(string token)
         {
-            var editor = Android.App.Application.Context.GetSharedPreferences(FirebasePushNotificationManager.KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutString(FirebasePushNotificationManager.FirebaseTokenKey, token);
+            var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
+            editor.PutString(Constants.FirebaseTokenKey, token);
             editor.Commit();
         }
 

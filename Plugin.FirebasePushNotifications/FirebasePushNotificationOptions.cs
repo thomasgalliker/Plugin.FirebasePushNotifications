@@ -4,6 +4,10 @@
     {
         public virtual bool AutoInit { get; set; }
 
+#if IOS
+        
+#endif
+
         public override string ToString()
         {
             return $"[{nameof(FirebasePushNotificationOptions)}: " +

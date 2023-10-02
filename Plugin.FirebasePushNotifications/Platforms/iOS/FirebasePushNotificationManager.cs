@@ -16,13 +16,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private static readonly Queue<Tuple<string, bool>> pendingTopics = new Queue<Tuple<string, bool>>();
         private static bool hasToken = false;
-        private static readonly NSString FirebaseTopicsKey = new NSString("FirebaseTopics");
 
-        private const string FirebaseTokenKey = "FirebaseToken";
+        private static readonly NSMutableArray currentTopics = (NSUserDefaults.StandardUserDefaults.ValueForKey(Constants.FirebaseTopicsKey) as NSArray ?? new NSArray()).MutableCopy() as NSMutableArray;
 
-        private static readonly NSMutableArray currentTopics = (NSUserDefaults.StandardUserDefaults.ValueForKey(FirebaseTopicsKey) as NSArray ?? new NSArray()).MutableCopy() as NSMutableArray;
-
-        public string Token => string.IsNullOrEmpty(Messaging.SharedInstance.FcmToken) ? NSUserDefaults.StandardUserDefaults.StringForKey(FirebaseTokenKey) ?? string.Empty : Messaging.SharedInstance.FcmToken;
+        public string Token
+        {
+            get
+            {
+                var fcmToken = Messaging.SharedInstance.FcmToken;
+                if (!string.IsNullOrEmpty(fcmToken))
+                {
+                    return fcmToken;
+                }
+                else
+                {
+                    return NSUserDefaults.StandardUserDefaults.StringForKey(Constants.FirebaseTokenKey);
+                }
+            }
+        }
 
         private static readonly IList<NotificationUserCategory> usernNotificationCategories = new List<NotificationUserCategory>();
 
@@ -218,10 +229,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                         // Create category
                         var categoryID = userCat.Category;
-                        var notificationActions = actions.ToArray() ?? new UNNotificationAction[] { };
-                        var intentIDs = new string[] { };
-
-                        _ = new UNNotificationCategoryOptions[] { };
+                        var notificationActions = actions.ToArray() ?? Array.Empty<UNNotificationAction>();
+                        var intentIDs = Array.Empty<string>();
 
                         var category = UNNotificationCategory.FromIdentifier(categoryID, notificationActions, intentIDs, userCat.Type == NotificationCategoryType.Dismiss ? UNNotificationCategoryOptions.CustomDismissAction : UNNotificationCategoryOptions.None);
 
@@ -300,7 +309,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             Messaging.SharedInstance.AutoInitEnabled = false;
             UIApplication.SharedApplication.UnregisterForRemoteNotifications();
-            NSUserDefaults.StandardUserDefaults.SetString(string.Empty, FirebaseTokenKey);
+            NSUserDefaults.StandardUserDefaults.SetString(string.Empty, Constants.FirebaseTokenKey);
 
         }
 
@@ -453,7 +462,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 currentTopics.Add(new NSString(topic));
             }
 
-            NSUserDefaults.StandardUserDefaults.SetValueForKey(currentTopics, FirebaseTopicsKey);
+            NSUserDefaults.StandardUserDefaults.SetValueForKey(currentTopics, Constants.FirebaseTopicsKey);
             NSUserDefaults.StandardUserDefaults.Synchronize();
 
         }
@@ -481,6 +490,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 pendingTopics.Enqueue(new Tuple<string, bool>(topic, false));
                 return;
             }
+
             var deletedKey = new NSString($"{topic}");
             if (currentTopics.Contains(deletedKey))
             {
@@ -492,7 +502,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 }
             }
-            NSUserDefaults.StandardUserDefaults.SetValueForKey(currentTopics, FirebaseTopicsKey);
+
+            NSUserDefaults.StandardUserDefaults.SetValueForKey(currentTopics, Constants.FirebaseTopicsKey);
             NSUserDefaults.StandardUserDefaults.Synchronize();
 
         }
@@ -579,7 +590,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            NSUserDefaults.StandardUserDefaults.SetString(fcmToken ?? string.Empty, FirebaseTokenKey);
+            NSUserDefaults.StandardUserDefaults.SetString(fcmToken ?? string.Empty, Constants.FirebaseTokenKey);
         }
 
         public void ClearAllNotifications()
@@ -593,10 +604,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 UIApplication.SharedApplication.CancelAllLocalNotifications();
             }
         }
+
         public void RemoveNotification(string tag, int id)
         {
             this.RemoveNotification(id);
         }
+
         public async void RemoveNotification(int id)
         {
             var NotificationIdKey = "id";
@@ -629,12 +642,5 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var result = Messaging.SharedInstance.FcmToken;
             return result;
         }
-    }
-
-
-    public enum FirebaseTokenType
-    {
-        Sandbox,
-        Production
     }
 }

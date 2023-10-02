@@ -1,4 +1,5 @@
-﻿using Android.App;
+﻿using System.Diagnostics;
+using Android.App;
 using Android.Content;
 using Firebase.Messaging;
 
@@ -76,6 +77,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     parameters.Add("color", notification.Color);
                 }
             }
+
             foreach (var d in message.Data)
             {
                 if (!parameters.ContainsKey(d.Key))
@@ -98,7 +100,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     }
                     else
                     {
-                        parameters[locKey] = new string[] { };
+                        parameters[locKey] = Array.Empty<string>();
                     }
                 }
             }
@@ -107,25 +109,21 @@ namespace Plugin.FirebasePushNotifications.Platforms
             CrossFirebasePushNotification.Current.NotificationHandler?.OnReceived(parameters);
         }
 
-        public override void OnNewToken(string p0)
+        public override void OnNewToken(string refreshedToken)
         {
-            // Get updated InstanceID token.
-            var refreshedToken = p0;
-
-            //Resubscribe to topics since the old instance id isn't valid anymore
-            //CrossFirebasePushNotification.Current.SubscribedTopics.
+            // Resubscribe to topics since the old instance id isn't valid anymore
             foreach (var t in CrossFirebasePushNotification.Current.SubscribedTopics)
             {
                 FirebaseMessaging.Instance.SubscribeToTopic(t);
             }
 
-            var editor = Android.App.Application.Context.GetSharedPreferences(FirebasePushNotificationManager.KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutString(FirebasePushNotificationManager.FirebaseTokenKey, refreshedToken);
+            var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
+            editor.PutString(Constants.FirebaseTokenKey, refreshedToken);
             editor.Commit();
 
             // CrossFirebasePushNotification.Current.OnTokenRefresh?.Invoke(this,refreshedToken);
             FirebasePushNotificationManager.RegisterToken(refreshedToken);
-            System.Diagnostics.Debug.WriteLine($"REFRESHED TOKEN: {refreshedToken}");
+            Debug.WriteLine($"REFRESHED TOKEN: {refreshedToken}");
         }
     }
 
