@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Extensions;
 
 namespace MauiSampleApp
 {
@@ -9,6 +10,10 @@ namespace MauiSampleApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseFirebasePushNotifications(o =>
+                {
+                    o.AutoInit = true;
+                })
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
