@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Plugin.FirebasePushNotifications.Internals;
-using Plugin.FirebasePushNotifications.Model;
-using Xunit;
+using Xunit.Abstractions;
 
 namespace Plugin.FirebasePushNotifications.Tests.Internals
 {
-    public class DictionaryJsonConverterTests
+    public class DictionaryConverterTests
     {
+        private readonly ITestOutputHelper testOutputHelper;
+
+        public DictionaryConverterTests(ITestOutputHelper testOutputHelper)
+        {
+            this.testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void ShouldFlattenObjectToDictionary()
         {
@@ -19,24 +20,29 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
             var source = new TestObject
             {
                 Title = "Title",
-                Body = "Body",
+                Date = new DateTime(2000, 1, 1, 12, 00, 00, DateTimeKind.Utc),
                 NestedTestObject = new NestedTestObject
                 {
                     Title = "NestedTitle",
-                }
+                },
+                TestArray = new[] { "value1", "value2" }
             };
 
             // Act
-            var json = DictionaryJsonConverter.Flatten(source);
+            var json = DictionaryConverter.Flatten(source);
 
             // Assert
+            this.testOutputHelper.WriteLine(ObjectDumper.Dump(json, DumpStyle.CSharp));
+
             json.Should().NotBeNull();
             json.Should().BeEquivalentTo(
                 new Dictionary<string, string>
                 {
                     { "Title", "Title" },
-                    { "Body", "Body" },
-                    { "NestedTestObject.Title", "NestedTitle" }
+                    { "Date", "01.01.2000 12:00:00" },
+                    { "NestedTestObject.Title", "NestedTitle" },
+                    { "TestArray[0]", "value1" },
+                    { "TestArray[1]", "value2" }
                 });
         }
 
@@ -47,24 +53,29 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
             var source = new Dictionary<string, string>
             {
                 { "Title", "Title" },
-                { "Body", "Body" },
-                { "NestedTestObject.Title", "NestedTitle" }
+                { "Date", "01.01.2000 12:00:00" },
+                { "NestedTestObject.Title", "NestedTitle" },
+                { "TestArray[0]", "value1" },
+                { "TestArray[1]", "value2" }
             };
 
             // Act
-            var target = DictionaryJsonConverter.Unflatten<TestObject>(source);
+            var target = DictionaryConverter.Unflatten<TestObject>(source);
 
             // Assert
+            this.testOutputHelper.WriteLine(ObjectDumper.Dump(target, DumpStyle.CSharp));
+
             target.Should().NotBeNull();
             target.Should().BeOfType<TestObject>();
             target.Should().BeEquivalentTo(new TestObject
             {
                 Title = "Title",
-                Body = "Body",
+                Date = new DateTime(2000, 1, 1, 12, 00, 00, DateTimeKind.Utc),
                 NestedTestObject = new NestedTestObject
                 {
                     Title = "NestedTitle"
-                }
+                },
+                TestArray = new[] { "value1", "value2" }
             });
         }
 
@@ -72,9 +83,11 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
         {
             public string Title { get; set; }
 
-            public string Body { get; set; }
+            public DateTime Date { get; set; }
 
             public NestedTestObject NestedTestObject { get; set; }
+
+            public string[] TestArray { get; set; }
         }
 
         public class NestedTestObject
