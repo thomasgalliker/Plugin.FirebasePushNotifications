@@ -1,17 +1,29 @@
 ﻿namespace Plugin.FirebasePushNotifications
 {
+    public class FirebasePushNotificationAndroidOptions
+    {
+        /// <summary>
+        /// The activity which handles incoming push notifications.
+        /// Typically, this is <c>typeof(MainActivity)</c>.
+        /// </summary>
+        public virtual Type NotificationActivityType { get; set; }
+
+        public virtual string DefaultNotificationChannelId { get; set; }
+    }
+
     public class FirebasePushNotificationOptions
     {
-        public virtual bool AutoInit { get; set; }
+        public virtual bool AutoInitEnabled { get; set; }
 
-#if IOS
-        
+#if ANDROID
+
+        public virtual FirebasePushNotificationAndroidOptions Android { get; set; } = new FirebasePushNotificationAndroidOptions();
 #endif
 
         public override string ToString()
         {
             return $"[{nameof(FirebasePushNotificationOptions)}: " +
-                   $"{nameof(this.AutoInit)}={this.AutoInit},"
+                   $"{nameof(this.AutoInitEnabled)}={this.AutoInitEnabled},"
                    ;
         }
     }
