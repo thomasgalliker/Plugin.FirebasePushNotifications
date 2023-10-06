@@ -1,8 +1,8 @@
 ﻿namespace Plugin.FirebasePushNotifications
 {
-    public sealed class FirebasePushNotificationOptions
+    public class FirebasePushNotificationOptions
     {
-        public bool AutoInit { get; init; }
+        public virtual bool AutoInit { get; set; }
 
         public override string ToString()
         {
