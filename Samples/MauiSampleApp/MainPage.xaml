@@ -10,12 +10,6 @@
             Spacing="25"
             VerticalOptions="Center">
 
-            <Image
-                HeightRequest="200"
-                HorizontalOptions="Center"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                Source="dotnet_bot.png" />
-
             <Label
                 FontSize="32"
                 HorizontalOptions="Center"

@@ -12,7 +12,11 @@ namespace MauiSampleApp
                 .UseMauiApp<App>()
                 .UseFirebasePushNotifications(o =>
                 {
-                    o.AutoInit = true;
+                    o.AutoInitEnabled = false;
+#if ANDROID
+                    o.Android.DefaultNotificationChannelId = "general";
+                    o.Android.NotificationActivityType = typeof(MainActivity);
+#endif
                 })
                 .ConfigureFonts(fonts =>
                 {

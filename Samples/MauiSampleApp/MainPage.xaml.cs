@@ -10,11 +10,8 @@ namespace MauiSampleApp
         {
             this.InitializeComponent();
 
-            var isSupported = CrossFirebasePushNotification.IsSupported;
-
             var firebasePushNotification = CrossFirebasePushNotification.Current;
             firebasePushNotification.ClearAllNotifications();
-
         }
 
         private void OnCounterClicked(object sender, EventArgs e)
@@ -29,8 +26,6 @@ namespace MauiSampleApp
             {
                 this.CounterBtn.Text = $"Clicked {this.count} times";
             }
-
-            SemanticScreenReader.Announce(this.CounterBtn.Text);
         }
     }
 }
