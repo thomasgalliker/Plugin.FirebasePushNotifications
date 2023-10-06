@@ -4,6 +4,7 @@ using Android.Content.Res;
 using Android.Graphics;
 using Android.Media;
 using Android.OS;
+using Android.Util;
 using AndroidX.Core.App;
 using Java.Util;
 using static Android.App.ActivityManager;
@@ -14,7 +15,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class DefaultPushNotificationHandler : IPushNotificationHandler
     {
-        public const string DomainTag = nameof(DefaultPushNotificationHandler);
+        private const string Tag = nameof(DefaultPushNotificationHandler);
 
         /// <summary>
         /// Title
@@ -139,12 +140,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public virtual void OnOpened(NotificationResponse response)
         {
-            Debug.WriteLine($"{DomainTag} - OnOpened");
+            Log.Debug(Tag, $"OnOpened");
         }
 
         public virtual void OnReceived(IDictionary<string, object> parameters)
         {
-            Debug.WriteLine($"{DomainTag} - OnReceived");
+            Debug.WriteLine($"{Tag} - OnReceived");
 
             if ((parameters.TryGetValue(SilentKey, out var silent) && (silent.ToString() == "true" || silent.ToString() == "1")) || (IsInForeground() && (!(!parameters.ContainsKey(ChannelIdKey) && parameters.TryGetValue(PriorityKey, out var imp) && ($"{imp}" == "high" || $"{imp}" == "max")) || (!parameters.ContainsKey(PriorityKey) && !parameters.ContainsKey(ChannelIdKey) && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.High && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.Max))))
             {
@@ -335,11 +336,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"{DomainTag} - Failed to parse color {ex}");
+                    Debug.WriteLine($"{Tag} - Failed to parse color {ex}");
                 }
             }
 
-            var resultIntent = typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType) 
+            var resultIntent = typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType)
                 ? new Intent(Application.Context, FirebasePushNotificationManager.NotificationActivityType)
                 : (FirebasePushNotificationManager.DefaultNotificationActivityType == null ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName) : new Intent(Application.Context, FirebasePushNotificationManager.DefaultNotificationActivityType));
 
@@ -446,12 +447,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"{DomainTag} - Failed to set sound {ex}");
+                    Debug.WriteLine($"{Tag} - Failed to set sound {ex}");
                 }
             }
 
             // Try to resolve (and apply) localized parameters
-            this.ResolveLocalizedParameters(notificationBuilder, parameters);
+            ResolveLocalizedParameters(notificationBuilder, parameters);
 
             if (notificationColor != null)
             {
@@ -534,30 +535,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// </summary>
         /// <param name="notificationBuilder">Notification builder.</param>
         /// <param name="parameters">Parameters.</param>
-        private void ResolveLocalizedParameters(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters)
+        private static void ResolveLocalizedParameters(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters)
         {
-            string getLocalizedString(string name, params string[] arguments)
-            {
-                var context = notificationBuilder.MContext;
-                var resources = context.Resources;
-                var identifier = resources.GetIdentifier(name, "string", context.PackageName);
-                var sanitizedArgs = arguments?.Where(it => it != null).Select(it => new Java.Lang.String(it)).Cast<Java.Lang.Object>().ToArray();
-
-                try
-                { return resources.GetString(identifier, sanitizedArgs ?? new Java.Lang.Object[] { }); }
-                catch (UnknownFormatConversionException ex)
-                {
-                    Debug.WriteLine($"{DomainTag}.ResolveLocalizedParameters - Incorrect string arguments {ex}");
-                    return null;
-                }
-            }
-
             // Resolve title localization
             if (parameters.TryGetValue("title_loc_key", out var titleKey))
             {
                 parameters.TryGetValue("title_loc_args", out var titleArgs);
 
-                var localizedTitle = getLocalizedString(titleKey.ToString(), titleArgs as string[]);
+                var localizedTitle = GetLocalizedString(titleKey.ToString(), titleArgs as string[], notificationBuilder);
                 if (localizedTitle != null)
                 {
                     notificationBuilder.SetContentTitle(localizedTitle);
@@ -570,7 +555,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 parameters.TryGetValue("body_loc_args", out var bodyArgs);
 
-                var localizedBody = getLocalizedString(bodyKey.ToString(), bodyArgs as string[]);
+                var localizedBody = GetLocalizedString(bodyKey.ToString(), bodyArgs as string[], notificationBuilder);
                 if (localizedBody != null)
                 {
                     notificationBuilder.SetContentText(localizedBody);
@@ -578,9 +563,30 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        private static string GetLocalizedString(string name, string[] arguments, NotificationCompat.Builder notificationBuilder)
+        {
+            try
+            {
+                var context = notificationBuilder.MContext;
+                var resources = context.Resources;
+                var identifier = resources.GetIdentifier(name, "string", context.PackageName);
+                var sanitizedArgs = arguments?.Where(it => it != null)
+                    .Select(it => new Java.Lang.String(it))
+                    .Cast<Java.Lang.Object>()
+                    .ToArray() ?? Array.Empty<Java.Lang.Object>();
+
+                return resources.GetString(identifier, sanitizedArgs);
+            }
+            catch (UnknownFormatConversionException ex)
+            {
+                Debug.WriteLine($"{Tag}.ResolveLocalizedParameters - Incorrect string arguments {ex}");
+                return null;
+            }
+        }
+
         public virtual void OnError(string error)
         {
-            Debug.WriteLine($"{DomainTag} - OnError - {error}");
+            Debug.WriteLine($"{Tag} - OnError - {error}");
         }
 
         /// <summary>
@@ -588,7 +594,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// </summary>
         /// <param name="notificationBuilder">Notification builder.</param>
         /// <param name="parameters">Notification parameters.</param>
-        public virtual void OnBuildNotification(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters) { }
+        public virtual void OnBuildNotification(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters)
+        {
+        }
 
         private static bool IsInForeground()
         {
