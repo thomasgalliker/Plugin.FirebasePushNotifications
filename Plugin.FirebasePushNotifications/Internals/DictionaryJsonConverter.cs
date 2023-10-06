@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace Plugin.FirebasePushNotifications.Internals
@@ -8,8 +9,16 @@ namespace Plugin.FirebasePushNotifications.Internals
     /// Converts any object into a flat dictionary with string key and string value.
     /// All nested properties are flattened into a dot-separated structure.
     /// </summary>
-    public class DictionaryConverter
+    public static class DictionaryJsonConverter
     {
+        private static readonly JsonSerializer DefaultJsonSerializer = new JsonSerializer()
+        {
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            DateFormatHandling = DateFormatHandling.IsoDateFormat,
+            NullValueHandling = NullValueHandling.Ignore,
+            Converters = { new IsoDateTimeConverter() }
+        };
+
         /// <summary>
         /// Creates a flat dictionary for <paramref name="source"/> of type <typeparamref name="T"/>.
         /// </summary>
@@ -17,8 +26,7 @@ namespace Plugin.FirebasePushNotifications.Internals
         /// <returns>Flat dictionary with path as key and value as string.</returns>
         public static IDictionary<string, string> Flatten<T>(T source)
         {
-            var jObject = JObject.FromObject(source);
-            return Flatten(jObject);
+            return Flatten(source, DefaultJsonSerializer);
         }
 
         /// <summary>
@@ -65,15 +73,14 @@ namespace Plugin.FirebasePushNotifications.Internals
         public static T Unflatten<T>(IDictionary<string, string> dictionary)
         {
             var jObject = Unflatten(dictionary);
-            return jObject.ToObject<T>();
+            return jObject.ToObject<T>(DefaultJsonSerializer);
         }
 
         /// <inheritdoc cref="Unflatten{T}(IDictionary{string, string})"/>
         /// <param name="jsonSerializer">A custom json serializer.</param>
         public static T Unflatten<T>(IDictionary<string, string> dictionary, JsonSerializer jsonSerializer)
         {
-            var jObject = Unflatten(dictionary);
-            return jObject.ToObject<T>(jsonSerializer);
+            return (T)Unflatten(dictionary, typeof(T), jsonSerializer);
         }
 
         public static object Unflatten(IDictionary<string, string> dictionary, Type targetType, JsonSerializer jsonSerializer)
@@ -83,10 +90,10 @@ namespace Plugin.FirebasePushNotifications.Internals
         }
 
         /// <summary>
-        ///  Creates a JObject by a given flat dictionary.
+        ///  Creates a <see cref="JObject"/> from a given flat <paramref name="dictionary"/>.
         /// </summary>
-        /// <param name="dictionary">Flat dictionary.</param>
-        /// <returns> Hierarchical JObject.</returns>
+        /// <param name="dictionary">The source dictionary.</param>
+        /// <returns>The structured result.</returns>
         public static JObject Unflatten(IDictionary<string, string> dictionary)
         {
             JContainer result = null;
@@ -113,7 +120,7 @@ namespace Plugin.FirebasePushNotifications.Internals
             var pathSegments = SplitPath(path);
 
             JContainer lastItem = null;
-            
+
             // Build from leaf to root
             foreach (var pathSegment in pathSegments.Reverse())
             {

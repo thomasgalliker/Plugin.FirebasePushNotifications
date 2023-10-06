@@ -4,11 +4,11 @@ using Xunit.Abstractions;
 
 namespace Plugin.FirebasePushNotifications.Tests.Internals
 {
-    public class DictionaryConverterTests
+    public class DictionaryJsonConverterTests
     {
         private readonly ITestOutputHelper testOutputHelper;
 
-        public DictionaryConverterTests(ITestOutputHelper testOutputHelper)
+        public DictionaryJsonConverterTests(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
         }
@@ -29,7 +29,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
             };
 
             // Act
-            var json = DictionaryConverter.Flatten(source);
+            var json = DictionaryJsonConverter.Flatten(source);
 
             // Assert
             this.testOutputHelper.WriteLine(ObjectDumper.Dump(json, DumpStyle.CSharp));
@@ -39,7 +39,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
                 new Dictionary<string, string>
                 {
                     { "Title", "Title" },
-                    { "Date", "01.01.2000 12:00:00" },
+                    { "Date", "2000-01-01T12:00:00Z" },
                     { "NestedTestObject.Title", "NestedTitle" },
                     { "TestArray[0]", "value1" },
                     { "TestArray[1]", "value2" }
@@ -53,14 +53,14 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
             var source = new Dictionary<string, string>
             {
                 { "Title", "Title" },
-                { "Date", "01.01.2000 12:00:00" },
+                { "Date", "2000-01-01T12:00:00Z" },
                 { "NestedTestObject.Title", "NestedTitle" },
                 { "TestArray[0]", "value1" },
                 { "TestArray[1]", "value2" }
             };
 
             // Act
-            var target = DictionaryConverter.Unflatten<TestObject>(source);
+            var target = DictionaryJsonConverter.Unflatten<TestObject>(source);
 
             // Assert
             this.testOutputHelper.WriteLine(ObjectDumper.Dump(target, DumpStyle.CSharp));
