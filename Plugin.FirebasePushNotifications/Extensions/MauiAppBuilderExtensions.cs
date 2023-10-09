@@ -13,7 +13,7 @@ using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Plugin.FirebasePushNotifications.Model.Queues;
 
-namespace Plugin.FirebasePushNotifications.Extensions
+namespace Plugin.FirebasePushNotifications
 {
     public static class MauiAppBuilderExtensions
     {

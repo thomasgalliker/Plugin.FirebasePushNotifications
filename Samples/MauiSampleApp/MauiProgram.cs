@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Plugin.FirebasePushNotifications.Extensions;
+using Plugin.FirebasePushNotifications;
 
 namespace MauiSampleApp
 {
