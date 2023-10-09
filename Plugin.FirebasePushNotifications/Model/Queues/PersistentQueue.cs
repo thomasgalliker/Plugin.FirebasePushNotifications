@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 
-namespace Plugin.FirebasePushNotifications.Model
+namespace Plugin.FirebasePushNotifications.Model.Queues
 {
     /// <summary>
     /// Queue of generic objects with file persistence.
@@ -10,7 +10,7 @@ namespace Plugin.FirebasePushNotifications.Model
     /// </summary>
     /// <typeparam name="T">Generic element type.</typeparam>
     [DebuggerDisplay("Count = {Count}")]
-    internal class PersistentQueue<T>
+    public class PersistentQueue<T> : IQueue<T> //TODO: Mark internal
     {
         private readonly Queue<T> queue;
         private readonly FileInfo fileInfo;
@@ -19,7 +19,7 @@ namespace Plugin.FirebasePushNotifications.Model
         /// <summary>
         /// Creates a new instance of <see cref="PersistentQueue{T}"/> with options.
         /// </summary>
-        public PersistentQueue() 
+        public PersistentQueue()
             : this(PersistentQueueOptions.Default)
         {
         }

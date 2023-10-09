@@ -20,7 +20,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            FirebasePushNotificationManager.RegisterDelete(parameters);
+            CrossFirebasePushNotification.Current.RegisterDelete(parameters);
         }
     }
 }

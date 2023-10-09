@@ -1,4 +1,4 @@
-﻿namespace Plugin.FirebasePushNotifications.Model
+﻿namespace Plugin.FirebasePushNotifications.Model.Queues
 {
     /// <summary>
     /// The options used to configure <see cref="PersistentQueue{T}"/>.

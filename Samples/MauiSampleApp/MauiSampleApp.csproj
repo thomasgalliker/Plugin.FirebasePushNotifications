@@ -60,10 +60,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj" />
 	</ItemGroup>
+
+	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionMauiSampleAppHideInfoBar="True" /></VisualStudio></ProjectExtensions>
 
 </Project>

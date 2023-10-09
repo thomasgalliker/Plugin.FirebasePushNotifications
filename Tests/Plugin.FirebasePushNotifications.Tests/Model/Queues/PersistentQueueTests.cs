@@ -1,7 +1,7 @@
 using FluentAssertions;
-using Plugin.FirebasePushNotifications.Model;
+using Plugin.FirebasePushNotifications.Model.Queues;
 
-namespace Plugin.FirebasePushNotifications.Tests.Model
+namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
 {
     public class PersistentQueueTests
     {
@@ -14,7 +14,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
             // Assert
             action.Should().NotThrow();
         }
-        
+
         [Fact]
         public void ShouldArgumentNullException_IfOptionsIsNull()
         {
@@ -38,7 +38,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
             // Assert
             queue.Count.Should().Be(1);
         }
-        
+
         [Fact]
         public void ShouldDequeueItem()
         {
@@ -55,8 +55,8 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
             queue.Count.Should().Be(0);
             dequeueItem.Id.Should().Be(1);
         }
-        
-        
+
+
         [Fact]
         public void ShouldTryDequeueItem()
         {

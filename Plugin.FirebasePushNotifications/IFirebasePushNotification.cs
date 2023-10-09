@@ -1,7 +1,24 @@
-﻿namespace Plugin.FirebasePushNotifications
+﻿#if ANDROID
+using Android.App;
+using Android.Content;
+#endif
+
+namespace Plugin.FirebasePushNotifications
 {
     public interface IFirebasePushNotification
     {
+#if ANDROID
+        void ProcessIntent(Activity activity, Intent intent);
+
+        void RegisterToken(string token);
+
+        void RegisterData(IDictionary<string, object> parameters);
+
+        void RegisterAction(IDictionary<string, object> parameters);
+        
+        void RegisterDelete(IDictionary<string, object> parameters);
+#endif
+
         /// <summary>
         /// Get all user notification categories
         /// </summary>
@@ -40,13 +57,11 @@
         /// <summary>
         /// Register push notifications on demand
         /// </summary>
-        /// <returns></returns>
         void RegisterForPushNotifications();
 
         /// <summary>
         /// Unregister push notifications on demand
         /// </summary>
-        /// <returns></returns>
         void UnregisterForPushNotifications();
 
         /// <summary>

@@ -1,6 +1,8 @@
 ﻿#if ANDROID || IOS
 #define ANDROID_OR_IOS
+using Microsoft.Extensions.Logging.Abstractions;
 using Plugin.FirebasePushNotifications;
+using Plugin.FirebasePushNotifications.Model.Queues;
 using Plugin.FirebasePushNotifications.Platforms;
 #endif
 
@@ -40,7 +42,7 @@ namespace Plugin.FirebasePushNotifications
         private static IFirebasePushNotification CreateFirebasePushNotification()
         {
 #if ANDROID_OR_IOS
-            return new FirebasePushNotificationManager();
+            return new FirebasePushNotificationManager(new NullLogger<FirebasePushNotificationManager>(), new InMemoryQueueFactory());
 #else
             throw NotImplementedInReferenceAssembly();
 #endif
@@ -62,6 +64,19 @@ namespace Plugin.FirebasePushNotifications
             if (Implementation != null && Implementation.IsValueCreated)
             {
                 Implementation = new Lazy<IFirebasePushNotification>(CreateFirebasePushNotification, LazyThreadSafetyMode.PublicationOnly);
+            }
+        }
+
+        internal static void TrySetCurrent(IFirebasePushNotification instance, out IFirebasePushNotification o)
+        {
+            if (Implementation.IsValueCreated)
+            {
+                o = Implementation.Value;
+            }
+            else
+            {
+                o = instance;
+                Implementation = new Lazy<IFirebasePushNotification>(() => instance);
             }
         }
     }

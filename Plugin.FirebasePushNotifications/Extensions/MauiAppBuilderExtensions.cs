@@ -1,6 +1,7 @@
-﻿#if ANDROID || IOS
+﻿using Microsoft.Extensions.Logging;
+
+#if ANDROID || IOS
 using Plugin.FirebasePushNotifications.Platforms;
-using Microsoft.Extensions.Logging;
 #endif
 
 #if IOS
@@ -9,8 +10,10 @@ using UserNotifications;
 #endif
 
 using Microsoft.Maui.LifecycleEvents;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Plugin.FirebasePushNotifications.Model.Queues;
 
-namespace Plugin.FirebasePushNotifications
+namespace Plugin.FirebasePushNotifications.Extensions
 {
     public static class MauiAppBuilderExtensions
     {
@@ -45,8 +48,19 @@ namespace Plugin.FirebasePushNotifications
                     else
                     {
                         logger.LogDebug($"FinishedLaunching");
+
+/* Unmerged change from project 'Plugin.FirebasePushNotifications (net7.0-android)'
+Before:
                     }
                     
+                    // Instead of FirebasePushNotificationManager.Initialize
+After:
+                    }
+
+                    // Instead of FirebasePushNotificationManager.Initialize
+*/
+                    }
+
                     // Instead of FirebasePushNotificationManager.Initialize
                     Firebase.Core.App.Configure();
                     Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
@@ -62,6 +76,8 @@ namespace Plugin.FirebasePushNotifications
 #elif ANDROID
                 events.AddAndroid(android => android.OnApplicationCreate(d =>
                 {
+                    var firebasePushNotification = MauiApplication.Current.Services.GetService<IFirebasePushNotification>();
+
                     FirebasePushNotificationManager.NotificationActivityType = defaultOptions.Android.NotificationActivityType;
                     FirebasePushNotificationManager.DefaultNotificationChannelId = defaultOptions.Android.DefaultNotificationChannelId;
 
@@ -79,16 +95,29 @@ namespace Plugin.FirebasePushNotifications
                 events.AddAndroid(android => android.OnCreate((activity, intent) =>
                 {
                     Firebase.FirebaseApp.InitializeApp(activity);
-                    IntentHandler.CheckAndProcessIntent(activity, activity.Intent);
+                    CrossFirebasePushNotification.Current.ProcessIntent(activity, activity.Intent);
                 }));
                 events.AddAndroid(android => android.OnNewIntent((activity, intent) =>
                 {
-                    IntentHandler.CheckAndProcessIntent(activity, intent);
+                    CrossFirebasePushNotification.Current.ProcessIntent(activity, intent);
                 }));
 #endif
             });
 
-            builder.Services.AddSingleton(_ => CrossFirebasePushNotification.Current);
+            // Service registrations
+#if ANDROID || IOS
+            builder.Services.TryAddSingleton<IQueueFactory, InMemoryQueueFactory>();
+            builder.Services.AddSingleton(c =>
+            {
+                var firebasePushNotificationManager = new FirebasePushNotificationManager(
+                    c.GetRequiredService<ILogger<FirebasePushNotificationManager>>(),
+                    c.GetRequiredService<IQueueFactory>());
+
+                CrossFirebasePushNotification.TrySetCurrent(firebasePushNotificationManager, out var current);
+
+                return current;
+            });
+#endif
             return builder;
         }
     }

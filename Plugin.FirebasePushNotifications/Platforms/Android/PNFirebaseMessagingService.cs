@@ -105,7 +105,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            FirebasePushNotificationManager.RegisterData(parameters);
+            // TODO: Use service locator here
+            //var firebasePushNotification = ServiceLocator.GetService<IFirebasePushNotification>();
+
+            CrossFirebasePushNotification.Current.RegisterData(parameters);
             CrossFirebasePushNotification.Current.NotificationHandler?.OnReceived(parameters);
         }
 
@@ -121,8 +124,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             editor.PutString(Constants.FirebaseTokenKey, refreshedToken);
             editor.Commit();
 
-            // CrossFirebasePushNotification.Current.OnTokenRefresh?.Invoke(this,refreshedToken);
-            FirebasePushNotificationManager.RegisterToken(refreshedToken);
+            CrossFirebasePushNotification.Current.RegisterToken(refreshedToken);
             Debug.WriteLine($"REFRESHED TOKEN: {refreshedToken}");
         }
     }
