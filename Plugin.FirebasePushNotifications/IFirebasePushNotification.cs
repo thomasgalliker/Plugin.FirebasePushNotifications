@@ -3,6 +3,10 @@ using Android.App;
 using Android.Content;
 #endif
 
+#if IOS
+using Foundation;
+#endif
+
 namespace Plugin.FirebasePushNotifications
 {
     public interface IFirebasePushNotification
@@ -17,6 +21,14 @@ namespace Plugin.FirebasePushNotifications
         void RegisterAction(IDictionary<string, object> parameters);
         
         void RegisterDelete(IDictionary<string, object> parameters);
+#endif
+
+#if IOS
+        void DidRegisterRemoteNotifications(NSData deviceToken);
+
+        void RemoteNotificationRegistrationFailed(NSError error);
+
+        void DidReceiveMessage(NSDictionary data);
 #endif
 
         /// <summary>

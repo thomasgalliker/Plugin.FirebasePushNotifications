@@ -89,17 +89,18 @@ After:
                         Firebase.FirebaseApp.InitializeApp(d.ApplicationContext);
                         Firebase.Messaging.FirebaseMessaging.Instance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
                     }
-
-
                 }));
                 events.AddAndroid(android => android.OnCreate((activity, intent) =>
                 {
                     Firebase.FirebaseApp.InitializeApp(activity);
-                    CrossFirebasePushNotification.Current.ProcessIntent(activity, activity.Intent);
+
+                    var firebasePushNotification = MauiApplication.Current.Services.GetService<IFirebasePushNotification>();
+                    firebasePushNotification.ProcessIntent(activity, activity.Intent);
                 }));
                 events.AddAndroid(android => android.OnNewIntent((activity, intent) =>
                 {
-                    CrossFirebasePushNotification.Current.ProcessIntent(activity, intent);
+                    var firebasePushNotification = MauiApplication.Current.Services.GetService<IFirebasePushNotification>();
+                    firebasePushNotification.ProcessIntent(activity, intent);
                 }));
 #endif
             });
