@@ -1,16 +1,17 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
-using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications.Model.Queues
 {
     /// <summary>
-    /// Queue of generic objects with file persistence.
-    /// Internally is uses <see cref="Queue{T}"/>, so Enqueue can be O(n). Dequeue is O(1).
+    /// Thread-safe queue with file-based persistance.
     /// </summary>
     /// <typeparam name="T">Generic element type.</typeparam>
-    [DebuggerDisplay("Count = {Count}")]
+    /// <remarks>
+    /// Internally is uses <see cref="Queue{T}"/>, so Enqueue can be O(n). Dequeue is O(1).
+    /// </remarks>
+    [DebuggerDisplay("PersistentQueue<{typeof(T).Name,nq}> Count={this.Count}")]
     public class PersistentQueue<T> : IQueue<T> //TODO: Mark internal
     {
         private readonly Queue<T> queue;

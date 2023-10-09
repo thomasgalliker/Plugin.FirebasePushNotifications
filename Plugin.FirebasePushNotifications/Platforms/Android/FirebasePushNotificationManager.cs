@@ -466,7 +466,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public void RegisterData(IDictionary<string, object> data)
         {
-            this.onNotificationReceived?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationDataEventArgs(data));
+            this.NotificationReceivedEventHandler.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationDataEventArgs(data));
         }
 
         public void RegisterAction(IDictionary<string, object> data)

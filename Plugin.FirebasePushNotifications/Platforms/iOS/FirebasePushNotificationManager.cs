@@ -255,7 +255,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // Do your magic to handle the notification data
             //Console.WriteLine(notification.Request.Content.UserInfo);
             var parameters = GetParameters(notification.Request.Content.UserInfo);
-            this.onNotificationReceived?.Invoke(this, new FirebasePushNotificationDataEventArgs(parameters));
+            this.NotificationReceivedEventHandler.Invoke(this, new FirebasePushNotificationDataEventArgs(parameters));
             this.NotificationHandler?.OnReceived(parameters);
 
             if (parameters.TryGetValue("priority", out var priority) && ($"{priority}".ToLower() == "high" || $"{priority}".ToLower() == "max"))
@@ -284,7 +284,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             Messaging.SharedInstance.AppDidReceiveMessage(data);
             var parameters = GetParameters(data);
 
-            this.onNotificationReceived?.Invoke(this, new FirebasePushNotificationDataEventArgs(parameters));
+            this.NotificationReceivedEventHandler.Invoke(this, new FirebasePushNotificationDataEventArgs(parameters));
 
             this.NotificationHandler?.OnReceived(parameters);
         }

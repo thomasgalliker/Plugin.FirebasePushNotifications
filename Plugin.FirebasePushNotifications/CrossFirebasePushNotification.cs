@@ -42,9 +42,7 @@ namespace Plugin.FirebasePushNotifications
         private static IFirebasePushNotification CreateFirebasePushNotification()
         {
 #if ANDROID_OR_IOS
-            return new FirebasePushNotificationManager(
-                new NullLogger<FirebasePushNotificationManager>(),
-                new NullQueueFactory());
+            return new FirebasePushNotificationManager();
 #else
             throw NotImplementedInReferenceAssembly();
 #endif

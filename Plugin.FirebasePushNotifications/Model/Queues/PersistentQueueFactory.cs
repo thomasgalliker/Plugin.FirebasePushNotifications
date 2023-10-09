@@ -2,9 +2,21 @@
 {
     public class PersistentQueueFactory : IQueueFactory
     {
-        public IQueue<T> Create<T>(QueueFactoryContext context)
+        private readonly PersistentQueueOptions options;
+
+        public PersistentQueueFactory()
+            : this(PersistentQueueOptions.Default)
         {
-            return new PersistentQueue<T>();
+        }
+
+        public PersistentQueueFactory(PersistentQueueOptions options)
+        {
+            this.options = options;
+        }
+
+        public IQueue<T> Create<T>()
+        {
+            return new PersistentQueue<T>(this.options);
         }
     }
 }

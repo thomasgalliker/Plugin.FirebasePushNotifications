@@ -2,6 +2,6 @@
 {
     public interface IQueueFactory
     {
-        IQueue<T> Create<T>(QueueFactoryContext context);
+        IQueue<T> Create<T>();
     }
 }

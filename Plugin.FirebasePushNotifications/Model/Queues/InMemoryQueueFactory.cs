@@ -2,7 +2,7 @@
 {
     public class InMemoryQueueFactory : IQueueFactory
     {
-        public IQueue<T> Create<T>(QueueFactoryContext context)
+        public IQueue<T> Create<T>()
         {
             return new InMemoryQueue<T>();
         }

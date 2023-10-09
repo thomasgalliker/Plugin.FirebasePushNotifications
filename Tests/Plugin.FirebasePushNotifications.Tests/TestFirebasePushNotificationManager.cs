@@ -14,7 +14,7 @@ namespace Plugin.FirebasePushNotifications.Tests
 
         public void RaiseOnNotificationReceived(FirebasePushNotificationDataEventArgs eventArgs)
         {
-            this.onNotificationReceived?.Invoke(this, eventArgs);
+            this.NotificationReceivedEventHandler.Invoke(this, eventArgs);
         }
     }
 }

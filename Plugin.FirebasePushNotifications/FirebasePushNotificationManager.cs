@@ -2,8 +2,7 @@
 using Foundation;
 #endif
 
-using Microsoft.Extensions.Logging;
-using Plugin.FirebasePushNotifications.Model.Queues;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -11,10 +10,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
     // We have to make sure we have a platform implementation, as much code sharing as possible and working unit tests!
     public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase
     {
-        public FirebasePushNotificationManager(
-            ILogger<FirebasePushNotificationManager> logger,
-            IQueueFactory queueFactory)
-            : base(logger, queueFactory)
+        public FirebasePushNotificationManager()
+            : base(new NullLogger<FirebasePushNotificationManager>(), queueFactory: null)
         {
         }
     }

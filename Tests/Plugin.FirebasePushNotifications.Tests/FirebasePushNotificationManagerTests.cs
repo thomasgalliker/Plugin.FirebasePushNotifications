@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq.AutoMock;
 using Plugin.FirebasePushNotifications.Model.Queues;
 using Plugin.FirebasePushNotifications.Platforms;
@@ -24,7 +25,7 @@ namespace Plugin.FirebasePushNotifications.Tests
         }
 
         [Fact]
-        public void OnReceived_ShouldDeliverImmediatelyIfEventIsSubscribed()
+        public void OnNotificationReceived_ShouldDeliverImmediately_IfEventIsSubscribed()
         {
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
@@ -37,52 +38,38 @@ namespace Plugin.FirebasePushNotifications.Tests
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
             firebasePushNotificationManager.OnNotificationReceived += (s, e) => listOfEventArgs.Add(e);
-            firebasePushNotificationManager.OnNotificationOpened += (s, e) => listOfEventArgs.Add(e);
 
             // Act
             firebasePushNotificationManager.RaiseOnNotificationReceived(eventArgs);
+            firebasePushNotificationManager.RaiseOnNotificationReceived(eventArgs);
 
             // Assert
-            Assert.Single(listOfEventArgs);
-            Assert.All(listOfEventArgs, e => { Assert.IsType<FirebasePushNotificationDataEventArgs>(e); });
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationDataEventArgs>();
         }
+        [Fact]
+        public void OnNotificationReceived_ShouldDeliverDelayed_IfEventIsSubscribedAfterDelivery()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
 
-        //[Fact]
-        //public void OnReceived_ShouldDeliverDelayedIfEventIsSubscribedAfterDelivery()
-        //{
-        //    // Arrange
-        //    var listOfEventArgs = new List<EventArgs>();
+            var data = new Dictionary<string, object>
+            {
+                { "key", "value" }
+            };
+            var eventArgs = new FirebasePushNotificationDataEventArgs(data);
 
-        //    var data1 = new Dictionary<string, object>
-        //    {
-        //        {
-        //            "key1", "value1"
-        //        }
-        //    };
-        //    var eventArgs1 = new FirebasePushNotificationDataEventArgs(data1);
-        //    var data2 = new Dictionary<string, object>
-        //    {
-        //        {
-        //            "key2", "value2"
-        //        }
-        //    };
-        //    var eventArgs2 = new FirebasePushNotificationDataEventArgs(data2);
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.RaiseOnNotificationReceived(eventArgs);
+            firebasePushNotificationManager.RaiseOnNotificationReceived(eventArgs);
 
-        //    var logger = new TestOutputHelperLogger(this, this.testOutputHelper);
-        //    var firebasePushNotificationMock = new Mock<IFirebasePushNotification>();
+            // Act
+            firebasePushNotificationManager.OnNotificationReceived += (s, e) => listOfEventArgs.Add(e);
 
-        //    IPushNotificationQueue pushNotificationQueue = new PushNotificationQueue(logger, firebasePushNotificationMock.Object);
-        //    firebasePushNotificationMock.Raise(f => f.OnNotificationReceived += null, eventArgs1);
-        //    firebasePushNotificationMock.Raise(f => f.OnNotificationReceived += null, eventArgs2);
-
-        //    // Act
-        //    pushNotificationQueue.OnNotificationReceived += (s, e) => listOfEventArgs.Add(e);
-
-        //    // Assert
-        //    Assert.Equal(2, listOfEventArgs.Count);
-        //    Assert.All(listOfEventArgs, e => { Assert.IsType<FirebasePushNotificationDataEventArgs>(e); });
-        //}
-
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationDataEventArgs>();
+        }
 
         //[Fact]
         //public void OnOpened_ShouldDeliverImmediatelyIfEventIsSubscribed()
