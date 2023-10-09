@@ -12,7 +12,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
     public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase
     {
         public FirebasePushNotificationManager(
-            ILogger<FirebasePushNotificationManager> logger, 
+            ILogger<FirebasePushNotificationManager> logger,
             IQueueFactory queueFactory)
             : base(logger, queueFactory)
         {
@@ -24,8 +24,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
     : NSObject
 #endif
     {
-        protected readonly ILogger<FirebasePushNotificationManager> logger;
-        protected readonly IQueueFactory queueFactory;
+        private readonly string instanceId = Guid.NewGuid().ToString()[..5];
+        protected ILogger<FirebasePushNotificationManager> logger;
+        protected IQueueFactory queueFactory;
 
         protected FirebasePushNotificationManagerBase(
             ILogger<FirebasePushNotificationManager> logger,
@@ -35,6 +36,23 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.queueFactory = queueFactory;
         }
 
+        public virtual void Configure(FirebasePushNotificationOptions options)
+        {
+            this.logger.LogDebug("Configure");
+        }
+
+        public ILogger<FirebasePushNotificationManager> Logger
+        {
+            set => this.logger = value;
+        }
+        
+        public IQueueFactory QueueFactory
+        {
+            set
+            {
+                this.queueFactory = value;
+            }
+        }
 
         protected FirebasePushNotificationTokenEventHandler onTokenRefresh;
         public event FirebasePushNotificationTokenEventHandler OnTokenRefresh

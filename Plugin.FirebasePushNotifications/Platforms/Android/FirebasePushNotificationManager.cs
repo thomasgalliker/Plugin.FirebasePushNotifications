@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Gms.Tasks;
 using Android.Media;
 using Android.OS;
 using Firebase.Messaging;
@@ -42,8 +41,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
-        public void Configure(FirebasePushNotificationAndroidOptions options)
+        public override void Configure(FirebasePushNotificationOptions options)
         {
+            base.Configure(options);
+
+            NotificationActivityType = options.Android.NotificationActivityType;
+            DefaultNotificationChannelId = options.Android.DefaultNotificationChannelId;
         }
 
         //internal static PushNotificationActionReceiver ActionReceiver = new PushNotificationActionReceiver();
@@ -136,7 +139,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         [Obsolete]
         public void Initialize(Context context, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
-            CrossFirebasePushNotification.Current.NotificationHandler = CrossFirebasePushNotification.Current.NotificationHandler ?? new DefaultPushNotificationHandler();
+            this.NotificationHandler ??= new DefaultPushNotificationHandler();
             FirebaseMessaging.Instance.AutoInitEnabled = autoRegistration;
             if (autoRegistration)
             {
@@ -232,7 +235,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public void RegisterForPushNotifications()
         {
             FirebaseMessaging.Instance.AutoInitEnabled = true;
-            System.Threading.Tasks.Task.Run(async () =>
+            Task.Run(async () =>
             {
                 var token = await this.GetTokenAsync();
                 if (!string.IsNullOrEmpty(token))
@@ -284,7 +287,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         [Obsolete]
         public void Initialize(Context context, IPushNotificationHandler pushNotificationHandler, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
-            CrossFirebasePushNotification.Current.NotificationHandler = pushNotificationHandler;
+            this.NotificationHandler = pushNotificationHandler;
             this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
         }
 

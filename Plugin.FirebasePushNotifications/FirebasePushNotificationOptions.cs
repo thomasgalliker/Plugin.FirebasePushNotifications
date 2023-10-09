@@ -19,6 +19,8 @@ namespace Plugin.FirebasePushNotifications
     {
         public virtual bool AutoInitEnabled { get; set; }
 
+        public virtual IQueueFactory QueueFactory { get; set; } = new NullQueueFactory();
+
 #if ANDROID
 
         public virtual FirebasePushNotificationAndroidOptions Android { get; set; } = new FirebasePushNotificationAndroidOptions();

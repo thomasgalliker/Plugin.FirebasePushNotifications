@@ -7,10 +7,20 @@ using Android.Content;
 using Foundation;
 #endif
 
+using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Model.Queues;
+using Plugin.FirebasePushNotifications.Platforms;
+
 namespace Plugin.FirebasePushNotifications
 {
     public interface IFirebasePushNotification
     {
+        void Configure(FirebasePushNotificationOptions options);
+
+        ILogger<FirebasePushNotificationManager> Logger { set; }
+
+        IQueueFactory QueueFactory { set; }
+
 #if ANDROID
         void ProcessIntent(Activity activity, Intent intent);
 

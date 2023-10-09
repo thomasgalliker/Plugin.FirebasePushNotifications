@@ -12,6 +12,7 @@ using UserNotifications;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Plugin.FirebasePushNotifications.Model.Queues;
+using Plugin.FirebasePushNotifications.Internals;
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -76,10 +77,9 @@ After:
 #elif ANDROID
                 events.AddAndroid(android => android.OnApplicationCreate(d =>
                 {
-                    var firebasePushNotification = MauiApplication.Current.Services.GetService<IFirebasePushNotification>();
-
-                    FirebasePushNotificationManager.NotificationActivityType = defaultOptions.Android.NotificationActivityType;
-                    FirebasePushNotificationManager.DefaultNotificationChannelId = defaultOptions.Android.DefaultNotificationChannelId;
+                    var firebasePushNotification = CrossFirebasePushNotification.Current;
+                    firebasePushNotification.Logger = ServiceLocator.Current.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
+                    firebasePushNotification.Configure(defaultOptions);
 
                     // TODO: Create StaticNotificationChannels
                     //StaticNotificationChannels.UpdateChannels(Context);
@@ -94,12 +94,12 @@ After:
                 {
                     Firebase.FirebaseApp.InitializeApp(activity);
 
-                    var firebasePushNotification = MauiApplication.Current.Services.GetService<IFirebasePushNotification>();
+                    var firebasePushNotification = CrossFirebasePushNotification.Current;
                     firebasePushNotification.ProcessIntent(activity, activity.Intent);
                 }));
                 events.AddAndroid(android => android.OnNewIntent((activity, intent) =>
                 {
-                    var firebasePushNotification = MauiApplication.Current.Services.GetService<IFirebasePushNotification>();
+                    var firebasePushNotification = CrossFirebasePushNotification.Current;
                     firebasePushNotification.ProcessIntent(activity, intent);
                 }));
 #endif
@@ -108,16 +108,7 @@ After:
             // Service registrations
 #if ANDROID || IOS
             builder.Services.TryAddSingleton<IQueueFactory, InMemoryQueueFactory>();
-            builder.Services.AddSingleton(c =>
-            {
-                var firebasePushNotificationManager = new FirebasePushNotificationManager(
-                    c.GetRequiredService<ILogger<FirebasePushNotificationManager>>(),
-                    c.GetRequiredService<IQueueFactory>());
-
-                CrossFirebasePushNotification.TrySetCurrent(firebasePushNotificationManager, out var current);
-
-                return current;
-            });
+            builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
 #endif
             return builder;
         }
