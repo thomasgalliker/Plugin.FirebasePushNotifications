@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
+using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications.Model.Queues
 {
@@ -88,6 +89,24 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
                 var success = this.queue.TryDequeue(out result);
                 WriteQueueFile(this.fileInfo, this.queue);
                 return success;
+            }
+        }
+
+        public IEnumerable<T> TryDequeueAll()
+        {
+            lock (this)
+            {
+                var items = this.TryDequeueAllInternal().ToArray();
+                WriteQueueFile(this.fileInfo, this.queue);
+                return items;
+            }
+        }
+
+        private IEnumerable<T> TryDequeueAllInternal()
+        {
+            while (this.queue.TryDequeue(out var item))
+            {
+                yield return item;
             }
         }
 

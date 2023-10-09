@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Plugin.FirebasePushNotifications.Model.Queues
 {
@@ -8,14 +9,32 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
 
         public int Count => this.queue.Count;
 
-        public void Enqueue(T item)
+        public void Clear()
         {
-            this.queue.Enqueue(item);
+            this.queue.Clear();
         }
 
         public bool TryDequeue(out T item)
         {
             return this.queue.TryDequeue(out item);
+        }
+
+        public IEnumerable<T> TryDequeueAll()
+        {
+            while (this.queue.TryDequeue(out var item))
+            {
+                yield return item;
+            }
+        }
+
+        public void Enqueue(T item)
+        {
+            this.queue.Enqueue(item);
+        }
+
+        public bool TryPeek([MaybeNullWhen(false)] out T result)
+        {
+            return this.queue.TryPeek(out result);
         }
     }
 }
