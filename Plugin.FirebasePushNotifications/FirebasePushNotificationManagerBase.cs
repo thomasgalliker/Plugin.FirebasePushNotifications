@@ -29,17 +29,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.logger.LogDebug("Configure");
         }
 
+        /// <inheritdoc/>
         public ILogger<FirebasePushNotificationManager> Logger
         {
             set => this.logger = value;
-        }
-        
-        public IQueueFactory QueueFactory
-        {
-            set
-            {
-                this.queueFactory = value;
-            }
         }
 
         protected FirebasePushNotificationTokenEventHandler onTokenRefresh;

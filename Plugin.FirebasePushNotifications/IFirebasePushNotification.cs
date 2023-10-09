@@ -8,7 +8,6 @@ using Foundation;
 #endif
 
 using Microsoft.Extensions.Logging;
-using Plugin.FirebasePushNotifications.Model.Queues;
 using Plugin.FirebasePushNotifications.Platforms;
 
 namespace Plugin.FirebasePushNotifications
@@ -17,9 +16,15 @@ namespace Plugin.FirebasePushNotifications
     {
         void Configure(FirebasePushNotificationOptions options);
 
+        /// <summary>
+        /// Sets the logger instance.
+        /// </summary>
+        /// <remarks>
+        /// The logger instance can be injected at runtime.
+        /// This is helpful since <see cref="CrossFirebasePushNotification.Current"/> is a singleton instance 
+        /// and does therefore not allow to inject any logger via constructor injection.
+        /// </remarks>
         ILogger<FirebasePushNotificationManager> Logger { set; }
-
-        IQueueFactory QueueFactory { set; }
 
 #if ANDROID
         void ProcessIntent(Activity activity, Intent intent);
