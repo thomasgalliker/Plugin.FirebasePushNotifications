@@ -107,7 +107,6 @@ After:
 
             // Service registrations
 #if ANDROID || IOS
-            builder.Services.TryAddSingleton<IQueueFactory, InMemoryQueueFactory>();
             builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
 #endif
             return builder;
