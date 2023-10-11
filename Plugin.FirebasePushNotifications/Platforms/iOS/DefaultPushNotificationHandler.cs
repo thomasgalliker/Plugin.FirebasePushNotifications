@@ -9,7 +9,7 @@ namespace Plugin.FirebasePushNotifications
             Debug.WriteLine($"{nameof(DefaultPushNotificationHandler)} - OnError - {error}");
         }
 
-        public virtual void OnOpened(NotificationResponse response)
+        public virtual void OnOpened(IDictionary<string, object> parameters, string identifier, NotificationCategoryType notificationCategoryType)
         {
             Debug.WriteLine($"{nameof(DefaultPushNotificationHandler)} - OnOpened");
         }

@@ -1,5 +1,6 @@
 ﻿namespace Plugin.FirebasePushNotifications
 {
+    // TODO: What is the future of this class? Keep it or dump it?
     public class NotificationResponse
     {
         public string Identifier { get; }

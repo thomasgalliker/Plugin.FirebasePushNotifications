@@ -40,7 +40,7 @@
 		</PackageReleaseNotes>
 		<Copyright>Copyright 2023</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-	</PropertyGroup>
+	</PropertyGroup> 
 
 	<ItemGroup>
 		<None Include="..\README.md">

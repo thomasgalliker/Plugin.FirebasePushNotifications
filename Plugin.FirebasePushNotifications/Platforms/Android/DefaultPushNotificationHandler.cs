@@ -138,7 +138,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// </summary>
         public const string BigTextStyleKey = "bigtextstyle";
 
-        public virtual void OnOpened(NotificationResponse response)
+        public virtual void OnOpened(IDictionary<string, object> parameters, string identifier, NotificationCategoryType notificationCategoryType)
         {
             Log.Debug(Tag, $"OnOpened");
         }

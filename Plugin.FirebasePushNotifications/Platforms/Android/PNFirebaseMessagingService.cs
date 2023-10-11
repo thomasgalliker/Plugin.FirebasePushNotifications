@@ -105,27 +105,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            // TODO: Use service locator here
-            //var firebasePushNotification = ServiceLocator.GetService<IFirebasePushNotification>();
-
-            CrossFirebasePushNotification.Current.RegisterData(parameters);
-            CrossFirebasePushNotification.Current.NotificationHandler?.OnReceived(parameters);
+            CrossFirebasePushNotification.Current.OnMessageReceived(parameters);
         }
 
         public override void OnNewToken(string refreshedToken)
         {
+            var firebasePushNotification = CrossFirebasePushNotification.Current;
+
+            // TODO: Use existing code in FirebasePushNotificationManager!
+
             // Resubscribe to topics since the old instance id isn't valid anymore
-            foreach (var t in CrossFirebasePushNotification.Current.SubscribedTopics)
+            foreach (var topic in firebasePushNotification.SubscribedTopics)
             {
-                FirebaseMessaging.Instance.SubscribeToTopic(t);
+                FirebaseMessaging.Instance.SubscribeToTopic(topic);
             }
 
+            // TODO: Very dangerous! GetSharedPreferences access everywhere!
             var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
             editor.PutString(Constants.FirebaseTokenKey, refreshedToken);
             editor.Commit();
 
-            CrossFirebasePushNotification.Current.RegisterToken(refreshedToken);
-            Debug.WriteLine($"REFRESHED TOKEN: {refreshedToken}");
+            firebasePushNotification.OnNewToken(refreshedToken);
         }
     }
 

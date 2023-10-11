@@ -2,6 +2,8 @@
 using Foundation;
 #endif
 
+using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Model.Queues;
 
@@ -16,8 +18,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         protected ILogger<FirebasePushNotificationManager> logger;
 
-        private IQueue<FirebasePushNotificationDataEventArgs> onReceivedQueue;
-        private IQueue<FirebasePushNotificationTokenEventArgs> onTokenRefreshQueue;
+        private IQueue<FirebasePushNotificationTokenEventArgs> tokenRefreshQueue;
+        private IQueue<FirebasePushNotificationDataEventArgs> notificationReceivedQueue;
+        private IQueue<FirebasePushNotificationDataEventArgs> notificationDeletedQueue;
+        private IQueue<FirebasePushNotificationResponseEventArgs> notificationOpenedQueue;
+        private IQueue<FirebasePushNotificationResponseEventArgs> notificationActionQueue;
+        private IQueue<FirebasePushNotificationErrorEventArgs> notificationErrorQueue;
 
         protected FirebasePushNotificationManagerBase(
             ILogger<FirebasePushNotificationManager> logger,
@@ -29,21 +35,33 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void CreateOrUpdateQueues(IQueueFactory queueFactory)
         {
-            // Clear queues (if any exist)
-            this.onReceivedQueue?.Clear();
-            this.onTokenRefreshQueue?.Clear();
+            // Clear existing queues (if any exist)
+            this.tokenRefreshQueue?.Clear();
+            this.notificationReceivedQueue?.Clear();
+            this.notificationDeletedQueue?.Clear();
+            this.notificationOpenedQueue?.Clear();
+            this.notificationActionQueue?.Clear();
+            this.notificationErrorQueue?.Clear();
 
             if (queueFactory != null)
             {
                 // Create new queues
-                this.onReceivedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>();
-                this.onTokenRefreshQueue = queueFactory.Create<FirebasePushNotificationTokenEventArgs>();
+                this.tokenRefreshQueue = queueFactory.Create<FirebasePushNotificationTokenEventArgs>();
+                this.notificationReceivedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>();
+                this.notificationDeletedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>();
+                this.notificationOpenedQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>();
+                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>();
+                this.notificationErrorQueue = queueFactory.Create<FirebasePushNotificationErrorEventArgs>();
             }
             else
             {
                 // Remove queues
-                this.onReceivedQueue = null;
-                this.onTokenRefreshQueue = null;
+                this.tokenRefreshQueue = null;
+                this.notificationReceivedQueue = null;
+                this.notificationDeletedQueue = null;
+                this.notificationOpenedQueue = null;
+                this.notificationActionQueue = null;
+                this.notificationErrorQueue = null;
             }
         }
 
@@ -60,129 +78,213 @@ namespace Plugin.FirebasePushNotifications.Platforms
             set => this.logger = value;
         }
 
-        protected internal FirebasePushNotificationTokenEventHandler onTokenRefresh;
-        public event FirebasePushNotificationTokenEventHandler OnTokenRefresh
+        public IPushNotificationHandler NotificationHandler { get; set; }
+
+        protected virtual void HandleTokenRefresh(string token)
+        {
+            this.RaiseOrQueueEvent(
+                this.tokenRefreshEventHandler,
+                () => new FirebasePushNotificationTokenEventArgs(token),
+                this.tokenRefreshQueue,
+                nameof(OnTokenRefresh));
+        }
+
+        private EventHandler<FirebasePushNotificationTokenEventArgs> tokenRefreshEventHandler;
+
+        public event EventHandler<FirebasePushNotificationTokenEventArgs> OnTokenRefresh
         {
             add
             {
-                if (this.onTokenRefreshQueue is IQueue<FirebasePushNotificationTokenEventArgs> queue)
-                {
-                    var previousSubscriptions = this.onTokenRefresh;
-                    this.onTokenRefresh += value;
-
-                    if (previousSubscriptions == null && this.onTokenRefresh is FirebasePushNotificationTokenEventHandler eventHandler)
-                    {
-                        foreach (var data in queue.TryDequeueAll())
-                        {
-                            eventHandler.Invoke(this, data);
-                        }
-                    }
-                }
-                else
-                {
-                    this.onTokenRefresh += value;
-                }
+                this.DequeueAndSubscribe(value, ref this.tokenRefreshEventHandler, this.tokenRefreshQueue);
             }
-            remove => this.onTokenRefresh -= value;
+            remove => this.tokenRefreshEventHandler -= value;
         }
 
-        private FirebasePushNotificationDataEventHandler notificationReceivedEventHandler;
-
-        protected FirebasePushNotificationDataEventHandler NotificationReceivedEventHandler
+        protected virtual void HandleNotificationReceived(IDictionary<string, object> data)
         {
-            get
-            {
-                return this.notificationReceivedEventHandler ?? this.Enqueue;
-            }
+            this.RaiseOrQueueEvent(
+                this.notificationReceivedEventHandler,
+                () => new FirebasePushNotificationDataEventArgs(data),
+                this.notificationReceivedQueue,
+                nameof(OnNotificationReceived));
+
+            this.NotificationHandler?.OnReceived(data);
         }
 
-        private void Enqueue(object source, FirebasePushNotificationDataEventArgs args)
-        {
-            if (this.onReceivedQueue is IQueue<FirebasePushNotificationDataEventArgs> queue)
-            {
-                queue.Enqueue(args);
-            }
-        }
+        private EventHandler<FirebasePushNotificationDataEventArgs> notificationReceivedEventHandler;
 
-        public event FirebasePushNotificationDataEventHandler OnNotificationReceived
+        public event EventHandler<FirebasePushNotificationDataEventArgs> OnNotificationReceived
         {
             add
             {
-                if (this.onReceivedQueue is IQueue<FirebasePushNotificationDataEventArgs> queue)
-                {
-                    var previousSubscriptions = this.notificationReceivedEventHandler;
-                    this.notificationReceivedEventHandler += value;
-
-                    if (previousSubscriptions == null && 
-                        this.notificationReceivedEventHandler is FirebasePushNotificationDataEventHandler eventHandler)
-                    {
-                        foreach (var data in queue.TryDequeueAll())
-                        {
-                            eventHandler.Invoke(this, data);
-                        }
-                    }
-                }
-                else
-                {
-                    this.notificationReceivedEventHandler += value;
-                }
+                this.DequeueAndSubscribe(value, ref this.notificationReceivedEventHandler, this.notificationReceivedQueue);
             }
             remove => this.notificationReceivedEventHandler -= value;
         }
 
+        protected virtual void HandleNotificationDeleted(IDictionary<string, object> data)
+        {
+            this.RaiseOrQueueEvent(
+                this.notificationDeletedEventHandler,
+                () => new FirebasePushNotificationDataEventArgs(data),
+                this.notificationDeletedQueue,
+                nameof(OnNotificationDeleted));
 
-        protected internal FirebasePushNotificationDataEventHandler onNotificationDeleted;
-        public event FirebasePushNotificationDataEventHandler OnNotificationDeleted
+            // TODO: Extend interface
+            //this.NotificationHandler?.OnDeleted(data);
+        }
+
+        private EventHandler<FirebasePushNotificationDataEventArgs> notificationDeletedEventHandler;
+
+        public event EventHandler<FirebasePushNotificationDataEventArgs> OnNotificationDeleted
         {
             add
             {
-                this.onNotificationDeleted += value;
+                this.DequeueAndSubscribe(value, ref this.notificationDeletedEventHandler, this.notificationDeletedQueue);
             }
-            remove
-            {
-                this.onNotificationDeleted -= value;
-            }
+            remove => this.notificationDeletedEventHandler -= value;
         }
 
-        protected internal FirebasePushNotificationErrorEventHandler onNotificationError;
-        public event FirebasePushNotificationErrorEventHandler OnNotificationError
+        protected virtual void HandleNotificationError(FirebasePushNotificationErrorType type, string message)
+        {
+            this.RaiseOrQueueEvent(
+                this.notificationErrorEventHandler,
+                () => new FirebasePushNotificationErrorEventArgs(type, message),
+                this.notificationErrorQueue,
+                nameof(OnNotificationError));
+
+            // TODO: Extend interface
+            this.NotificationHandler?.OnError(/*type,*/ message);
+        }
+
+        private EventHandler<FirebasePushNotificationErrorEventArgs> notificationErrorEventHandler;
+
+        public event EventHandler<FirebasePushNotificationErrorEventArgs> OnNotificationError
         {
             add
             {
-                this.onNotificationError += value;
+                this.DequeueAndSubscribe(value, ref this.notificationErrorEventHandler, this.notificationErrorQueue);
             }
             remove
             {
-                this.onNotificationError -= value;
+                this.notificationErrorEventHandler -= value;
             }
         }
 
-        protected internal FirebasePushNotificationResponseEventHandler onNotificationOpened;
-        public event FirebasePushNotificationResponseEventHandler OnNotificationOpened
+        protected virtual void HandleNotificationOpened(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
+        {
+            this.RaiseOrQueueEvent(
+                this.notificationOpenedEventHandler,
+                () => new FirebasePushNotificationResponseEventArgs(data, identifier, notificationCategoryType),
+                this.notificationOpenedQueue,
+                nameof(OnNotificationOpened));
+
+            this.NotificationHandler?.OnOpened(data, identifier, notificationCategoryType);
+        }
+
+        private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
+
+        public event EventHandler<FirebasePushNotificationResponseEventArgs> OnNotificationOpened
         {
             add
             {
-                this.onNotificationOpened += value;
+                this.DequeueAndSubscribe(value, ref this.notificationOpenedEventHandler, this.notificationOpenedQueue);
             }
             remove
             {
-                this.onNotificationOpened -= value;
+                this.notificationOpenedEventHandler -= value;
             }
         }
 
-        protected internal FirebasePushNotificationResponseEventHandler onNotificationAction;
+        protected virtual void HandleNotificationAction(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
+        {
+            this.RaiseOrQueueEvent(
+                this.notificationActionEventHandler,
+                () => new FirebasePushNotificationResponseEventArgs(data, identifier, notificationCategoryType),
+                this.notificationActionQueue,
+                nameof(OnNotificationAction));
 
-        public event FirebasePushNotificationResponseEventHandler OnNotificationAction
+            // TODO: Extend interface
+            //this.NotificationHandler?.OnAction(data);
+        }
+
+        private EventHandler<FirebasePushNotificationResponseEventArgs> notificationActionEventHandler;
+
+        public event EventHandler<FirebasePushNotificationResponseEventArgs> OnNotificationAction
         {
             add
             {
-                this.onNotificationAction += value;
+                this.DequeueAndSubscribe(value, ref this.notificationActionEventHandler, this.notificationActionQueue);
             }
             remove
             {
-                this.onNotificationAction -= value;
+                this.notificationActionEventHandler -= value;
             }
         }
 
+        /// <summary>
+        /// Raises the given <paramref name="eventHandler"/> with the event args created in <paramref name="getEventArgs"/>
+        /// (if the event handler is not null).
+        /// Alternatively (if the event handler is null) it queues the event args in the <paramref name="queue"/>.
+        /// If no event handler and no queue is present, the event is dropped.
+        /// </summary>
+        private void RaiseOrQueueEvent<TEventArgs>(
+            EventHandler<TEventArgs> eventHandler,
+            Func<TEventArgs> getEventArgs,
+            IQueue<TEventArgs> queue, 
+            string eventName,
+            [CallerMemberName]string callerName = null) where TEventArgs : EventArgs
+        {
+            if (eventHandler != null)
+            {
+                // If subscribers are present, invoke the event handler
+                var args = getEventArgs();
+                eventHandler.Invoke(this, args);
+            }
+            else
+            {
+                if (queue != null)
+                {
+                    // If no subscribers are present, queue the event args
+                    var args = getEventArgs();
+                    queue.Enqueue(args);
+                }
+                else
+                {
+                    // If no subscribers are present and no queue is present, we just drop the event...
+                    this.logger.LogWarning(
+                        $"{callerName ?? nameof(RaiseOrQueueEvent)} has dropped an invocation of event \"{eventName}\" " +
+                        $"since neither an event subscription nor a queue is present.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Dequeues queued event args (if a queue exists for the given event) 
+        /// and subscribes to <paramref name="eventHandler"/> with <paramref name="value"/>.
+        /// </summary>
+        private void DequeueAndSubscribe<TEventArgs>(
+            EventHandler<TEventArgs> value, 
+            ref EventHandler<TEventArgs> eventHandler, 
+            IQueue<TEventArgs> queue) where TEventArgs : EventArgs
+        {
+            if (queue != null)
+            {
+                var previousSubscriptions = eventHandler;
+                eventHandler += value;
+
+                if (previousSubscriptions == null && eventHandler != null)
+                {
+                    foreach (var args in queue.TryDequeueAll())
+                    {
+                        eventHandler.Invoke(this, args);
+                    }
+                }
+            }
+            else
+            {
+                eventHandler += value;
+            }
+        }
     }
 }

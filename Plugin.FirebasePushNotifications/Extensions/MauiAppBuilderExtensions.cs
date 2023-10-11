@@ -10,8 +10,6 @@ using UserNotifications;
 #endif
 
 using Microsoft.Maui.LifecycleEvents;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Plugin.FirebasePushNotifications.Model.Queues;
 using Plugin.FirebasePushNotifications.Internals;
 
 namespace Plugin.FirebasePushNotifications
@@ -29,7 +27,7 @@ namespace Plugin.FirebasePushNotifications
 #if IOS
                 events.AddiOS(iOS => iOS.FinishedLaunching((_, launchOptions) =>
                 {
-                    var loggerFactory = MauiUIApplicationDelegate.Current.Services.GetService<ILoggerFactory>();
+                    var loggerFactory = ServiceLocator.Current.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger("AppDelegate");
 
                     if (launchOptions != null)
@@ -43,28 +41,23 @@ namespace Plugin.FirebasePushNotifications
 
                         logger.LogDebug(
                             $"FinishedLaunching with " +
-                            $"launchOptions[isPushNotification={isPushNotification}, " +
-                            $"isLocalNotification={isLocalNotification}]");
+                            $"launchOptions[isPushNotification={isPushNotification}, isLocalNotification={isLocalNotification}]");
                     }
                     else
                     {
                         logger.LogDebug($"FinishedLaunching");
-
-/* Unmerged change from project 'Plugin.FirebasePushNotifications (net7.0-android)'
-Before:
-                    }
-                    
-                    // Instead of FirebasePushNotificationManager.Initialize
-After:
                     }
 
-                    // Instead of FirebasePushNotificationManager.Initialize
-*/
-                    }
+                    var firebasePushNotification = CrossFirebasePushNotification.Current;
+                    firebasePushNotification.Logger = ServiceLocator.Current.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
+                    firebasePushNotification.Configure(defaultOptions);
 
-                    // Instead of FirebasePushNotificationManager.Initialize
                     Firebase.Core.App.Configure();
-                    Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
+
+                    if (defaultOptions.AutoInitEnabled)
+                    {
+                        Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
+                    }
 
                     // In order to get OnTokenRefresh event called by firebase push notification plugin,
                     // we have to assign Messaging.SharedInstance.Delegate manually.
@@ -72,7 +65,7 @@ After:
                     Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = CrossFirebasePushNotification.Current as Firebase.CloudMessaging.IMessagingDelegate;
                     UNUserNotificationCenter.Current.Delegate = CrossFirebasePushNotification.Current as IUNUserNotificationCenterDelegate;
 
-                    return false;
+                    return true;
                 }));
 #elif ANDROID
                 events.AddAndroid(android => android.OnApplicationCreate(d =>

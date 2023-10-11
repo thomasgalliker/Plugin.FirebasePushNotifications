@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Moq.AutoMock;
 using Plugin.FirebasePushNotifications.Model.Queues;
 using Plugin.FirebasePushNotifications.Platforms;
@@ -25,6 +26,46 @@ namespace Plugin.FirebasePushNotifications.Tests
         }
 
         [Fact]
+        public void OnTokenRefresh_ShouldDeliverImmediately_IfEventIsSubscribed()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
+
+            var token = "token";
+
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.OnTokenRefresh += (s, e) => listOfEventArgs.Add(e);
+
+            // Act
+            firebasePushNotificationManager.RaiseOnTokenRefresh(token);
+            firebasePushNotificationManager.RaiseOnTokenRefresh(token);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationTokenEventArgs>();
+        }
+
+        [Fact]
+        public void OnTokenRefresh_ShouldDeliverDelayed_IfEventIsSubscribedAfterDelivery()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
+
+            var token = "token";
+
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.RaiseOnTokenRefresh(token);
+            firebasePushNotificationManager.RaiseOnTokenRefresh(token);
+
+            // Act
+            firebasePushNotificationManager.OnTokenRefresh += (s, e) => listOfEventArgs.Add(e);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationTokenEventArgs>();
+        }
+
+        [Fact]
         public void OnNotificationReceived_ShouldDeliverImmediately_IfEventIsSubscribed()
         {
             // Arrange
@@ -34,19 +75,19 @@ namespace Plugin.FirebasePushNotifications.Tests
             {
                 { "key", "value" }
             };
-            var eventArgs = new FirebasePushNotificationDataEventArgs(data);
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
             firebasePushNotificationManager.OnNotificationReceived += (s, e) => listOfEventArgs.Add(e);
 
             // Act
-            firebasePushNotificationManager.RaiseOnNotificationReceived(eventArgs);
-            firebasePushNotificationManager.RaiseOnNotificationReceived(eventArgs);
+            firebasePushNotificationManager.HandleNotificationReceived(data);
+            firebasePushNotificationManager.HandleNotificationReceived(data);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
             listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationDataEventArgs>();
         }
+
         [Fact]
         public void OnNotificationReceived_ShouldDeliverDelayed_IfEventIsSubscribedAfterDelivery()
         {
@@ -57,11 +98,10 @@ namespace Plugin.FirebasePushNotifications.Tests
             {
                 { "key", "value" }
             };
-            var eventArgs = new FirebasePushNotificationDataEventArgs(data);
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.RaiseOnNotificationReceived(eventArgs);
-            firebasePushNotificationManager.RaiseOnNotificationReceived(eventArgs);
+            firebasePushNotificationManager.HandleNotificationReceived(data);
+            firebasePushNotificationManager.HandleNotificationReceived(data);
 
             // Act
             firebasePushNotificationManager.OnNotificationReceived += (s, e) => listOfEventArgs.Add(e);
@@ -71,70 +111,187 @@ namespace Plugin.FirebasePushNotifications.Tests
             listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationDataEventArgs>();
         }
 
-        //[Fact]
-        //public void OnOpened_ShouldDeliverImmediatelyIfEventIsSubscribed()
-        //{
-        //    // Arrange
-        //    var listOfEventArgs = new List<EventArgs>();
+        [Fact]
+        public void OnNotificationDeleted_ShouldDeliverImmediately_IfEventIsSubscribed()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
 
-        //    var data = new Dictionary<string, object>
-        //    {
-        //        {
-        //            "key", "value"
-        //        }
-        //    };
-        //    var eventArgs = new FirebasePushNotificationResponseEventArgs(data);
+            var data = new Dictionary<string, object>
+            {
+                { "key", "value" }
+            };
 
-        //    var logger = new TestOutputHelperLogger(this, this.testOutputHelper);
-        //    var firebasePushNotificationMock = new Mock<IFirebasePushNotification>();
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.OnNotificationDeleted += (s, e) => listOfEventArgs.Add(e);
 
-        //    IPushNotificationQueue pushNotificationQueue = new PushNotificationQueue(logger, firebasePushNotificationMock.Object);
-        //    pushNotificationQueue.OnNotificationReceived += (s, e) => listOfEventArgs.Add(e);
-        //    pushNotificationQueue.OnNotificationOpened += (s, e) => listOfEventArgs.Add(e);
+            // Act
+            firebasePushNotificationManager.HandleNotificationDeleted(data);
+            firebasePushNotificationManager.HandleNotificationDeleted(data);
 
-        //    // Act
-        //    firebasePushNotificationMock.Raise(f => f.OnNotificationOpened += null, eventArgs);
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationDataEventArgs>();
+        }
 
-        //    // Assert
-        //    Assert.Single(listOfEventArgs);
-        //    Assert.All(listOfEventArgs, e => { Assert.IsType<FirebasePushNotificationResponseEventArgs>(e); });
-        //}
+        [Fact]
+        public void OnNotificationDeleted_ShouldDeliverDelayed_IfEventIsSubscribedAfterDelivery()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
 
-        //[Fact]
-        //public void OnOpened_ShouldDeliverDelayedIfEventIsSubscribedAfterDelivery()
-        //{
-        //    // Arrange
-        //    var listOfEventArgs = new List<EventArgs>();
+            var data = new Dictionary<string, object>
+            {
+                { "key", "value" }
+            };
 
-        //    var data1 = new Dictionary<string, object>
-        //    {
-        //        {
-        //            "key1", "value1"
-        //        }
-        //    };
-        //    var eventArgs1 = new FirebasePushNotificationResponseEventArgs(data1);
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.HandleNotificationDeleted(data);
+            firebasePushNotificationManager.HandleNotificationDeleted(data);
 
-        //    var data2 = new Dictionary<string, object>
-        //    {
-        //        {
-        //            "key2", "value2"
-        //        }
-        //    };
-        //    var eventArgs2 = new FirebasePushNotificationResponseEventArgs(data2);
+            // Act
+            firebasePushNotificationManager.OnNotificationDeleted += (s, e) => listOfEventArgs.Add(e);
 
-        //    var logger = new TestOutputHelperLogger(this, this.testOutputHelper);
-        //    var firebasePushNotificationMock = new Mock<IFirebasePushNotification>();
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationDataEventArgs>();
+        }
 
-        //    IPushNotificationQueue pushNotificationQueue = new PushNotificationQueue(logger, firebasePushNotificationMock.Object);
-        //    firebasePushNotificationMock.Raise(f => f.OnNotificationOpened += null, eventArgs1);
-        //    firebasePushNotificationMock.Raise(f => f.OnNotificationOpened += null, eventArgs2);
+        [Fact]
+        public void OnNotificationOpened_ShouldDeliverImmediately_IfEventIsSubscribed()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
 
-        //    // Act
-        //    pushNotificationQueue.OnNotificationOpened += (s, e) => listOfEventArgs.Add(e);
+            var data = new Dictionary<string, object>
+            {
+                { "key", "value" }
+            };
+            var identifier = "99";
 
-        //    // Assert
-        //    Assert.Equal(2, listOfEventArgs.Count);
-        //    Assert.All(listOfEventArgs, e => { Assert.IsType<FirebasePushNotificationResponseEventArgs>(e); });
-        //}
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.OnNotificationOpened += (s, e) => listOfEventArgs.Add(e);
+
+            // Act
+            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationResponseEventArgs>();
+        }
+
+        [Fact]
+        public void OnNotificationOpened_ShouldDeliverDelayed_IfEventIsSubscribedAfterDelivery()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
+
+            var data = new Dictionary<string, object>
+            {
+                { "key", "value" }
+            };
+            var identifier = "99";
+
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
+
+            // Act
+            firebasePushNotificationManager.OnNotificationOpened += (s, e) => listOfEventArgs.Add(e);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationResponseEventArgs>();
+        }
+
+        [Fact]
+        public void OnNotificationAction_ShouldDeliverImmediately_IfEventIsSubscribed()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
+
+            var data = new Dictionary<string, object>
+            {
+                { "key", "value" }
+            };
+            var identifier = "99";
+
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.OnNotificationAction += (s, e) => listOfEventArgs.Add(e);
+
+            // Act
+            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationResponseEventArgs>();
+        }
+
+        [Fact]
+        public void OnNotificationAction_ShouldDeliverDelayed_IfEventIsSubscribedAfterDelivery()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
+
+            var data = new Dictionary<string, object>
+            {
+                { "key", "value" }
+            };
+            var identifier = "99";
+
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
+
+            // Act
+            firebasePushNotificationManager.OnNotificationAction += (s, e) => listOfEventArgs.Add(e);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationResponseEventArgs>();
+        }
+
+        [Fact]
+        public void OnNotificationAction_ShouldDropEvent_IfNoSubscriptionOrQueueIsPresent()
+        {
+            // Arrange
+            var queueFactoryMock = new Mock<IQueueFactory>();
+            queueFactoryMock.Setup(q => q.Create<FirebasePushNotificationDataEventArgs>())
+                .Returns((IQueue<FirebasePushNotificationDataEventArgs>)null);
+
+            this.autoMocker.Use(queueFactoryMock);
+
+            var loggerMock = new Mock<ILogger<FirebasePushNotificationManager>>();
+            this.autoMocker.Use(loggerMock.Object);
+
+            var listOfEventArgs = new List<EventArgs>();
+
+            var data = new Dictionary<string, object>
+            {
+                { "key", "value" }
+            };
+            var identifier = "99";
+
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            queueFactoryMock.Invocations.Clear();
+
+            // Act
+            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(0);
+
+            queueFactoryMock.VerifyNoOtherCalls();
+
+            loggerMock.Verify(l => l.Log(
+                LogLevel.Warning, 
+                It.IsAny<EventId>(), 
+                It.Is<It.IsAnyType>((o, t) => o.ToString() == "HandleNotificationAction has dropped an invocation of event \"OnNotificationAction\" since neither an event subscription nor a queue is present."),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            loggerMock.VerifyNoOtherCalls();
+        }
     }
 }

@@ -29,9 +29,9 @@ namespace Plugin.FirebasePushNotifications
 #if ANDROID
         void ProcessIntent(Activity activity, Intent intent);
 
-        void RegisterToken(string token);
+        void OnNewToken(string token);
 
-        void RegisterData(IDictionary<string, object> parameters);
+        void OnMessageReceived(IDictionary<string, object> parameters);
 
         void RegisterAction(IDictionary<string, object> parameters);
         
@@ -99,32 +99,32 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Event triggered when token is refreshed
         /// </summary>
-        event FirebasePushNotificationTokenEventHandler OnTokenRefresh;
+        event EventHandler<FirebasePushNotificationTokenEventArgs> OnTokenRefresh;
 
         /// <summary>
         /// Event triggered when a notification is opened
         /// </summary>
-        event FirebasePushNotificationResponseEventHandler OnNotificationOpened;
+        event EventHandler<FirebasePushNotificationResponseEventArgs> OnNotificationOpened;
 
         /// <summary>
         /// Event triggered when a notification is opened by tapping an action
         /// </summary>
-        event FirebasePushNotificationResponseEventHandler OnNotificationAction;
+        event EventHandler<FirebasePushNotificationResponseEventArgs> OnNotificationAction;
 
         /// <summary>
         /// Event triggered when a notification is received
         /// </summary>
-        event FirebasePushNotificationDataEventHandler OnNotificationReceived;
+        event EventHandler<FirebasePushNotificationDataEventArgs> OnNotificationReceived;
 
         /// <summary>
         /// Event triggered when a notification is deleted
         /// </summary>
-        event FirebasePushNotificationDataEventHandler OnNotificationDeleted;
+        event EventHandler<FirebasePushNotificationDataEventArgs> OnNotificationDeleted;
 
         /// <summary>
         /// Event triggered when there's an error
         /// </summary>
-        event FirebasePushNotificationErrorEventHandler OnNotificationError;
+        event EventHandler<FirebasePushNotificationErrorEventArgs> OnNotificationError;
 
         /// <summary>
         /// Push notification token
@@ -153,12 +153,4 @@ namespace Plugin.FirebasePushNotifications
         /// </summary>
         void RemoveNotification(string tag, int id);
     }
-
-    public delegate void FirebasePushNotificationTokenEventHandler(object source, FirebasePushNotificationTokenEventArgs e);
-
-    public delegate void FirebasePushNotificationErrorEventHandler(object source, FirebasePushNotificationErrorEventArgs e);
-
-    public delegate void FirebasePushNotificationDataEventHandler(object source, FirebasePushNotificationDataEventArgs e);
-
-    public delegate void FirebasePushNotificationResponseEventHandler(object source, FirebasePushNotificationResponseEventArgs e);
 }

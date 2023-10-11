@@ -119,19 +119,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
                         }
                     }
 
+                    // TODO: Ineffizient code; remove NotificationResponse or use it everywhere
                     var response = new NotificationResponse(parameters, extras.GetString(DefaultPushNotificationHandler.ActionIdentifierKey, string.Empty));
-
 
                     if (string.IsNullOrEmpty(response.Identifier))
                     {
-                        this.onNotificationOpened?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(response.Data, response.Identifier, response.Type));
+                        // TODO: Pass response here? Why not...
+                        this.HandleNotificationOpened(response.Data, response.Identifier, response.Type);
                     }
                     else
                     {
-                        this.onNotificationAction?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(response.Data, response.Identifier, response.Type));
+                        // TODO: Pass response here? Why not...
+                        this.HandleNotificationAction(response.Data, response.Identifier, response.Type);
                     }
-
-                    this.NotificationHandler?.OnOpened(response);
                 }
             }
         }
@@ -169,7 +169,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     }
                     catch (Exception ex)
                     {
-                        this.onNotificationError?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString()));
+                        this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
                     }
                     finally
                     {
@@ -227,7 +227,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
-                    this.onNotificationError?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString()));
+                    this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
                 }
             });
         }
@@ -261,7 +261,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             catch (Exception ex)
             {
-                this.onNotificationError?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.RegistrationFailed, $"{ex}"));
+                this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, $"{ex}");
             }
 
             return token;
@@ -297,8 +297,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         public string Token => Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).GetString(Constants.FirebaseTokenKey, string.Empty);
-
-        public IPushNotificationHandler NotificationHandler { get; set; }
 
         public string[] SubscribedTopics
         {
@@ -353,7 +351,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         //            var tmpParams = delayedNotificationResponse;
         //            if (!string.IsNullOrEmpty(tmpParams.Identifier))
         //            {
-        //                _onNotificationAction?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(tmpParams.Data, tmpParams.Identifier, tmpParams.Type));
+        //                _onNotificationAction?.Invoke(this, new FirebasePushNotificationResponseEventArgs(tmpParams.Data, tmpParams.Identifier, tmpParams.Type));
         //                delayedNotificationResponse = null;
         //            }
 
@@ -408,7 +406,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public void Subscribe(string topic)
         {
-
             if (!this.currentTopics.Contains(topic))
             {
                 FirebaseMessaging.Instance.SubscribeToTopic(topic);
@@ -455,18 +452,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 editor.PutStringSet(Constants.FirebaseTopicsKey, this.currentTopics);
                 editor.Commit();
             }
-
         }
 
-        public void RegisterToken(string token)
+        public void OnNewToken(string token)
         {
+            this.logger.LogDebug($"OnNewToken: {token}"); // TODO: Truncate string for privacy reasons
             SaveToken(token);
-            this.onTokenRefresh?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationTokenEventArgs(token));
+            this.HandleTokenRefresh(token);
         }
 
-        public void RegisterData(IDictionary<string, object> data)
+        public void OnMessageReceived(IDictionary<string, object> data)
         {
-            this.NotificationReceivedEventHandler.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationDataEventArgs(data));
+            this.logger.LogDebug("OnMessageReceived");
+            this.HandleNotificationReceived(data);
         }
 
         public void RegisterAction(IDictionary<string, object> data)
@@ -474,12 +472,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // TODO: Inefficient code; refactoring required!
             var response = new NotificationResponse(data, data.ContainsKey(DefaultPushNotificationHandler.ActionIdentifierKey) ? $"{data[DefaultPushNotificationHandler.ActionIdentifierKey]}" : string.Empty);
 
-            this.onNotificationAction?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(response.Data, response.Identifier, response.Type));
+            this.HandleNotificationAction(response.Data, response.Identifier, response.Type);
         }
 
         public void RegisterDelete(IDictionary<string, object> data)
         {
-            this.onNotificationDeleted?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationDataEventArgs(data));
+            // TODO: Eliminate this unnecessary method interception
+            this.HandleNotificationDeleted(data);
         }
 
         private static void SaveToken(string token)

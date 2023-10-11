@@ -14,7 +14,7 @@ namespace MauiSampleApp
                 .UseFirebasePushNotifications(o =>
                 {
                     o.AutoInitEnabled = false;
-                    //o.QueueFactory = new InMemoryQueueFactory();
+                    o.QueueFactory = new InMemoryQueueFactory();
 #if ANDROID
                     o.Android.DefaultNotificationChannelId = "general";
                     o.Android.NotificationActivityType = typeof(MainActivity);

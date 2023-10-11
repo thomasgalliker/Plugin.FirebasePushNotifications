@@ -16,7 +16,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public UNNotificationPresentationOptions CurrentNotificationPresentationOption { get; set; } = UNNotificationPresentationOptions.None;
 
         private readonly Queue<Tuple<string, bool>> pendingTopics = new Queue<Tuple<string, bool>>();
-        private bool hasToken = false;
+        private bool hasToken = false; // TODO: Wtf is the purpose of this flag??
 
         private readonly NSMutableArray currentTopics = (NSUserDefaults.StandardUserDefaults.ValueForKey(Constants.FirebaseTopicsKey) as NSArray ?? new NSArray()).MutableCopy() as NSMutableArray;
 
@@ -57,8 +57,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public IPushNotificationHandler NotificationHandler { get; set; }
-
         public void Initialize(NSDictionary options, bool autoRegistration = true)
         {
             if (App.DefaultInstance == null)
@@ -75,15 +73,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     var parameters = GetParameters(pushPayload);
 
+                    // TODO: Inefficient code; cleanup!
                     var notificationResponse = new NotificationResponse(parameters, string.Empty, NotificationCategoryType.Default);
-
-
-                    /*if (_onNotificationOpened == null && enableDelayedResponse)
-                        delayedNotificationResponse = notificationResponse;
-                    else*/
-                    this.onNotificationOpened?.Invoke(this, new FirebasePushNotificationResponseEventArgs(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type));
-
-                    this.NotificationHandler?.OnOpened(notificationResponse);
+                    this.HandleNotificationOpened(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type);
                 }
             }
 
@@ -187,11 +179,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     if (error != null)
                     {
-                        this.onNotificationError?.Invoke(this, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.PermissionDenied, error.Description));
+                        this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, error.Description);
                     }
                     else if (!granted)
                     {
-                        this.onNotificationError?.Invoke(this, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.PermissionDenied, "Push notification permission not granted"));
+                        this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, "Push notification permission not granted");
                     }
                     else
                     {
@@ -246,6 +238,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             completionHandler(UIBackgroundFetchResult.NewData);
         }
 
+        // TODO: Remove support for iOS 10.
         // To receive notifications in foreground on iOS 10 devices.
         [Export("userNotificationCenter:willPresentNotification:withCompletionHandler:")]
         public void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification, Action<UNNotificationPresentationOptions> completionHandler)
@@ -255,15 +248,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // Do your magic to handle the notification data
             //Console.WriteLine(notification.Request.Content.UserInfo);
             var parameters = GetParameters(notification.Request.Content.UserInfo);
-            this.NotificationReceivedEventHandler.Invoke(this, new FirebasePushNotificationDataEventArgs(parameters));
-            this.NotificationHandler?.OnReceived(parameters);
+            this.HandleNotificationReceived(parameters);
 
             if (parameters.TryGetValue("priority", out var priority) && ($"{priority}".ToLower() == "high" || $"{priority}".ToLower() == "max"))
             {
                 if (!this.CurrentNotificationPresentationOption.HasFlag(UNNotificationPresentationOptions.Alert))
                 {
                     this.CurrentNotificationPresentationOption |= UNNotificationPresentationOptions.Alert;
-
                 }
             }
             else if ($"{priority}".ToLower() is "default" or "low" or "min")
@@ -271,9 +262,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (this.CurrentNotificationPresentationOption.HasFlag(UNNotificationPresentationOptions.Alert))
                 {
                     this.CurrentNotificationPresentationOption &= ~UNNotificationPresentationOptions.Alert;
-
                 }
             }
+
             completionHandler(this.CurrentNotificationPresentationOption);
         }
 
@@ -284,9 +275,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             Messaging.SharedInstance.AppDidReceiveMessage(data);
             var parameters = GetParameters(data);
 
-            this.NotificationReceivedEventHandler.Invoke(this, new FirebasePushNotificationDataEventArgs(parameters));
-
-            this.NotificationHandler?.OnReceived(parameters);
+            this.HandleNotificationReceived(parameters);
         }
 
         public void DidRegisterRemoteNotifications(NSData deviceToken)
@@ -298,9 +287,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public void RemoteNotificationRegistrationFailed(NSError error)
         {
-            this.logger.LogDebug("RemoteNotificationRegistrationFailed");
+            this.logger.LogError("RemoteNotificationRegistrationFailed"); // TODO: Log NSError here
 
-            this.onNotificationError?.Invoke(this, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.RegistrationFailed, error.Description));
+            this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, error.Description);
         }
 
         //public void ApplicationReceivedRemoteMessage(RemoteMessage remoteMessage)
@@ -447,32 +436,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var parameters = GetParameters(response.Notification.Request.Content.UserInfo);
 
-            var catType = NotificationCategoryType.Default;
+            var notificationCategoryType = NotificationCategoryType.Default;
             if (response.IsCustomAction)
             {
-                catType = NotificationCategoryType.Custom;
+                notificationCategoryType = NotificationCategoryType.Custom;
             }
             else if (response.IsDismissAction)
             {
-                catType = NotificationCategoryType.Dismiss;
+                notificationCategoryType = NotificationCategoryType.Dismiss;
             }
 
-            var ident = $"{response.ActionIdentifier}".Equals("com.apple.UNNotificationDefaultActionIdentifier", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{response.ActionIdentifier}";
-            var notificationResponse = new NotificationResponse(parameters, ident, catType);
+            var identifier = $"{response.ActionIdentifier}".Equals("com.apple.UNNotificationDefaultActionIdentifier", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{response.ActionIdentifier}";
+            var notificationResponse = new NotificationResponse(parameters, identifier, notificationCategoryType);
 
-            if (string.IsNullOrEmpty(ident))
+            if (string.IsNullOrEmpty(identifier))
             {
-                this.onNotificationOpened?.Invoke(this, new FirebasePushNotificationResponseEventArgs(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type));
-
-                this.NotificationHandler?.OnOpened(notificationResponse);
+                this.HandleNotificationOpened(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type);
             }
             else
             {
-                this.onNotificationAction?.Invoke(this, new FirebasePushNotificationResponseEventArgs(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type));
-
-                // CrossFirebasePushNotification.Current.NotificationHandler?.OnOpened(notificationResponse);
+                this.HandleNotificationAction(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type);
             }
-
 
             // Inform caller it has been handled
             completionHandler();
@@ -486,10 +470,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // Note that this callback will be fired everytime a new token is generated, including the first
             // time. So if you need to retrieve the token as soon as it is available this is where that
             // should be done.
-            var refreshedToken = fcmToken;
-            if (!string.IsNullOrEmpty(refreshedToken))
+
+            if (!string.IsNullOrEmpty(fcmToken))
             {
-                this.onTokenRefresh?.Invoke(this, new FirebasePushNotificationTokenEventArgs(refreshedToken));
+                this.HandleTokenRefresh(fcmToken);
                 this.hasToken = true;
                 while (this.pendingTopics.Count > 0)
                 {
