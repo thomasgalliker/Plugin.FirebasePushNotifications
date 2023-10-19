@@ -14,7 +14,21 @@ namespace Plugin.FirebasePushNotifications
 {
     public interface IFirebasePushNotification
     {
+        /// <summary>
+        /// Configures this instance of <see cref="IFirebasePushNotification"/>
+        /// with <paramref name="options"/>.
+        /// </summary>
+        /// <param name="options">The firebase push notification options.</param>
         void Configure(FirebasePushNotificationOptions options);
+
+        /// <summary>
+        /// Clears all queues (if any exist).
+        /// </summary>
+        /// <remarks>
+        /// This is usually done when the content in the queues is no longer needed,
+        /// e.g. when the user is logged-out or if the queued data has become outdated.
+        /// </remarks>
+        void ClearQueues();
 
         /// <summary>
         /// Sets the logger instance.

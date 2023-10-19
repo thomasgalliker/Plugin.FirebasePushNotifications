@@ -11,7 +11,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
     public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase
     {
         public FirebasePushNotificationManager()
-            : base(new NullLogger<FirebasePushNotificationManager>(), queueFactory: null)
         {
         }
     }

@@ -26,23 +26,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private IQueue<FirebasePushNotificationResponseEventArgs> notificationActionQueue;
         private IQueue<FirebasePushNotificationErrorEventArgs> notificationErrorQueue;
 
-        protected FirebasePushNotificationManagerBase(
-            ILogger<FirebasePushNotificationManager> logger,
-            IQueueFactory queueFactory)
+        protected FirebasePushNotificationManagerBase()
         {
-            this.logger = logger;
-            this.CreateOrUpdateQueues(queueFactory);
+        }
+
+        /// <inheritdoc />
+        public void Configure(FirebasePushNotificationOptions options)
+        {
+            this.logger.LogDebug("Configure");
+
+            this.CreateOrUpdateQueues(options.QueueFactory);
+
+            this.OnConfigure(options);
         }
 
         private void CreateOrUpdateQueues(IQueueFactory queueFactory)
         {
             // Clear existing queues (if any exist)
-            this.tokenRefreshQueue?.Clear();
-            this.notificationReceivedQueue?.Clear();
-            this.notificationDeletedQueue?.Clear();
-            this.notificationOpenedQueue?.Clear();
-            this.notificationActionQueue?.Clear();
-            this.notificationErrorQueue?.Clear();
+            this.ClearQueues();
 
             if (queueFactory != null)
             {
@@ -66,13 +67,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public void Configure(FirebasePushNotificationOptions options)
+        /// <inheritdoc />
+        public void ClearQueues()
         {
-            this.logger.LogDebug("Configure");
-
-            this.CreateOrUpdateQueues(options.QueueFactory);
-
-            this.OnConfigure(options);
+            this.logger.LogDebug("ClearQueues");
+            this.tokenRefreshQueue?.Clear();
+            this.notificationReceivedQueue?.Clear();
+            this.notificationDeletedQueue?.Clear();
+            this.notificationOpenedQueue?.Clear();
+            this.notificationActionQueue?.Clear();
+            this.notificationErrorQueue?.Clear();
         }
 
         protected virtual void OnConfigure(FirebasePushNotificationOptions options)
@@ -113,7 +117,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             try
             {
-                var substringLength =  Math.Min(10, token.Length / 10);
+                var substringLength = Math.Min(10, token.Length / 10);
                 if (substringLength < 5)
                 {
                     return Constants.SuppressedString;
@@ -271,7 +275,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 nameof(NotificationAction));
 
             this.OnNotificationAction(data);
-            
+
             // TODO: Extend interface
             //this.NotificationHandler?.OnAction(data);
         }
