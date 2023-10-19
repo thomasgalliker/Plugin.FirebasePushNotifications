@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Android.Content;
+﻿using Android.Content;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -8,19 +7,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         public override void OnReceive(Context context, Intent intent)
         {
-            IDictionary<string, object> parameters = new Dictionary<string, object>();
-            var extras = intent.Extras;
-
-            if (extras != null && !extras.IsEmpty)
-            {
-                foreach (var key in extras.KeySet())
-                {
-                    parameters.Add(key, $"{extras.Get(key)}");
-                    Debug.WriteLine(key, $"{extras.Get(key)}");
-                }
-            }
-
-            CrossFirebasePushNotification.Current.RegisterDelete(parameters);
+            var extras = intent.GetExtrasDict();
+            CrossFirebasePushNotification.Current.HandleNotificationDeleted(extras);
         }
     }
 }

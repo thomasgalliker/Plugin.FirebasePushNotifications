@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -6,6 +7,7 @@ using Android.Media;
 using Android.OS;
 using Firebase.Messaging;
 using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Extensions;
 using Application = Android.App.Application;
 
 namespace Plugin.FirebasePushNotifications.Platforms
@@ -41,25 +43,29 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
-        public override void Configure(FirebasePushNotificationOptions options)
+        protected override void OnConfigure(FirebasePushNotificationOptions options)
         {
-            base.Configure(options);
-
             NotificationActivityType = options.Android.NotificationActivityType;
             DefaultNotificationChannelId = options.Android.DefaultNotificationChannelId;
         }
 
-        //internal static PushNotificationActionReceiver ActionReceiver = new PushNotificationActionReceiver();
-
         public void ProcessIntent(Activity activity, Intent intent)
         {
-            if (intent == null)
+            if (activity == null)
             {
+                this.logger.LogDebug($"ProcessIntent: activity=null");
                 return;
             }
 
-            var extras = intent.GetExtras();
-            this.logger.LogDebug($"ProcessIntent: Flags={intent.Flags}, Extras={string.Join(System.Environment.NewLine, extras)}");
+            if (intent == null)
+            {
+                this.logger.LogDebug($"ProcessIntent: intent=null");
+                return;
+            }
+
+            var activityType = activity.GetType();
+            var extras = intent.GetExtrasDict();
+            this.logger.LogDebug($"ProcessIntent: activity.Type={activityType.Name}, intent.Flags={intent.Flags}, intent.Extras=[{string.Join(", ", extras)}]");
 
             var launchedFromHistory = intent.Flags.HasFlag(ActivityFlags.LaunchedFromHistory);
             if (launchedFromHistory)
@@ -68,8 +74,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return;
             }
 
-            if (intent.Extras != null &&
-                intent.Extras.KeySet().Any())
+            if (extras.Any())
             {
                 // Don't process old/historic intents which are recycled for whatever reasons
                 var intentAlreadyHandledKey = Constants.ExtraFirebaseProcessIntentHandled;
@@ -77,7 +82,34 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     intent.PutExtra(intentAlreadyHandledKey, true);
                     this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} not present --> Process push notification");
-                    this.ProcessIntentOld(activity, intent);
+
+                    // TODO: Refactor this! This is for sure not a good behavior..
+                    DefaultNotificationActivityType = activityType;
+
+                    var notificationManager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
+
+                    if (extras.TryGetInt(DefaultPushNotificationHandler.ActionNotificationIdKey, out var notificationId))
+                    {
+                        if (extras.TryGetString(DefaultPushNotificationHandler.ActionNotificationTagKey, out var notificationTag))
+                        {
+                            notificationManager.Cancel(notificationId);
+                        }
+                        else
+                        {
+                            notificationManager.Cancel(notificationTag, notificationId);
+                        }
+                    }
+
+                    // TODO: Pass object instead of 3 parameters
+                    var identifier = extras.GetStringOrDefault(DefaultPushNotificationHandler.ActionIdentifierKey);
+                    if (identifier == null)
+                    {
+                        this.HandleNotificationOpened(extras, identifier, NotificationCategoryType.Default);
+                    }
+                    else
+                    {
+                        this.HandleNotificationAction(extras, identifier, NotificationCategoryType.Default);
+                    }
                 }
                 else
                 {
@@ -86,57 +118,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        // TODO: Merge with ProcessIntent method to avoid duplicated code & checks
-        private void ProcessIntentOld(Activity activity, Intent intent)
-        {
-            DefaultNotificationActivityType = activity.GetType();
-            var extras = intent?.Extras;
-            if (extras != null && !extras.IsEmpty)
-            {
-                var parameters = new Dictionary<string, object>();
-                foreach (var key in extras.KeySet())
-                {
-                    if (!parameters.ContainsKey(key) && extras.Get(key) != null)
-                    {
-                        parameters.Add(key, $"{extras.Get(key)}");
-                    }
-                }
-
-                if (parameters.Count > 0)
-                {
-                    var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
-                    var notificationId = extras.GetInt(DefaultPushNotificationHandler.ActionNotificationIdKey, -1);
-                    if (notificationId != -1)
-                    {
-                        var notificationTag = extras.GetString(DefaultPushNotificationHandler.ActionNotificationTagKey, string.Empty);
-                        if (notificationTag == null)
-                        {
-                            manager.Cancel(notificationId);
-                        }
-                        else
-                        {
-                            manager.Cancel(notificationTag, notificationId);
-                        }
-                    }
-
-                    // TODO: Ineffizient code; remove NotificationResponse or use it everywhere
-                    var response = new NotificationResponse(parameters, extras.GetString(DefaultPushNotificationHandler.ActionIdentifierKey, string.Empty));
-
-                    if (string.IsNullOrEmpty(response.Identifier))
-                    {
-                        // TODO: Pass response here? Why not...
-                        this.HandleNotificationOpened(response.Data, response.Identifier, response.Type);
-                    }
-                    else
-                    {
-                        // TODO: Pass response here? Why not...
-                        this.HandleNotificationAction(response.Data, response.Identifier, response.Type);
-                    }
-                }
-            }
-        }
-
         [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Initialize(Context context, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
             this.NotificationHandler ??= new DefaultPushNotificationHandler();
@@ -154,22 +137,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                     try
                     {
-
                         var storedVersionName = prefs.GetString(AppVersionNameKey, string.Empty);
                         var storedVersionCode = prefs.GetString(AppVersionCodeKey, string.Empty);
                         var storedPackageName = prefs.GetString(AppVersionPackageNameKey, string.Empty);
 
-
                         if (resetToken || (!string.IsNullOrEmpty(storedPackageName) && (!storedPackageName.Equals(packageName, StringComparison.CurrentCultureIgnoreCase) || !storedVersionName.Equals(versionName, StringComparison.CurrentCultureIgnoreCase) || !storedVersionCode.Equals($"{versionCode}", StringComparison.CurrentCultureIgnoreCase))))
                         {
                             this.CleanUp(false);
-
                         }
-
                     }
                     catch (Exception ex)
                     {
-                        this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
+                        this.logger.LogError(ex, "Initialize failed with exception");
+                        this.HandleNotificationError(FirebasePushNotificationErrorType.Unknown, ex.ToString());
                     }
                     finally
                     {
@@ -180,7 +160,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                         editor.Commit();
                     }
 
-                    CrossFirebasePushNotification.Current.RegisterForPushNotifications();
+                    _ = CrossFirebasePushNotification.Current.RegisterForPushNotificationsAsync();
                 });
             }
 
@@ -211,6 +191,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Initialize(Context context, NotificationUserCategory[] notificationCategories, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
             this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
@@ -219,6 +200,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public void Reset()
         {
+            // TODO: QueueUserWorkItem is this really necessary resp. of any advantage here?
             ThreadPool.QueueUserWorkItem(state =>
             {
                 try
@@ -227,26 +209,28 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
+                    this.logger.LogError(ex, "Reset failed with exception");
                     this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
                 }
             });
         }
 
-        public void RegisterForPushNotifications()
+        public async Task RegisterForPushNotificationsAsync()
         {
+            this.logger.LogDebug("RegisterForPushNotificationsAsync");
+
             FirebaseMessaging.Instance.AutoInitEnabled = true;
-            Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 var token = await this.GetTokenAsync();
                 if (!string.IsNullOrEmpty(token))
                 {
-
-                    SaveToken(token);
+                    this.SaveToken(token);
                 }
             });
         }
 
-        public async Task<string> GetTokenAsync()
+        private async Task<string> GetTokenAsync()
         {
             var tcs = new TaskCompletionSource<Java.Lang.Object>();
             var taskCompleteListener = new TaskCompleteListener(tcs);
@@ -261,6 +245,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             catch (Exception ex)
             {
+                this.logger.LogError(ex, "GetTokenAsync failed with exception");
                 this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, $"{ex}");
             }
 
@@ -280,11 +265,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.UnsubscribeAll();
             }
 
+            // TODO: DeleteToken seems to be an Android Task... await before continue!
             FirebaseMessaging.Instance.DeleteToken();
-            SaveToken(string.Empty);
+
+            this.SaveToken(string.Empty);
         }
 
         [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Initialize(Context context, IPushNotificationHandler pushNotificationHandler, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
             this.NotificationHandler = pushNotificationHandler;
@@ -296,6 +284,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.userNotificationCategories.Clear();
         }
 
+        // TODO: Read FirebaseTokenKey in a central place (now it's spread all over the code
         public string Token => Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).GetString(Constants.FirebaseTokenKey, string.Empty);
 
         public string[] SubscribedTopics
@@ -313,56 +302,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return topics.ToArray();
             }
         }
-
-        //private static FirebasePushNotificationResponseEventHandler onNotificationOpened;
-        //public event FirebasePushNotificationResponseEventHandler OnNotificationOpened
-        //{
-        //    add
-        //    {
-        //        var previousVal = onNotificationOpened;
-        //        _onNotificationOpened += value;
-        //        if (delayedNotificationResponse != null && previousVal == null)
-        //        {
-        //            var tmpParams = delayedNotificationResponse;
-        //            if (string.IsNullOrEmpty(tmpParams.Identifier))
-        //            {
-        //                onNotificationOpened?.Invoke(this, new FirebasePushNotificationResponseEventArgs(tmpParams.Data, tmpParams.Identifier, tmpParams.Type));
-        //                delayedNotificationResponse = null;
-        //            }
-
-        //        }
-
-        //    }
-        //    remove
-        //    {
-        //        _onNotificationOpened -= value;
-        //    }
-        //}
-
-        //private FirebasePushNotificationResponseEventHandler _onNotificationAction;
-        //public event FirebasePushNotificationResponseEventHandler OnNotificationAction
-        //{
-        //    add
-        //    {
-        //        var previousVal = _onNotificationAction;
-        //        _onNotificationAction += value;
-        //        if (delayedNotificationResponse != null && previousVal == null)
-        //        {
-        //            var tmpParams = delayedNotificationResponse;
-        //            if (!string.IsNullOrEmpty(tmpParams.Identifier))
-        //            {
-        //                _onNotificationAction?.Invoke(this, new FirebasePushNotificationResponseEventArgs(tmpParams.Data, tmpParams.Identifier, tmpParams.Type));
-        //                delayedNotificationResponse = null;
-        //            }
-
-        //        }
-        //    }
-        //    remove
-        //    {
-        //        _onNotificationAction -= value;
-        //    }
-        //}
-
 
         //public void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive)
         //{
@@ -454,38 +393,20 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public void OnNewToken(string token)
+        protected override void OnTokenRefresh(string token)
         {
-            this.logger.LogDebug($"OnNewToken: {token}"); // TODO: Truncate string for privacy reasons
-            SaveToken(token);
-            this.HandleTokenRefresh(token);
+            this.SaveToken(token);
         }
 
-        public void OnMessageReceived(IDictionary<string, object> data)
+        private void SaveToken(string token)
         {
-            this.logger.LogDebug("OnMessageReceived");
-            this.HandleNotificationReceived(data);
-        }
+            this.logger.LogDebug("SaveToken");
 
-        public void RegisterAction(IDictionary<string, object> data)
-        {
-            // TODO: Inefficient code; refactoring required!
-            var response = new NotificationResponse(data, data.ContainsKey(DefaultPushNotificationHandler.ActionIdentifierKey) ? $"{data[DefaultPushNotificationHandler.ActionIdentifierKey]}" : string.Empty);
-
-            this.HandleNotificationAction(response.Data, response.Identifier, response.Type);
-        }
-
-        public void RegisterDelete(IDictionary<string, object> data)
-        {
-            // TODO: Eliminate this unnecessary method interception
-            this.HandleNotificationDeleted(data);
-        }
-
-        private static void SaveToken(string token)
-        {
-            var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutString(Constants.FirebaseTokenKey, token);
-            editor.Commit();
+            using (var editor = Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit())
+            {
+                editor.PutString(Constants.FirebaseTokenKey, token);
+                editor.Commit();
+            }
         }
 
         public void ClearAllNotifications()

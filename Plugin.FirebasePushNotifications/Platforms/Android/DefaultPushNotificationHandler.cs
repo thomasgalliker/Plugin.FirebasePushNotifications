@@ -505,7 +505,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                                     extras.PutString(ActionIdentifierKey, action.Id);
                                     actionIntent.PutExtras(extras);
                                     pendingActionIntent = PendingIntent.GetActivity(context, aRequestCode, actionIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
-
                                 }
                                 else
                                 {
@@ -513,12 +512,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
                                     extras.PutString(ActionIdentifierKey, action.Id);
                                     actionIntent.PutExtras(extras);
                                     pendingActionIntent = PendingIntent.GetBroadcast(context, aRequestCode, actionIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
-
                                 }
 
                                 notificationBuilder.AddAction(new NotificationCompat.Action.Builder(context.Resources.GetIdentifier(action.Icon, "drawable", Application.Context.PackageName), action.Title, pendingActionIntent).Build());
                             }
-
                         }
                     }
                 }

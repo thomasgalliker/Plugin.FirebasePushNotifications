@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
+using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -8,25 +9,18 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         public override void OnReceive(Context context, Intent intent)
         {
-            IDictionary<string, object> parameters = new Dictionary<string, object>();
-            var extras = intent.Extras;
+            var extras = intent.GetExtrasDict();
 
-            if (extras != null && !extras.IsEmpty)
-            {
-                foreach (var key in extras.KeySet())
-                {
-                    parameters.Add(key, $"{extras.Get(key)}");
-                    System.Diagnostics.Debug.WriteLine(key, $"{extras.Get(key)}");
-                }
-            }
-            
-            CrossFirebasePushNotification.Current.RegisterAction(parameters);
+            var identifier = extras.GetStringOrDefault(DefaultPushNotificationHandler.ActionIdentifierKey);
+            var notificationCategoryType = NotificationCategoryType.Default;
+
+            CrossFirebasePushNotification.Current.HandleNotificationAction(extras, identifier, notificationCategoryType);
 
             var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
-            var notificationId = extras.GetInt(DefaultPushNotificationHandler.ActionNotificationIdKey, -1);
+            var notificationId = extras.GetValueOrDefault(DefaultPushNotificationHandler.ActionNotificationIdKey, -1);
             if (notificationId != -1)
             {
-                var notificationTag = extras.GetString(DefaultPushNotificationHandler.ActionNotificationTagKey, string.Empty);
+                var notificationTag = extras.GetValueOrDefault(DefaultPushNotificationHandler.ActionNotificationTagKey, string.Empty);
 
                 if (notificationTag == null)
                 {

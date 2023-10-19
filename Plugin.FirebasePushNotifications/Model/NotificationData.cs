@@ -1,20 +1,38 @@
-﻿using Newtonsoft.Json;
-using Plugin.FirebasePushNotifications.Internals;
+﻿using Plugin.FirebasePushNotifications.Internals;
 
 namespace Plugin.FirebasePushNotifications.Model
 {
-    public class NotificationData
+    public sealed class NotificationData
     {
-        [JsonProperty("title")]
-        public string Title { get; set; }
+        private readonly string body;
+        private readonly string title;
 
-        [JsonProperty("body")]
-        public string Body { get; set; }
-
-        public string ToString()
+        public NotificationData(
+            string body = null,
+            string title = null,
+            IDictionary<string, string> data = null)
         {
-            var dict = DictionaryJsonConverter.Flatten(this);
+            this.body = body;
+            this.title = title;
+            this.Data = data;
+        }
+
+        public override string ToString()
+        {
+            var dict = DictionaryJsonConverter.Flatten(this.Data);
             return string.Join($",{Environment.NewLine}", dict.Select(d => $"{{{d.Key}, {d.Value ?? "null"}}}"));
         }
+
+        public string Body
+        {
+            get => this.body ?? this.Data?["body"];
+        }
+
+        public string Title
+        {
+            get => this.title ?? (this.Data != null && this.Data.Any() ? this.Data["title"] : "");
+        }
+
+        public IDictionary<string, string> Data { get; }
     }
 }

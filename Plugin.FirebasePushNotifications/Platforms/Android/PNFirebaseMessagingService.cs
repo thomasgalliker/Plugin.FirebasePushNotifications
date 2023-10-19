@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Firebase.Messaging;
 
@@ -105,7 +104,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            CrossFirebasePushNotification.Current.OnMessageReceived(parameters);
+            CrossFirebasePushNotification.Current.HandleNotificationReceived(parameters);
         }
 
         public override void OnNewToken(string refreshedToken)
@@ -125,7 +124,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             editor.PutString(Constants.FirebaseTokenKey, refreshedToken);
             editor.Commit();
 
-            firebasePushNotification.OnNewToken(refreshedToken);
+            firebasePushNotification.HandleTokenRefresh(refreshedToken);
         }
     }
 

@@ -8,6 +8,5 @@
         {
             this.Token = token;
         }
-
     }
 }

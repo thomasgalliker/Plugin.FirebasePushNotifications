@@ -1,4 +1,5 @@
-﻿using Firebase.CloudMessaging;
+﻿using System.ComponentModel;
+using Firebase.CloudMessaging;
 using Firebase.Core;
 using Foundation;
 using Microsoft.Extensions.Logging;
@@ -57,6 +58,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Initialize(NSDictionary options, bool autoRegistration = true)
         {
             if (App.DefaultInstance == null)
@@ -72,25 +75,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (options[UIApplication.LaunchOptionsRemoteNotificationKey] is NSDictionary pushPayload)
                 {
                     var parameters = GetParameters(pushPayload);
-
-                    // TODO: Inefficient code; cleanup!
-                    var notificationResponse = new NotificationResponse(parameters, string.Empty, NotificationCategoryType.Default);
-                    this.HandleNotificationOpened(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type);
+                    // TODO: Pass single object instead of 3 parameters
+                    this.HandleNotificationOpened(parameters, null, NotificationCategoryType.Default);
                 }
             }
 
             if (autoRegistration)
             {
-                this.RegisterForPushNotifications();
+               _ = this.RegisterForPushNotificationsAsync();
             }
         }
 
+        [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Initialize(NSDictionary options, IPushNotificationHandler pushNotificationHandler, bool autoRegistration = true)
         {
             this.NotificationHandler = pushNotificationHandler;
             this.Initialize(options, autoRegistration);
         }
 
+        [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Initialize(NSDictionary options, NotificationUserCategory[] notificationUserCategories, bool autoRegistration = true)
         {
             this.Initialize(options, autoRegistration);
@@ -156,9 +161,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public void RegisterForPushNotifications()
+        public async Task RegisterForPushNotificationsAsync()
         {
-            this.logger.LogDebug("RegisterForPushNotifications");
+            this.logger.LogDebug("RegisterForPushNotificationsAsync");
 
             Messaging.SharedInstance.AutoInitEnabled = true;
 
@@ -166,40 +171,29 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             //Messaging.SharedInstance.ShouldEstablishDirectChannel = true;
 
-            // Register your app for remote notifications.
             if (UIDevice.CurrentDevice.CheckSystemVersion(10, 0))
             {
-                // iOS 10 or later
                 var authOptions = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
 
-                // For iOS 10 display notification (sent via APNS)
                 UNUserNotificationCenter.Current.Delegate = this;
 
-                UNUserNotificationCenter.Current.RequestAuthorization(authOptions, (granted, error) =>
+                var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
+                if (error != null)
                 {
-                    if (error != null)
-                    {
-                        this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, error.Description);
-                    }
-                    else if (!granted)
-                    {
-                        this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, "Push notification permission not granted");
-                    }
-                    else
-                    {
-                        this.InvokeOnMainThread(() => UIApplication.SharedApplication.RegisterForRemoteNotifications());
-                    }
-                });
-
+                    this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, error.Description);
+                }
+                else if (!granted)
+                {
+                    this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, "Push notification permission not granted");
+                }
+                else
+                {
+                    await MainThread.InvokeOnMainThreadAsync(UIApplication.SharedApplication.RegisterForRemoteNotifications);
+                }
             }
             else
             {
-                // iOS 9 or before
-                var allNotificationTypes = UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound;
-                var settings = UIUserNotificationSettings.GetSettingsForTypes(allNotificationTypes, null);
-                UIApplication.SharedApplication.RegisterUserNotificationSettings(settings);
-
-                UIApplication.SharedApplication.RegisterForRemoteNotifications();
+                throw new NotSupportedException();
             }
         }
 
@@ -218,7 +212,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             Messaging.SharedInstance.AutoInitEnabled = false;
             UIApplication.SharedApplication.UnregisterForRemoteNotifications();
             NSUserDefaults.StandardUserDefaults.SetString(string.Empty, Constants.FirebaseTokenKey);
-
         }
 
         [Export("application:didReceiveRemoteNotification:fetchCompletionHandler:")]
@@ -232,21 +225,26 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // If you disable method swizzling, you'll need to call this method. 
             // This lets FCM track message delivery and analytics, which is performed
             // automatically with method swizzling enabled.
-            this.DidReceiveMessage(userInfo);
-            // Do your magic to handle the notification data
-            Console.WriteLine(userInfo);
+            this.DidReceiveRemoteNotification(userInfo);
+
             completionHandler(UIBackgroundFetchResult.NewData);
         }
 
-        // TODO: Remove support for iOS 10.
-        // To receive notifications in foreground on iOS 10 devices.
+        public void DidReceiveRemoteNotification(NSDictionary data)
+        {
+            this.logger.LogDebug("DidReceiveRemoteNotification");
+
+            Messaging.SharedInstance.AppDidReceiveMessage(data);
+            var parameters = GetParameters(data);
+
+            this.HandleNotificationReceived(parameters);
+        }
+
         [Export("userNotificationCenter:willPresentNotification:withCompletionHandler:")]
         public void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification, Action<UNNotificationPresentationOptions> completionHandler)
         {
             this.logger.LogDebug("WillPresentNotification");
 
-            // Do your magic to handle the notification data
-            //Console.WriteLine(notification.Request.Content.UserInfo);
             var parameters = GetParameters(notification.Request.Content.UserInfo);
             this.HandleNotificationReceived(parameters);
 
@@ -268,26 +266,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
             completionHandler(this.CurrentNotificationPresentationOption);
         }
 
-        public void DidReceiveMessage(NSDictionary data)
+        public void RegisteredForRemoteNotifications(NSData deviceToken)
         {
-            this.logger.LogDebug("DidReceivedMessage");
-
-            Messaging.SharedInstance.AppDidReceiveMessage(data);
-            var parameters = GetParameters(data);
-
-            this.HandleNotificationReceived(parameters);
-        }
-
-        public void DidRegisterRemoteNotifications(NSData deviceToken)
-        {
-            this.logger.LogDebug("DidRegisterRemoteNotifications");
+            this.logger.LogDebug("RegisteredForRemoteNotifications");
 
             Messaging.SharedInstance.ApnsToken = deviceToken;
         }
 
-        public void RemoteNotificationRegistrationFailed(NSError error)
+        public void FailedToRegisterForRemoteNotifications(NSError error)
         {
-            this.logger.LogError("RemoteNotificationRegistrationFailed"); // TODO: Log NSError here
+            this.logger.LogError(new NSErrorException(error), "FailedToRegisterForRemoteNotifications");
 
             this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, error.Description);
         }
@@ -395,21 +383,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return;
             }
 
-            var deletedKey = new NSString($"{topic}");
+            var deletedKey = new NSString(topic);
             if (this.currentTopics.Contains(deletedKey))
             {
-                Messaging.SharedInstance.Unsubscribe($"{topic}");
+                Messaging.SharedInstance.Unsubscribe(topic);
                 var idx = (nint)this.currentTopics.IndexOf(deletedKey);
                 if (idx != -1)
                 {
                     this.currentTopics.RemoveObject(idx);
-
                 }
             }
 
             NSUserDefaults.StandardUserDefaults.SetValueForKey(this.currentTopics, Constants.FirebaseTopicsKey);
             NSUserDefaults.StandardUserDefaults.Synchronize();
-
         }
 
         //public void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive)
@@ -436,7 +422,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var parameters = GetParameters(response.Notification.Request.Content.UserInfo);
 
-            var notificationCategoryType = NotificationCategoryType.Default;
+            NotificationCategoryType notificationCategoryType;
+
             if (response.IsCustomAction)
             {
                 notificationCategoryType = NotificationCategoryType.Custom;
@@ -445,17 +432,20 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 notificationCategoryType = NotificationCategoryType.Dismiss;
             }
+            else
+            {
+                notificationCategoryType = NotificationCategoryType.Default;
+            }
 
             var identifier = $"{response.ActionIdentifier}".Equals("com.apple.UNNotificationDefaultActionIdentifier", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{response.ActionIdentifier}";
-            var notificationResponse = new NotificationResponse(parameters, identifier, notificationCategoryType);
 
             if (string.IsNullOrEmpty(identifier))
             {
-                this.HandleNotificationOpened(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type);
+                this.HandleNotificationOpened(parameters, identifier, notificationCategoryType);
             }
             else
             {
-                this.HandleNotificationAction(notificationResponse.Data, notificationResponse.Identifier, notificationResponse.Type);
+                this.HandleNotificationAction(parameters, identifier, notificationCategoryType);
             }
 
             // Inform caller it has been handled
@@ -468,25 +458,25 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.logger.LogDebug("DidReceiveRegistrationToken");
 
             // Note that this callback will be fired everytime a new token is generated, including the first
-            // time. So if you need to retrieve the token as soon as it is available this is where that
-            // should be done.
+            // time a token is received.
 
             if (!string.IsNullOrEmpty(fcmToken))
             {
                 this.HandleTokenRefresh(fcmToken);
+
                 this.hasToken = true;
-                while (this.pendingTopics.Count > 0)
+
+                while (this.pendingTopics.TryDequeue(out var pendingTopic))
                 {
-                    var pTopic = this.pendingTopics.Dequeue();
-                    if (pTopic != null)
+                    if (pendingTopic != null)
                     {
-                        if (pTopic.Item2)
+                        if (pendingTopic.Item2)
                         {
-                            this.Subscribe(pTopic.Item1);
+                            this.Subscribe(pendingTopic.Item1);
                         }
                         else
                         {
-                            this.Unsubscribe(pTopic.Item1);
+                            this.Unsubscribe(pendingTopic.Item1);
                         }
                     }
                 }
@@ -537,12 +527,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
 
             }
-        }
-
-        public Task<string> GetTokenAsync()
-        {
-            var result = Messaging.SharedInstance.FcmToken;
-            return Task.FromResult(result);
         }
     }
 }

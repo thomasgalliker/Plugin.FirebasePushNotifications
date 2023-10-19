@@ -31,14 +31,14 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var token = "token";
+            var token = "test-push-token-63fd4bc9-c337-488f-bac4-13eb50e66a9c";
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.OnTokenRefresh += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.TokenRefreshed += (s, e) => listOfEventArgs.Add(e);
 
             // Act
-            firebasePushNotificationManager.RaiseOnTokenRefresh(token);
-            firebasePushNotificationManager.RaiseOnTokenRefresh(token);
+            firebasePushNotificationManager.HandleTokenRefresh(token);
+            firebasePushNotificationManager.HandleTokenRefresh(token);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
@@ -51,14 +51,42 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var token = "token";
+            var token = "test-push-token-63fd4bc9-c337-488f-bac4-13eb50e66a9c";
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.RaiseOnTokenRefresh(token);
-            firebasePushNotificationManager.RaiseOnTokenRefresh(token);
+            firebasePushNotificationManager.HandleTokenRefresh(token);
+            firebasePushNotificationManager.HandleTokenRefresh(token);
 
             // Act
-            firebasePushNotificationManager.OnTokenRefresh += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.TokenRefreshed += (s, e) => listOfEventArgs.Add(e);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(2);
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationTokenEventArgs>();
+        }
+
+        [Fact]
+        public void OnTokenRefresh_ShouldDeliverDelayed_IfEventIsSubscribedAfterDelivery_SubscribeUnsubscribeSubscribeCase()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
+
+            var token = "test-push-token-63fd4bc9-c337-488f-bac4-13eb50e66a9c";
+
+            void OnTokenRefreshed(object s, EventArgs e)
+            {
+                listOfEventArgs.Add(e);
+            }
+
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.TokenRefreshed += OnTokenRefreshed;
+            firebasePushNotificationManager.TokenRefreshed -= OnTokenRefreshed;
+
+            firebasePushNotificationManager.HandleTokenRefresh(token);
+            firebasePushNotificationManager.HandleTokenRefresh(token);
+
+            // Act
+            firebasePushNotificationManager.TokenRefreshed += OnTokenRefreshed;
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
@@ -77,7 +105,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             };
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.OnNotificationReceived += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.NotificationReceived += (s, e) => listOfEventArgs.Add(e);
 
             // Act
             firebasePushNotificationManager.HandleNotificationReceived(data);
@@ -104,7 +132,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             firebasePushNotificationManager.HandleNotificationReceived(data);
 
             // Act
-            firebasePushNotificationManager.OnNotificationReceived += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.NotificationReceived += (s, e) => listOfEventArgs.Add(e);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
@@ -123,7 +151,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             };
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.OnNotificationDeleted += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.NotificationDeleted += (s, e) => listOfEventArgs.Add(e);
 
             // Act
             firebasePushNotificationManager.HandleNotificationDeleted(data);
@@ -150,7 +178,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             firebasePushNotificationManager.HandleNotificationDeleted(data);
 
             // Act
-            firebasePushNotificationManager.OnNotificationDeleted += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.NotificationDeleted += (s, e) => listOfEventArgs.Add(e);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
@@ -170,7 +198,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             var identifier = "99";
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.OnNotificationOpened += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.NotificationOpened += (s, e) => listOfEventArgs.Add(e);
 
             // Act
             firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
@@ -198,7 +226,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
 
             // Act
-            firebasePushNotificationManager.OnNotificationOpened += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.NotificationOpened += (s, e) => listOfEventArgs.Add(e);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
@@ -218,7 +246,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             var identifier = "99";
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.OnNotificationAction += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.NotificationAction += (s, e) => listOfEventArgs.Add(e);
 
             // Act
             firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
@@ -246,7 +274,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
 
             // Act
-            firebasePushNotificationManager.OnNotificationAction += (s, e) => listOfEventArgs.Add(e);
+            firebasePushNotificationManager.NotificationAction += (s, e) => listOfEventArgs.Add(e);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);

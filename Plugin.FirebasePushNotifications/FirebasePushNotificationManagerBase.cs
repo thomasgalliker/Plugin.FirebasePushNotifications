@@ -5,6 +5,7 @@ using Foundation;
 using System;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications.Platforms
@@ -65,11 +66,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public virtual void Configure(FirebasePushNotificationOptions options)
+        public void Configure(FirebasePushNotificationOptions options)
         {
             this.logger.LogDebug("Configure");
 
             this.CreateOrUpdateQueues(options.QueueFactory);
+
+            this.OnConfigure(options);
+        }
+
+        protected virtual void OnConfigure(FirebasePushNotificationOptions options)
+        {
         }
 
         /// <inheritdoc/>
@@ -80,18 +87,49 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public IPushNotificationHandler NotificationHandler { get; set; }
 
-        protected virtual void HandleTokenRefresh(string token)
+        public void HandleTokenRefresh(string token)
         {
+            this.logger.LogDebug($"HandleTokenRefresh: \"{FormatTokenForLogging(token)}\"");
+
+            this.OnTokenRefresh(token);
+
             this.RaiseOrQueueEvent(
                 this.tokenRefreshEventHandler,
                 () => new FirebasePushNotificationTokenEventArgs(token),
                 this.tokenRefreshQueue,
-                nameof(OnTokenRefresh));
+                nameof(TokenRefreshed));
+        }
+
+        protected virtual void OnTokenRefresh(string token)
+        {
+        }
+
+        private static string FormatTokenForLogging(string token)
+        {
+            if (token == null)
+            {
+                return "null";
+            }
+
+            try
+            {
+                var substringLength =  Math.Min(10, token.Length / 10);
+                if (substringLength < 5)
+                {
+                    return Constants.SuppressedString;
+                }
+
+                return $"{Constants.SuppressedString}...{token.Substring(token.Length - substringLength)}";
+            }
+            catch
+            {
+                return Constants.SuppressedString;
+            }
         }
 
         private EventHandler<FirebasePushNotificationTokenEventArgs> tokenRefreshEventHandler;
 
-        public event EventHandler<FirebasePushNotificationTokenEventArgs> OnTokenRefresh
+        public event EventHandler<FirebasePushNotificationTokenEventArgs> TokenRefreshed
         {
             add
             {
@@ -100,20 +138,28 @@ namespace Plugin.FirebasePushNotifications.Platforms
             remove => this.tokenRefreshEventHandler -= value;
         }
 
-        protected virtual void HandleNotificationReceived(IDictionary<string, object> data)
+        public void HandleNotificationReceived(IDictionary<string, object> data)
         {
+            this.logger.LogDebug("HandleNotificationReceived");
+
             this.RaiseOrQueueEvent(
                 this.notificationReceivedEventHandler,
                 () => new FirebasePushNotificationDataEventArgs(data),
                 this.notificationReceivedQueue,
-                nameof(OnNotificationReceived));
+                nameof(NotificationReceived));
+
+            this.OnNotificationReceived(data);
 
             this.NotificationHandler?.OnReceived(data);
         }
 
+        protected virtual void OnNotificationReceived(IDictionary<string, object> data)
+        {
+        }
+
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationReceivedEventHandler;
 
-        public event EventHandler<FirebasePushNotificationDataEventArgs> OnNotificationReceived
+        public event EventHandler<FirebasePushNotificationDataEventArgs> NotificationReceived
         {
             add
             {
@@ -122,21 +168,29 @@ namespace Plugin.FirebasePushNotifications.Platforms
             remove => this.notificationReceivedEventHandler -= value;
         }
 
-        protected virtual void HandleNotificationDeleted(IDictionary<string, object> data)
+        public void HandleNotificationDeleted(IDictionary<string, object> data)
         {
+            this.logger.LogDebug("HandleNotificationDeleted");
+
             this.RaiseOrQueueEvent(
                 this.notificationDeletedEventHandler,
                 () => new FirebasePushNotificationDataEventArgs(data),
                 this.notificationDeletedQueue,
-                nameof(OnNotificationDeleted));
+                nameof(NotificationDeleted));
+
+            this.OnNotificationDeleted(data);
 
             // TODO: Extend interface
             //this.NotificationHandler?.OnDeleted(data);
         }
 
+        protected virtual void OnNotificationDeleted(IDictionary<string, object> data)
+        {
+        }
+
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationDeletedEventHandler;
 
-        public event EventHandler<FirebasePushNotificationDataEventArgs> OnNotificationDeleted
+        public event EventHandler<FirebasePushNotificationDataEventArgs> NotificationDeleted
         {
             add
             {
@@ -145,13 +199,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
             remove => this.notificationDeletedEventHandler -= value;
         }
 
-        protected virtual void HandleNotificationError(FirebasePushNotificationErrorType type, string message)
+        public void HandleNotificationError(FirebasePushNotificationErrorType type, string message)
         {
+            this.logger.LogDebug("HandleNotificationError");
+
             this.RaiseOrQueueEvent(
                 this.notificationErrorEventHandler,
                 () => new FirebasePushNotificationErrorEventArgs(type, message),
                 this.notificationErrorQueue,
-                nameof(OnNotificationError));
+                nameof(NotificationError));
 
             // TODO: Extend interface
             this.NotificationHandler?.OnError(/*type,*/ message);
@@ -159,7 +215,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private EventHandler<FirebasePushNotificationErrorEventArgs> notificationErrorEventHandler;
 
-        public event EventHandler<FirebasePushNotificationErrorEventArgs> OnNotificationError
+        public event EventHandler<FirebasePushNotificationErrorEventArgs> NotificationError
         {
             add
             {
@@ -171,20 +227,28 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        protected virtual void HandleNotificationOpened(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
+        public void HandleNotificationOpened(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
         {
+            this.logger.LogDebug("HandleNotificationOpened");
+
             this.RaiseOrQueueEvent(
                 this.notificationOpenedEventHandler,
                 () => new FirebasePushNotificationResponseEventArgs(data, identifier, notificationCategoryType),
                 this.notificationOpenedQueue,
-                nameof(OnNotificationOpened));
+                nameof(NotificationOpened));
+
+            this.OnNotificationOpened(data, identifier, notificationCategoryType);
 
             this.NotificationHandler?.OnOpened(data, identifier, notificationCategoryType);
         }
 
+        protected virtual void OnNotificationOpened(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
+        {
+        }
+
         private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
 
-        public event EventHandler<FirebasePushNotificationResponseEventArgs> OnNotificationOpened
+        public event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationOpened
         {
             add
             {
@@ -196,21 +260,29 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        protected virtual void HandleNotificationAction(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
+        public void HandleNotificationAction(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
         {
+            this.logger.LogDebug("HandleNotificationAction");
+
             this.RaiseOrQueueEvent(
                 this.notificationActionEventHandler,
                 () => new FirebasePushNotificationResponseEventArgs(data, identifier, notificationCategoryType),
                 this.notificationActionQueue,
-                nameof(OnNotificationAction));
+                nameof(NotificationAction));
 
+            this.OnNotificationAction(data);
+            
             // TODO: Extend interface
             //this.NotificationHandler?.OnAction(data);
         }
 
+        protected virtual void OnNotificationAction(IDictionary<string, object> data)
+        {
+        }
+
         private EventHandler<FirebasePushNotificationResponseEventArgs> notificationActionEventHandler;
 
-        public event EventHandler<FirebasePushNotificationResponseEventArgs> OnNotificationAction
+        public event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationAction
         {
             add
             {
@@ -231,13 +303,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private void RaiseOrQueueEvent<TEventArgs>(
             EventHandler<TEventArgs> eventHandler,
             Func<TEventArgs> getEventArgs,
-            IQueue<TEventArgs> queue, 
+            IQueue<TEventArgs> queue,
             string eventName,
-            [CallerMemberName]string callerName = null) where TEventArgs : EventArgs
+            [CallerMemberName] string callerName = null) where TEventArgs : EventArgs
         {
-            if (eventHandler != null)
+            if (eventHandler != null && eventHandler.GetInvocationList().Length is int subscribersCount && subscribersCount > 0)
             {
                 // If subscribers are present, invoke the event handler
+                this.logger.LogDebug(
+                     $"{callerName ?? nameof(RaiseOrQueueEvent)} raises event \"{eventName}\" to {subscribersCount} subscriber{(subscribersCount != 1 ? "s" : "")}");
+
                 var args = getEventArgs();
                 eventHandler.Invoke(this, args);
             }
@@ -246,6 +321,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (queue != null)
                 {
                     // If no subscribers are present, queue the event args
+                    this.logger.LogDebug(
+                     $"{callerName ?? nameof(RaiseOrQueueEvent)} queues event \"{eventName}\" into {queue.GetType().GetFormattedName()} for deferred delivery");
+
                     var args = getEventArgs();
                     queue.Enqueue(args);
                 }
@@ -253,8 +331,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     // If no subscribers are present and no queue is present, we just drop the event...
                     this.logger.LogWarning(
-                        $"{callerName ?? nameof(RaiseOrQueueEvent)} has dropped an invocation of event \"{eventName}\" " +
-                        $"since neither an event subscription nor a queue is present.");
+                        $"{callerName ?? nameof(RaiseOrQueueEvent)} drops event \"{eventName}\" (no event subscribers / no queue present).");
                 }
             }
         }
@@ -264,8 +341,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// and subscribes to <paramref name="eventHandler"/> with <paramref name="value"/>.
         /// </summary>
         private void DequeueAndSubscribe<TEventArgs>(
-            EventHandler<TEventArgs> value, 
-            ref EventHandler<TEventArgs> eventHandler, 
+            EventHandler<TEventArgs> value,
+            ref EventHandler<TEventArgs> eventHandler,
             IQueue<TEventArgs> queue) where TEventArgs : EventArgs
         {
             if (queue != null)

@@ -53,11 +53,7 @@ namespace Plugin.FirebasePushNotifications
                     firebasePushNotification.Configure(defaultOptions);
 
                     Firebase.Core.App.Configure();
-
-                    if (defaultOptions.AutoInitEnabled)
-                    {
-                        Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
-                    }
+                    Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
 
                     // In order to get OnTokenRefresh event called by firebase push notification plugin,
                     // we have to assign Messaging.SharedInstance.Delegate manually.

@@ -17,18 +17,29 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// </summary>
         /// <param name="intent">The intent.</param>
         /// <returns>List of key/value pairs. If intent is null, an empty list is returned.</returns>
-        public static IEnumerable<(string Key, string Value)> GetExtras(this Intent intent)
+        public static IEnumerable<(string Key, object Value)> GetExtras(this Intent intent)
         {
-            if (intent?.Extras == null)
+            if (intent == null)
             {
                 yield break;
             }
 
-            foreach (var key in intent.Extras.KeySet())
+            var extras = intent.Extras;
+            if (extras == null || extras.IsEmpty)
             {
-                var value = intent.Extras.Get(key);
-                yield return (key, $"{value}");
+                yield break;
             }
+
+            foreach (var key in extras.KeySet())
+            {
+                var value = extras.Get(key);
+                yield return (key, value);
+            }
+        }
+
+        public static IDictionary<string, object> GetExtrasDict(this Intent intent)
+        {
+            return intent.GetExtras().ToDictionary(x => x.Key, x => x.Value);
         }
     }
 }

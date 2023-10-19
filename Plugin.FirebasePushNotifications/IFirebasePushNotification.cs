@@ -26,24 +26,24 @@ namespace Plugin.FirebasePushNotifications
         /// </remarks>
         ILogger<FirebasePushNotificationManager> Logger { set; }
 
+        void HandleNotificationReceived(IDictionary<string, object> data);
+
+        void HandleNotificationAction(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType);
+
+        void HandleNotificationDeleted(IDictionary<string, object> data);
+
+        void HandleTokenRefresh(string token);
+
 #if ANDROID
         void ProcessIntent(Activity activity, Intent intent);
-
-        void OnNewToken(string token);
-
-        void OnMessageReceived(IDictionary<string, object> parameters);
-
-        void RegisterAction(IDictionary<string, object> parameters);
-        
-        void RegisterDelete(IDictionary<string, object> parameters);
 #endif
 
 #if IOS
-        void DidRegisterRemoteNotifications(NSData deviceToken);
+        void RegisteredForRemoteNotifications(NSData deviceToken);
 
-        void RemoteNotificationRegistrationFailed(NSError error);
+        void FailedToRegisterForRemoteNotifications(NSError error);
 
-        void DidReceiveMessage(NSDictionary data);
+        void DidReceiveRemoteNotification(NSDictionary data);
 #endif
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Register push notifications on demand
         /// </summary>
-        void RegisterForPushNotifications();
+        Task RegisterForPushNotificationsAsync();
 
         /// <summary>
         /// Unregister push notifications on demand
@@ -97,41 +97,39 @@ namespace Plugin.FirebasePushNotifications
         IPushNotificationHandler NotificationHandler { get; set; }
 
         /// <summary>
-        /// Event triggered when token is refreshed
+        /// Event triggered when token is refreshed.
         /// </summary>
-        event EventHandler<FirebasePushNotificationTokenEventArgs> OnTokenRefresh;
+        event EventHandler<FirebasePushNotificationTokenEventArgs> TokenRefreshed;
 
         /// <summary>
-        /// Event triggered when a notification is opened
+        /// Event triggered when a notification is opened.
         /// </summary>
-        event EventHandler<FirebasePushNotificationResponseEventArgs> OnNotificationOpened;
+        event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationOpened;
 
         /// <summary>
-        /// Event triggered when a notification is opened by tapping an action
+        /// Event triggered when a notification is opened by tapping an action.
         /// </summary>
-        event EventHandler<FirebasePushNotificationResponseEventArgs> OnNotificationAction;
+        event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationAction;
 
         /// <summary>
-        /// Event triggered when a notification is received
+        /// Event triggered when a notification is received.
         /// </summary>
-        event EventHandler<FirebasePushNotificationDataEventArgs> OnNotificationReceived;
+        event EventHandler<FirebasePushNotificationDataEventArgs> NotificationReceived;
 
         /// <summary>
-        /// Event triggered when a notification is deleted
+        /// Event triggered when a notification is deleted.
         /// </summary>
-        event EventHandler<FirebasePushNotificationDataEventArgs> OnNotificationDeleted;
+        event EventHandler<FirebasePushNotificationDataEventArgs> NotificationDeleted;
 
         /// <summary>
-        /// Event triggered when there's an error
+        /// Event triggered when an error has occurred.
         /// </summary>
-        event EventHandler<FirebasePushNotificationErrorEventArgs> OnNotificationError;
+        event EventHandler<FirebasePushNotificationErrorEventArgs> NotificationError;
 
         /// <summary>
-        /// Push notification token
+        /// The push notification token.
         /// </summary>
         string Token { get; }
-
-        Task<string> GetTokenAsync();
 
         /// <summary>
         /// Send device group message
