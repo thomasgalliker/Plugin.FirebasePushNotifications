@@ -5,16 +5,29 @@
     /// </summary>
     public class PersistentQueueOptions
     {
+        private static readonly string DefaultBaseDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "FirebaseQueues");
+
         /// <summary>
         /// The default options.
         /// </summary>
         public static readonly PersistentQueueOptions Default = new PersistentQueueOptions();
+        private string baseDirectory;
 
         /// <summary>
         /// The base directory to be used to store queued items.
-        /// If null/empty, the current directory is used by default.
+        /// If null/empty, "<see cref="Environment.SpecialFolder.MyDocuments"/>/FirebaseQueues" is used as fallback.
         /// </summary>
-        public string BaseDirectory { get; set; }
+        public string BaseDirectory
+        {
+            get
+            {
+                return this.baseDirectory is string baseDirectory && !string.IsNullOrWhiteSpace(baseDirectory) 
+                    ? baseDirectory
+                    : DefaultBaseDirectory;
+            }
+
+            set => this.baseDirectory = value;
+        }
 
         /// <summary>
         /// Selects the file name from a given generic type T in <see cref="PersistentQueue{T}"/>.
