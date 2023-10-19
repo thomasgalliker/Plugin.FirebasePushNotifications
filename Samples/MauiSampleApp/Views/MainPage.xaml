@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiSampleApp.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
+    x:DataType="vm:MainViewModel"
+    Title="Plugin.FirebasePushNotifications">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="20"
+            Spacing="20"
+            VerticalOptions="Start">
+
+            <Grid
+                ColumnDefinitions="Auto, *"
+                ColumnSpacing="10"
+                RowDefinitions="Auto, *"
+                RowSpacing="10">
+                <Image
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
+                    Grid.Column="0"
+                    HeightRequest="100"
+                    Source="dotnet_bot.png" />
+
+                <Label
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    FontSize="28"
+                    Text="Firebase Push Notifications" />
+
+                <Label
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Text="MAUI sample app for Firebase push notifications." />
+
+            </Grid>
+
+            <Label
+                FontAttributes="Bold"
+                FontSize="24"
+                Text="IFirebasePushNotification" />
+       
+            <Button
+                Command="{Binding RegisterForPushNotificationsCommand}"
+                HorizontalOptions="Fill"
+                Text="Register  push notifications" />
+
+            <Button
+                Command="{Binding UnregisterForPushNotificationsCommand}"
+                HorizontalOptions="Fill"
+                Text="Unregister push notifications" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MauiSampleApp.Services;
+using MauiSampleApp.ViewModels;
+using MauiSampleApp.Views;
+using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Model.Queues;
 
@@ -32,6 +35,11 @@ namespace MauiSampleApp
                 b.SetMinimumLevel(LogLevel.Trace);
                 b.AddDebug();
             });
+
+            builder.Services.AddSingleton<MainPage>();
+            builder.Services.AddSingleton<MainViewModel>();
+
+            builder.Services.AddSingleton<IDialogService, DialogService>();
 
             return builder.Build();
         }
