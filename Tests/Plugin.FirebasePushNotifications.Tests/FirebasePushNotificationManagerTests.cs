@@ -22,7 +22,10 @@ namespace Plugin.FirebasePushNotifications.Tests
             this.autoMocker.Use<ILogger<FirebasePushNotificationManager>>(
                 new TestOutputHelperLogger<FirebasePushNotificationManager>(this.testOutputHelper));
 
-            this.autoMocker.Use<IQueueFactory>(new InMemoryQueueFactory());
+            this.autoMocker.Use(new FirebasePushNotificationOptions
+            {
+                QueueFactory = new InMemoryQueueFactory()
+            });
         }
 
         [Fact]
@@ -91,6 +94,26 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Assert
             listOfEventArgs.Should().HaveCount(2);
             listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationTokenEventArgs>();
+        }
+
+        [Fact]
+        public void ShouldClearQueues()
+        {
+            // Arrange
+            var listOfEventArgs = new List<EventArgs>();
+
+            var token = "test-push-token-63fd4bc9-c337-488f-bac4-13eb50e66a9c";
+
+            var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.HandleTokenRefresh(token);
+            firebasePushNotificationManager.HandleTokenRefresh(token);
+
+            // Act
+            firebasePushNotificationManager.ClearQueues();
+            firebasePushNotificationManager.TokenRefreshed += (s, e) => listOfEventArgs.Add(e);
+
+            // Assert
+            listOfEventArgs.Should().HaveCount(0);
         }
 
         [Fact]
@@ -282,14 +305,17 @@ namespace Plugin.FirebasePushNotifications.Tests
         }
 
         [Fact]
-        public void OnNotificationAction_ShouldDropEvent_IfNoSubscriptionOrQueueIsPresent()
+        public void OnNotificationAction_ShouldDropEvent_IfNoSubscriptionAndNoQueueIsPresent()
         {
             // Arrange
             var queueFactoryMock = new Mock<IQueueFactory>();
             queueFactoryMock.Setup(q => q.Create<FirebasePushNotificationDataEventArgs>())
                 .Returns((IQueue<FirebasePushNotificationDataEventArgs>)null);
 
-            this.autoMocker.Use(queueFactoryMock);
+            this.autoMocker.Use(new FirebasePushNotificationOptions
+            {
+                QueueFactory = queueFactoryMock.Object
+            });
 
             var loggerMock = new Mock<ILogger<FirebasePushNotificationManager>>();
             this.autoMocker.Use(loggerMock.Object);
@@ -304,6 +330,7 @@ namespace Plugin.FirebasePushNotifications.Tests
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
             queueFactoryMock.Invocations.Clear();
+            loggerMock.Invocations.Clear();
 
             // Act
             firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
@@ -314,8 +341,8 @@ namespace Plugin.FirebasePushNotifications.Tests
             queueFactoryMock.VerifyNoOtherCalls();
 
             loggerMock.Verify(l => l.Log(
-                LogLevel.Warning, 
-                It.IsAny<EventId>(), 
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((o, t) => o.ToString() == "HandleNotificationAction drops event \"NotificationAction\" (no event subscribers / no queue present)."),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);

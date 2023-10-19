@@ -43,7 +43,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private void CreateOrUpdateQueues(IQueueFactory queueFactory)
         {
             // Clear existing queues (if any exist)
-            this.ClearQueues();
+            this.ClearQueuesInternal();
 
             if (queueFactory != null)
             {
@@ -71,6 +71,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public void ClearQueues()
         {
             this.logger.LogDebug("ClearQueues");
+            this.ClearQueuesInternal();
+        }
+
+        private void ClearQueuesInternal()
+        {
             this.tokenRefreshQueue?.Clear();
             this.notificationReceivedQueue?.Clear();
             this.notificationDeletedQueue?.Clear();

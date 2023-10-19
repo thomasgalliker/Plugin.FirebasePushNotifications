@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using Plugin.FirebasePushNotifications.Model;
-using Plugin.FirebasePushNotifications.Model.Queues;
+﻿using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications
 {
