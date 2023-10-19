@@ -14,6 +14,8 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
     [DebuggerDisplay("PersistentQueue<{typeof(T).Name,nq}> Count={this.Count}")]
     public class PersistentQueue<T> : IQueue<T> //TODO: Mark internal
     {
+        private static readonly string DefaultBaseDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "QueueCache");
+
         private readonly Queue<T> queue;
         private readonly FileInfo fileInfo;
         private readonly PersistentQueueOptions options;
@@ -34,9 +36,25 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         {
             this.options = options ?? throw new ArgumentNullException(nameof(options));
 
-            var baseDirectory = string.IsNullOrEmpty(options.BaseDirectory) ? "." : options.BaseDirectory;
-            this.fileInfo = new FileInfo(Path.Combine(baseDirectory, this.options.FileNameSelector(typeof(T))));
+            var baseDirectory = !string.IsNullOrEmpty(options.BaseDirectory)
+                ? options.BaseDirectory
+                : DefaultBaseDirectory;
+
+            var baseDirectoryInfo = this.CreateDirectoryIfNotExists(baseDirectory);
+
+            this.fileInfo = new FileInfo(Path.Combine(baseDirectoryInfo.FullName, this.options.FileNameSelector(typeof(T))));
             this.queue = ReadQueueFile(this.fileInfo);
+        }
+
+        private DirectoryInfo CreateDirectoryIfNotExists(string path)
+        {
+            var directoryInfo = new DirectoryInfo(path);
+            if (!directoryInfo.Exists)
+            {
+                directoryInfo.Create();
+            }
+
+            return directoryInfo;
         }
 
         /// <inheritdoc cref="Queue{T}.Count" />

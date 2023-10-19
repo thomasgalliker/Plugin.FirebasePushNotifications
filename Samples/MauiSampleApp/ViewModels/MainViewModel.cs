@@ -119,13 +119,13 @@ namespace MauiSampleApp.ViewModels
             this.logger.LogDebug($"OnNotificationOpened: {e.Data.ToDebugString()}");
             await this.dialogService.ShowDialogAsync("FirebasePushNotification", "OnNotificationOpened", "OK");
         }
-        
+
         private async void OnNotificationAction(object sender, FirebasePushNotificationResponseEventArgs e)
         {
             this.logger.LogDebug($"OnNotificationAction: {e.Data.ToDebugString()}");
             await this.dialogService.ShowDialogAsync("FirebasePushNotification", "OnNotificationAction", "OK");
         }
-        
+
         private async void OnNotificationDeleted(object sender, FirebasePushNotificationDataEventArgs e)
         {
             this.logger.LogDebug($"OnNotificationDeleted: {e.Data.ToDebugString()}");
