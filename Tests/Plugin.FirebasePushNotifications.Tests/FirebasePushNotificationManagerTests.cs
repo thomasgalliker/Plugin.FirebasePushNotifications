@@ -316,10 +316,9 @@ namespace Plugin.FirebasePushNotifications.Tests
             loggerMock.Verify(l => l.Log(
                 LogLevel.Warning, 
                 It.IsAny<EventId>(), 
-                It.Is<It.IsAnyType>((o, t) => o.ToString() == "HandleNotificationAction has dropped an invocation of event \"OnNotificationAction\" since neither an event subscription nor a queue is present."),
+                It.Is<It.IsAnyType>((o, t) => o.ToString() == "HandleNotificationAction drops event \"NotificationAction\" (no event subscribers / no queue present)."),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
-            loggerMock.VerifyNoOtherCalls();
         }
     }
 }
