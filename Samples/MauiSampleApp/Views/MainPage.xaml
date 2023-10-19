@@ -53,6 +53,16 @@
                 HorizontalOptions="Fill"
                 Text="Unregister push notifications" />
 
+            <Button
+                Command="{Binding SubscribeEventsCommand}"
+                HorizontalOptions="Fill"
+                Text="Subscribe events" />
+
+            <Button
+                Command="{Binding UnsubscribeEventsCommand}"
+                HorizontalOptions="Fill"
+                Text="Unsubscribe events" />
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
