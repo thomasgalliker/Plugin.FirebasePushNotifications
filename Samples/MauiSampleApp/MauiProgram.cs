@@ -39,6 +39,10 @@ namespace MauiSampleApp
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddSingleton<MainViewModel>();
 
+            builder.Services.AddSingleton<QueuesPage>();
+            builder.Services.AddSingleton<QueuesViewModel>();
+
+            builder.Services.AddSingleton<INavigationService, MauiNavigationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
 
             return builder.Build();

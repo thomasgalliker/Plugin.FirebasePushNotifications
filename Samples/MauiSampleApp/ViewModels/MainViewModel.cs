@@ -1,6 +1,7 @@
 ﻿using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using MauiSampleApp.Services;
+using MauiSampleApp.Views;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Extensions;
@@ -11,20 +12,27 @@ namespace MauiSampleApp.ViewModels
     {
         private readonly ILogger logger;
         private readonly IDialogService dialogService;
+        private readonly INavigationService navigationService;
+        private readonly IServiceProvider serviceProvider;
         private readonly IFirebasePushNotification firebasePushNotification;
 
         private AsyncRelayCommand registerForPushNotificationsCommand;
         private AsyncRelayCommand unregisterForPushNotificationsCommand;
         private AsyncRelayCommand subscribeEventsCommand;
         private AsyncRelayCommand unsubscribeEventsCommand;
+        private AsyncRelayCommand navigateToQueuesPageCommand;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
             IDialogService dialogService,
+            INavigationService navigationService,
+            IServiceProvider serviceProvider,
             IFirebasePushNotification firebasePushNotification)
         {
             this.logger = logger;
             this.dialogService = dialogService;
+            this.navigationService = navigationService;
+            this.serviceProvider = serviceProvider;
             this.firebasePushNotification = firebasePushNotification;
         }
 
@@ -138,5 +146,11 @@ namespace MauiSampleApp.ViewModels
             await this.dialogService.ShowDialogAsync("FirebasePushNotification", $"OnNotificationError: {e.Message}", "OK");
         }
 
+        public ICommand NavigateToQueuesPageCommand => this.navigateToQueuesPageCommand ??= new AsyncRelayCommand(this.NavigateToQueuesPage);
+
+        private async Task NavigateToQueuesPage()
+        {
+            await this.navigationService.PushAsync<QueuesPage>();
+        }
     }
 }

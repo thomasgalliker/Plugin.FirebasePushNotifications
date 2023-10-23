@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiSampleApp.Views.QueuesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
+    Title="QueuesPage"
+    x:DataType="vm:QueuesViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="20"
+            Spacing="20"
+            VerticalOptions="Start">
+
+            <Label
+                FontAttributes="Bold"
+                FontSize="24"
+                Text="PersistentQueue" />
+            <Button
+                Command="{Binding EnqueueCommand}"
+                HorizontalOptions="Fill"
+                Text="Enqueue" />
+            <Button
+                Command="{Binding TryDequeueAllCommand}"
+                HorizontalOptions="Fill"
+                Text="Try dequeue all" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
