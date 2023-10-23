@@ -2,7 +2,7 @@
 
 namespace Plugin.FirebasePushNotifications.Model
 {
-    public sealed class NotificationData
+    public class NotificationData
     {
         private readonly string body;
         private readonly string title;
@@ -30,7 +30,7 @@ namespace Plugin.FirebasePushNotifications.Model
 
         public string Title
         {
-            get => this.title ?? (this.Data != null && this.Data.Any() ? this.Data["title"] : "");
+            get => this.title ?? this.Data?["title"];
         }
 
         public IDictionary<string, string> Data { get; }
