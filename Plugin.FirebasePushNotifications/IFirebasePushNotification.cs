@@ -5,6 +5,7 @@ using Android.Content;
 
 #if IOS
 using Foundation;
+using UIKit;
 #endif
 
 using Microsoft.Extensions.Logging;
@@ -57,7 +58,9 @@ namespace Plugin.FirebasePushNotifications
 
         void FailedToRegisterForRemoteNotifications(NSError error);
 
-        void DidReceiveRemoteNotification(NSDictionary data);
+        void DidReceiveRemoteNotification(NSDictionary userInfo);
+
+        void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler);
 #endif
 
         /// <summary>

@@ -25,10 +25,15 @@ namespace Plugin.FirebasePushNotifications
             builder.ConfigureLifecycleEvents(events =>
             {
 #if IOS
-                events.AddiOS(iOS => iOS.FinishedLaunching((_, launchOptions) =>
+                events.AddiOS(iOS => iOS.FinishedLaunching((application, launchOptions) =>
                 {
+                    if (Firebase.Core.App.DefaultInstance == null)
+                    {
+                        Firebase.Core.App.Configure();
+                    }
+
                     var loggerFactory = ServiceLocator.Current.GetRequiredService<ILoggerFactory>();
-                    var logger = loggerFactory.CreateLogger("AppDelegate");
+                    var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
 
                     if (launchOptions != null)
                     {
@@ -51,16 +56,6 @@ namespace Plugin.FirebasePushNotifications
                     var firebasePushNotification = CrossFirebasePushNotification.Current;
                     firebasePushNotification.Logger = ServiceLocator.Current.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
                     firebasePushNotification.Configure(defaultOptions);
-
-                    Firebase.Core.App.Configure();
-                    Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
-
-                    // In order to get OnTokenRefresh event called by firebase push notification plugin,
-                    // we have to assign Messaging.SharedInstance.Delegate manually.
-                    // https://github.com/CrossGeeks/FirebasePushNotificationPlugin/issues/303#issuecomment-730393259
-                    Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = CrossFirebasePushNotification.Current as Firebase.CloudMessaging.IMessagingDelegate;
-                    UNUserNotificationCenter.Current.Delegate = CrossFirebasePushNotification.Current as IUNUserNotificationCenterDelegate;
-
                     return true;
                 }));
 #elif ANDROID

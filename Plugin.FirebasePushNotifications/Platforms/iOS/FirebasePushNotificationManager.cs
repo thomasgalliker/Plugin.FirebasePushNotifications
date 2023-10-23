@@ -12,10 +12,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// Implementation of <see cref="IFirebasePushNotification"/>
     /// for iOS.
     /// </summary>
-    public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification, IUNUserNotificationCenterDelegate, IMessagingDelegate
+    public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        public UNNotificationPresentationOptions CurrentNotificationPresentationOption { get; set; } = UNNotificationPresentationOptions.None;
-
         private readonly Queue<Tuple<string, bool>> pendingTopics = new Queue<Tuple<string, bool>>();
         private bool hasToken = false; // TODO: Wtf is the purpose of this flag??
 
@@ -82,7 +80,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (autoRegistration)
             {
-               _ = this.RegisterForPushNotificationsAsync();
+                _ = this.RegisterForPushNotificationsAsync();
             }
         }
 
@@ -159,24 +157,49 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     UNUserNotificationCenter.Current.SetNotificationCategories(new NSSet<UNNotificationCategory>(categories.ToArray()));
                 }
             }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
+        {
+            if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate != null)
+            {
+                this.logger.LogWarning("Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is already set");
+            }
+            else
+            {
+                Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
+            }
+            
+            if (UNUserNotificationCenter.Current.Delegate != null)
+            {
+                this.logger.LogWarning("UNUserNotificationCenter.Current.Delegate is already set");
+            }
+            else
+            {
+                UNUserNotificationCenter.Current.Delegate = new UNUserNotificationCenterDelegateImpl(
+                    this.DidReceiveNotificationResponse,
+                    this.WillPresentNotification);
+            }
+
+            if (options.AutoInitEnabled)
+            {
+                Messaging.SharedInstance.AutoInitEnabled = true;
+            }
         }
 
         public async Task RegisterForPushNotificationsAsync()
         {
             this.logger.LogDebug("RegisterForPushNotificationsAsync");
 
-            Messaging.SharedInstance.AutoInitEnabled = true;
-
-            Messaging.SharedInstance.Delegate = this;
-
-            //Messaging.SharedInstance.ShouldEstablishDirectChannel = true;
-
             if (UIDevice.CurrentDevice.CheckSystemVersion(10, 0))
             {
+                Messaging.SharedInstance.AutoInitEnabled = true;
+
                 var authOptions = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
-
-                UNUserNotificationCenter.Current.Delegate = this;
-
                 var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
                 if (error != null)
                 {
@@ -204,68 +227,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (this.hasToken)
             {
                 this.UnsubscribeAll();
-                //Messaging.SharedInstance.ShouldEstablishDirectChannel = false;
                 this.hasToken = false;
-                // Disconnect();
             }
 
             Messaging.SharedInstance.AutoInitEnabled = false;
             UIApplication.SharedApplication.UnregisterForRemoteNotifications();
             NSUserDefaults.StandardUserDefaults.SetString(string.Empty, Constants.FirebaseTokenKey);
         }
-
-        [Export("application:didReceiveRemoteNotification:fetchCompletionHandler:")]
-        public void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler)
-        {
-            this.logger.LogDebug("DidReceiveRemoteNotification");
-
-            // If you are receiving a notification message while your app is in the background,
-            // this callback will not be fired 'till the user taps on the notification launching the application.
-
-            // If you disable method swizzling, you'll need to call this method. 
-            // This lets FCM track message delivery and analytics, which is performed
-            // automatically with method swizzling enabled.
-            this.DidReceiveRemoteNotification(userInfo);
-
-            completionHandler(UIBackgroundFetchResult.NewData);
-        }
-
-        public void DidReceiveRemoteNotification(NSDictionary data)
-        {
-            this.logger.LogDebug("DidReceiveRemoteNotification");
-
-            Messaging.SharedInstance.AppDidReceiveMessage(data);
-            var parameters = GetParameters(data);
-
-            this.HandleNotificationReceived(parameters);
-        }
-
-        [Export("userNotificationCenter:willPresentNotification:withCompletionHandler:")]
-        public void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification, Action<UNNotificationPresentationOptions> completionHandler)
-        {
-            this.logger.LogDebug("WillPresentNotification");
-
-            var parameters = GetParameters(notification.Request.Content.UserInfo);
-            this.HandleNotificationReceived(parameters);
-
-            if (parameters.TryGetValue("priority", out var priority) && ($"{priority}".ToLower() == "high" || $"{priority}".ToLower() == "max"))
-            {
-                if (!this.CurrentNotificationPresentationOption.HasFlag(UNNotificationPresentationOptions.Alert))
-                {
-                    this.CurrentNotificationPresentationOption |= UNNotificationPresentationOptions.Alert;
-                }
-            }
-            else if ($"{priority}".ToLower() is "default" or "low" or "min")
-            {
-                if (this.CurrentNotificationPresentationOption.HasFlag(UNNotificationPresentationOptions.Alert))
-                {
-                    this.CurrentNotificationPresentationOption &= ~UNNotificationPresentationOptions.Alert;
-                }
-            }
-
-            completionHandler(this.CurrentNotificationPresentationOption);
-        }
-
+        
         public void RegisteredForRemoteNotifications(NSData deviceToken)
         {
             this.logger.LogDebug("RegisteredForRemoteNotifications");
@@ -280,14 +249,88 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, error.Description);
         }
 
-        //public void ApplicationReceivedRemoteMessage(RemoteMessage remoteMessage)
-        //{
-        //    System.Console.WriteLine(remoteMessage.AppData);
-        //    System.Diagnostics.Debug.WriteLine("ApplicationReceivedRemoteMessage");
-        //    var parameters = GetParameters(remoteMessage.AppData);
-        //    _onNotificationReceived?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationDataEventArgs(parameters));
-        //    CrossFirebasePushNotification.Current.NotificationHandler?.OnReceived(parameters);
-        //}
+        public void DidReceiveRemoteNotification(NSDictionary userInfo)
+        {
+            this.logger.LogDebug("DidReceiveRemoteNotification");
+
+            this.DidReceiveRemoteNotificationInternal(userInfo);
+        }
+
+        public void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler)
+        {
+            this.logger.LogDebug("DidReceiveRemoteNotification(UIApplication, NSDictionary, Action<UIBackgroundFetchResult>)");
+
+            // If you are receiving a notification message while your app is in the background,
+            // this callback will not be fired 'till the user taps on the notification launching the application.
+
+            // If you disable method swizzling, you'll need to call this method. 
+            // This lets FCM track message delivery and analytics, which is performed
+            // automatically with method swizzling enabled.
+            this.DidReceiveRemoteNotificationInternal(userInfo);
+
+            completionHandler(UIBackgroundFetchResult.NewData);
+        }
+
+        private void DidReceiveRemoteNotificationInternal(NSDictionary userInfo)
+        {
+            Messaging.SharedInstance.AppDidReceiveMessage(userInfo);
+            var data = GetParameters(userInfo);
+
+            this.HandleNotificationReceived(data);
+        }
+
+        private void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification, Action<UNNotificationPresentationOptions> completionHandler)
+        {
+            var data = GetParameters(notification.Request.Content.UserInfo);
+            var notificationPresentationOptions = GetNotificationPresentationOptions(data);
+            this.logger.LogDebug($"WillPresentNotification: UNNotificationPresentationOptions={notificationPresentationOptions}");
+
+            this.HandleNotificationReceived(data);
+
+            completionHandler(notificationPresentationOptions);
+        }
+
+        private static UNNotificationPresentationOptions GetNotificationPresentationOptions(IDictionary<string, object> data)
+        {
+            var notificationPresentationOptions = UNNotificationPresentationOptions.None;
+
+            if (data.TryGetValue("priority", out var priority) && ($"{priority}".ToLower() is "high" or "max"))
+            {
+                if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
+                {
+                    if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner))
+                    {
+                        notificationPresentationOptions |= UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                    }
+                }
+                else
+                {
+                    if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                    {
+                        notificationPresentationOptions |= UNNotificationPresentationOptions.Alert;
+                    }
+                }
+            }
+            else if ($"{priority}".ToLower() is "default" or "low" or "min")
+            {
+                if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
+                {
+                    if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner))
+                    {
+                        notificationPresentationOptions &= UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                    }
+                }
+                else
+                {
+                    if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                    {
+                        notificationPresentationOptions &= UNNotificationPresentationOptions.Alert;
+                    }
+                }
+            }
+
+            return notificationPresentationOptions;
+        }
 
         private static IDictionary<string, object> GetParameters(NSDictionary data)
         {
@@ -326,9 +369,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     parameters.Add($"{val.Key}", $"{val.Value}");
                 }
-
             }
-
 
             return parameters;
         }
@@ -415,8 +456,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         //    }
         //}
 
-        [Export("userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler:")]
-        public void DidReceiveNotificationResponse(UNUserNotificationCenter center, UNNotificationResponse response, Action completionHandler)
+        private void DidReceiveNotificationResponse(UNUserNotificationCenter center, UNNotificationResponse response, Action completionHandler)
         {
             this.logger.LogDebug("DidReceiveNotificationResponse");
 
@@ -452,13 +492,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             completionHandler();
         }
 
-        [Export("messaging:didReceiveRegistrationToken:")]
-        public void DidReceiveRegistrationToken(Messaging messaging, string fcmToken)
+        private void DidReceiveRegistrationToken(Messaging messaging, string fcmToken)
         {
             this.logger.LogDebug("DidReceiveRegistrationToken");
 
-            // Note that this callback will be fired everytime a new token is generated, including the first
-            // time a token is received.
+            // Note that this callback will be fired everytime a new token is generated,
+            // including the first time a token is received.
 
             if (!string.IsNullOrEmpty(fcmToken))
             {
@@ -493,7 +532,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                UIApplication.SharedApplication.CancelAllLocalNotifications();
+                throw new NotSupportedException();
             }
         }
 
@@ -518,14 +557,26 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                var scheduledNotifications = UIApplication.SharedApplication.ScheduledLocalNotifications.Where(u => u.UserInfo[NotificationIdKey].Equals($"{id}"));
-                //  var notification = notifications.Where(n => n.UserInfo.ContainsKey(NSObject.FromObject(NotificationKey)))  
-                //         .FirstOrDefault(n => n.UserInfo[NotificationKey].Equals(NSObject.FromObject(id)));
-                foreach (var notification in scheduledNotifications)
+                throw new NotSupportedException();
+            }
+        }
+
+        private bool disposed;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
                 {
-                    UIApplication.SharedApplication.CancelLocalNotification(notification);
+                    if (UNUserNotificationCenter.Current.Delegate is UNUserNotificationCenterDelegateImpl)
+                    {
+                        UNUserNotificationCenter.Current.Delegate = null;
+                    }
                 }
 
+                // TODO: set large fields to null
+                this.disposed = true;
             }
         }
     }

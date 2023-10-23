@@ -43,7 +43,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
-        protected override void OnConfigure(FirebasePushNotificationOptions options)
+        protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
             NotificationActivityType = options.Android.NotificationActivityType;
             DefaultNotificationChannelId = options.Android.DefaultNotificationChannelId;

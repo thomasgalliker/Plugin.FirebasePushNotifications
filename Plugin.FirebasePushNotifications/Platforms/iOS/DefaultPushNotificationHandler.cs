@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Plugin.FirebasePushNotifications
+namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class DefaultPushNotificationHandler : IPushNotificationHandler
     {

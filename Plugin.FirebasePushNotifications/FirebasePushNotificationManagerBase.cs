@@ -1,19 +1,11 @@
-﻿#if IOS
-using Foundation;
-#endif
-
-using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
-    public abstract class FirebasePushNotificationManagerBase
-#if IOS
-    : NSObject
-#endif
+    public abstract class FirebasePushNotificationManagerBase : IDisposable
     {
         private readonly string instanceId = Guid.NewGuid().ToString()[..5];
 
@@ -26,6 +18,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private IQueue<FirebasePushNotificationResponseEventArgs> notificationActionQueue;
         private IQueue<FirebasePushNotificationErrorEventArgs> notificationErrorQueue;
 
+        private EventHandler<FirebasePushNotificationTokenEventArgs> tokenRefreshEventHandler;
+        private EventHandler<FirebasePushNotificationResponseEventArgs> notificationActionEventHandler;
+        private EventHandler<FirebasePushNotificationDataEventArgs> notificationReceivedEventHandler;
+        private EventHandler<FirebasePushNotificationDataEventArgs> notificationDeletedEventHandler;
+        private EventHandler<FirebasePushNotificationErrorEventArgs> notificationErrorEventHandler;
+        private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
+
+        private bool disposed;
+
         protected FirebasePushNotificationManagerBase()
         {
         }
@@ -37,7 +38,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             this.CreateOrUpdateQueues(options.QueueFactory);
 
-            this.OnConfigure(options);
+            this.ConfigurePlatform(options);
         }
 
         private void CreateOrUpdateQueues(IQueueFactory queueFactory)
@@ -84,7 +85,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.notificationErrorQueue?.Clear();
         }
 
-        protected virtual void OnConfigure(FirebasePushNotificationOptions options)
+        protected virtual void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
         }
 
@@ -128,15 +129,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     return Constants.SuppressedString;
                 }
 
-                return $"{Constants.SuppressedString}...{token.Substring(token.Length - substringLength)}";
+                return $"{Constants.SuppressedString}...{token[^substringLength..]}";
             }
             catch
             {
                 return Constants.SuppressedString;
             }
         }
-
-        private EventHandler<FirebasePushNotificationTokenEventArgs> tokenRefreshEventHandler;
 
         public event EventHandler<FirebasePushNotificationTokenEventArgs> TokenRefreshed
         {
@@ -165,8 +164,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         protected virtual void OnNotificationReceived(IDictionary<string, object> data)
         {
         }
-
-        private EventHandler<FirebasePushNotificationDataEventArgs> notificationReceivedEventHandler;
 
         public event EventHandler<FirebasePushNotificationDataEventArgs> NotificationReceived
         {
@@ -197,8 +194,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
-        private EventHandler<FirebasePushNotificationDataEventArgs> notificationDeletedEventHandler;
-
         public event EventHandler<FirebasePushNotificationDataEventArgs> NotificationDeleted
         {
             add
@@ -221,8 +216,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // TODO: Extend interface
             this.NotificationHandler?.OnError(/*type,*/ message);
         }
-
-        private EventHandler<FirebasePushNotificationErrorEventArgs> notificationErrorEventHandler;
 
         public event EventHandler<FirebasePushNotificationErrorEventArgs> NotificationError
         {
@@ -255,8 +248,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
-        private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
-
         public event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationOpened
         {
             add
@@ -288,8 +279,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         protected virtual void OnNotificationAction(IDictionary<string, object> data)
         {
         }
-
-        private EventHandler<FirebasePushNotificationResponseEventArgs> notificationActionEventHandler;
 
         public event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationAction
         {
@@ -371,6 +360,26 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 eventHandler += value;
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                // TODO: set large fields to null
+                this.disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
