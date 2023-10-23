@@ -2,7 +2,7 @@
 
 namespace Plugin.FirebasePushNotifications.Model
 {
-    public class NotificationData
+    public class NotificationData : INotificationData
     {
         private readonly string body;
         private readonly string title;
@@ -17,10 +17,9 @@ namespace Plugin.FirebasePushNotifications.Model
             this.Data = data;
         }
 
-        public override string ToString()
+        public string Title
         {
-            var dict = DictionaryJsonConverter.Flatten(this.Data);
-            return string.Join($",{Environment.NewLine}", dict.Select(d => $"{{{d.Key}, {d.Value ?? "null"}}}"));
+            get => this.title ?? this.Data?["title"];
         }
 
         public string Body
@@ -28,11 +27,12 @@ namespace Plugin.FirebasePushNotifications.Model
             get => this.body ?? this.Data?["body"];
         }
 
-        public string Title
-        {
-            get => this.title ?? this.Data?["title"];
-        }
-
         public IDictionary<string, string> Data { get; }
+
+        public override string ToString()
+        {
+            var dict = DictionaryJsonConverter.Flatten(this.Data);
+            return string.Join($",{Environment.NewLine}", dict.Select(d => $"{{{d.Key}, {d.Value ?? "null"}}}"));
+        }
     }
 }

@@ -65,10 +65,10 @@ namespace Plugin.FirebasePushNotifications.Internals
         }
 
         /// <summary>
-        /// Unflattens a source <paramref name="dictionary"/> into an target object of type <typeparamref name="T"/>.
+        /// Unflattens a source <paramref name="dictionary"/> into an object of type <typeparamref name="T"/>.
         /// </summary>
         /// <typeparam name="T">Target object type.</typeparam>
-        /// <param name="dictionary">Source dictionary.</param>
+        /// <param name="dictionary">The source dictionary.</param>
         /// <returns>Target object.</returns>
         public static T Unflatten<T>(IDictionary<string, string> dictionary)
         {
@@ -77,12 +77,19 @@ namespace Plugin.FirebasePushNotifications.Internals
         }
 
         /// <inheritdoc cref="Unflatten{T}(IDictionary{string, string})"/>
+        /// <param name="dictionary">The source dictionary.</param>
         /// <param name="jsonSerializer">A custom json serializer.</param>
         public static T Unflatten<T>(IDictionary<string, string> dictionary, JsonSerializer jsonSerializer)
         {
             return (T)Unflatten(dictionary, typeof(T), jsonSerializer);
         }
 
+        /// <summary>
+        /// Unflattens a source <paramref name="dictionary"/> into an object of type <paramref name="targetType"/>.
+        /// </summary>
+        /// <param name="dictionary">The source dictionary.</param>
+        /// <param name="targetType">The target type.</param>
+        /// <param name="jsonSerializer">A custom json serializer.</param>
         public static object Unflatten(IDictionary<string, string> dictionary, Type targetType, JsonSerializer jsonSerializer)
         {
             var jObject = Unflatten(dictionary);
