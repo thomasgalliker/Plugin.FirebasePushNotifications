@@ -8,10 +8,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [IntentFilter(new[] { "com.google.firebase.MESSAGING_EVENT" })]
     public class PNFirebaseMessagingService : FirebaseMessagingService
     {
-        public override void OnMessageReceived(RemoteMessage message)
+        public override void OnMessageReceived(RemoteMessage remoteMessage)
         {
             var data = new Dictionary<string, object>();
-            var notification = message.GetNotification();
+            var notification = remoteMessage.GetNotification();
             if (notification != null)
             {
                 if (!string.IsNullOrEmpty(notification.Body))
@@ -77,7 +77,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            foreach (var d in message.Data)
+            foreach (var d in remoteMessage.Data)
             {
                 if (!data.ContainsKey(d.Key))
                 {
