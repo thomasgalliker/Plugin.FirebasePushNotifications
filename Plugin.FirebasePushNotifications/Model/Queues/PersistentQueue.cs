@@ -156,10 +156,13 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
                     using (var streamReader = fileInfo.OpenText())
                     {
                         var json = streamReader.ReadToEnd();
-                        var items = JsonConvert.DeserializeObject<List<T>>(json);
-                        if (items != null)
+                        if (!string.IsNullOrEmpty(json))
                         {
-                            return new Queue<T>(items);
+                            var items = JsonConvert.DeserializeObject<List<T>>(json);
+                            if (items != null)
+                            {
+                                return new Queue<T>(items);
+                            }
                         }
                     }
                 }
