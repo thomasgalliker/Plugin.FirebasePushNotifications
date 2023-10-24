@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using Firebase.CloudMessaging;
-using Firebase.Core;
+﻿using Firebase.CloudMessaging;
 using Foundation;
 using Microsoft.Extensions.Logging;
 using UIKit;
@@ -20,6 +18,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private readonly NSMutableArray currentTopics = (NSUserDefaults.StandardUserDefaults.ValueForKey(Constants.FirebaseTopicsKey) as NSArray ?? new NSArray()).MutableCopy() as NSMutableArray;
 
         private readonly IList<NotificationUserCategory> usernNotificationCategories = new List<NotificationUserCategory>();
+
+        private bool disposed;
 
         public string Token
         {
@@ -56,50 +56,50 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Initialize(NSDictionary options, bool autoRegistration = true)
-        {
-            if (App.DefaultInstance == null)
-            {
-                App.Configure();
-            }
+        //[Obsolete]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public void Initialize(NSDictionary options, bool autoRegistration = true)
+        //{
+        //    if (App.DefaultInstance == null)
+        //    {
+        //        App.Configure();
+        //    }
 
-            this.NotificationHandler ??= new DefaultPushNotificationHandler();
-            Messaging.SharedInstance.AutoInitEnabled = autoRegistration;
+        //    this.NotificationHandler ??= new DefaultPushNotificationHandler();
+        //    Messaging.SharedInstance.AutoInitEnabled = autoRegistration;
 
-            if (options?.ContainsKey(UIApplication.LaunchOptionsRemoteNotificationKey) ?? false)
-            {
-                if (options[UIApplication.LaunchOptionsRemoteNotificationKey] is NSDictionary pushPayload)
-                {
-                    var parameters = GetParameters(pushPayload);
-                    // TODO: Pass single object instead of 3 parameters
-                    this.HandleNotificationOpened(parameters, null, NotificationCategoryType.Default);
-                }
-            }
+        //    if (options?.ContainsKey(UIApplication.LaunchOptionsRemoteNotificationKey) ?? false)
+        //    {
+        //        if (options[UIApplication.LaunchOptionsRemoteNotificationKey] is NSDictionary pushPayload)
+        //        {
+        //            var parameters = GetParameters(pushPayload);
+        //            // TODO: Pass single object instead of 3 parameters
+        //            this.HandleNotificationOpened(parameters, null, NotificationCategoryType.Default);
+        //        }
+        //    }
 
-            if (autoRegistration)
-            {
-                _ = this.RegisterForPushNotificationsAsync();
-            }
-        }
+        //    if (autoRegistration)
+        //    {
+        //        _ = this.RegisterForPushNotificationsAsync();
+        //    }
+        //}
 
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Initialize(NSDictionary options, IPushNotificationHandler pushNotificationHandler, bool autoRegistration = true)
-        {
-            this.NotificationHandler = pushNotificationHandler;
-            this.Initialize(options, autoRegistration);
-        }
+        //[Obsolete]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public void Initialize(NSDictionary options, IPushNotificationHandler pushNotificationHandler, bool autoRegistration = true)
+        //{
+        //    this.NotificationHandler = pushNotificationHandler;
+        //    this.Initialize(options, autoRegistration);
+        //}
 
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Initialize(NSDictionary options, NotificationUserCategory[] notificationUserCategories, bool autoRegistration = true)
-        {
-            this.Initialize(options, autoRegistration);
+        //[Obsolete]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public void Initialize(NSDictionary options, NotificationUserCategory[] notificationUserCategories, bool autoRegistration = true)
+        //{
+        //    this.Initialize(options, autoRegistration);
 
-            this.RegisterUserNotificationCategories(notificationUserCategories);
-        }
+        //    this.RegisterUserNotificationCategories(notificationUserCategories);
+        //}
 
         public void RegisterUserNotificationCategories(NotificationUserCategory[] userCategories)
         {
@@ -173,7 +173,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
             }
-            
+
             if (UNUserNotificationCenter.Current.Delegate != null)
             {
                 this.logger.LogWarning("UNUserNotificationCenter.Current.Delegate is already set");
@@ -234,7 +234,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             UIApplication.SharedApplication.UnregisterForRemoteNotifications();
             NSUserDefaults.StandardUserDefaults.SetString(string.Empty, Constants.FirebaseTokenKey);
         }
-        
+
         public void RegisteredForRemoteNotifications(NSData deviceToken)
         {
             this.logger.LogDebug("RegisteredForRemoteNotifications");
@@ -275,7 +275,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             Messaging.SharedInstance.AppDidReceiveMessage(userInfo);
             var data = GetParameters(userInfo);
-
             this.HandleNotificationReceived(data);
         }
 
@@ -460,7 +459,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("DidReceiveNotificationResponse");
 
-            var parameters = GetParameters(response.Notification.Request.Content.UserInfo);
+            var data = GetParameters(response.Notification.Request.Content.UserInfo);
 
             NotificationCategoryType notificationCategoryType;
 
@@ -477,15 +476,18 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 notificationCategoryType = NotificationCategoryType.Default;
             }
 
-            var identifier = $"{response.ActionIdentifier}".Equals("com.apple.UNNotificationDefaultActionIdentifier", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{response.ActionIdentifier}";
+            var actionIdentifier = $"{response.ActionIdentifier}";
+            var identifier = actionIdentifier.Equals("com.apple.UNNotificationDefaultActionIdentifier", StringComparison.InvariantCultureIgnoreCase)
+                ? null
+                : actionIdentifier;
 
             if (string.IsNullOrEmpty(identifier))
             {
-                this.HandleNotificationOpened(parameters, identifier, notificationCategoryType);
+                this.HandleNotificationOpened(data, identifier, notificationCategoryType);
             }
             else
             {
-                this.HandleNotificationAction(parameters, identifier, notificationCategoryType);
+                this.HandleNotificationAction(data, identifier, notificationCategoryType);
             }
 
             // Inform caller it has been handled
@@ -546,7 +548,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var NotificationIdKey = "id";
             if (UIDevice.CurrentDevice.CheckSystemVersion(10, 0))
             {
-
                 var deliveredNotifications = await UNUserNotificationCenter.Current.GetDeliveredNotificationsAsync();
                 var deliveredNotificationsMatches = deliveredNotifications.Where(u => $"{u.Request.Content.UserInfo[NotificationIdKey]}".Equals($"{id}")).Select(s => s.Request.Identifier).ToArray();
                 if (deliveredNotificationsMatches.Length > 0)
@@ -560,8 +561,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 throw new NotSupportedException();
             }
         }
-
-        private bool disposed;
 
         protected override void Dispose(bool disposing)
         {

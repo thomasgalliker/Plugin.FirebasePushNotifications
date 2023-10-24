@@ -50,6 +50,13 @@ namespace Plugin.FirebasePushNotifications
         void HandleTokenRefresh(string token);
 
 #if ANDROID
+        /// <summary>
+        /// ProcessIntent is called OnCreate and OnNewIntent in order to check
+        /// for incoming push/local notifications.
+        /// This method is automatically called when you add
+        /// <see cref="MauiAppBuilderExtensions.UseFirebasePushNotifications"/>
+        /// to your MauiProgram startup.
+        /// </summary>
         void ProcessIntent(Activity activity, Intent intent);
 #endif
 
@@ -64,47 +71,47 @@ namespace Plugin.FirebasePushNotifications
 #endif
 
         /// <summary>
-        /// Get all user notification categories
+        /// Get all user notification categories.
         /// </summary>
         NotificationUserCategory[] GetUserNotificationCategories();
 
         /// <summary>
-        /// Get all subscribed topics
+        /// Get all subscribed topics.
         /// </summary>
         string[] SubscribedTopics { get; }
 
         /// <summary>
-        /// Subscribe to multiple topics
+        /// Subscribe to multiple topics.
         /// </summary>
         void Subscribe(string[] topics);
 
         /// <summary>
-        /// Subscribe to one topic
+        /// Subscribe to one topic.
         /// </summary>
         void Subscribe(string topic);
 
         /// <summary>
-        /// Unsubscribe to one topic
+        /// Unsubscribe from one topic.
         /// </summary>
         void Unsubscribe(string topic);
 
         /// <summary>
-        /// Unsubscribe to multiple topics
+        /// Unsubscribe to multiple topics.
         /// </summary>
         void Unsubscribe(string[] topics);
 
         /// <summary>
-        /// Unsubscribe all topics
+        /// Unsubscribe all topics.
         /// </summary>
         void UnsubscribeAll();
 
         /// <summary>
-        /// Register push notifications on demand
+        /// Register for push notifications.
         /// </summary>
         Task RegisterForPushNotificationsAsync();
 
         /// <summary>
-        /// Unregister push notifications on demand
+        /// Unregister push notifications.
         /// </summary>
         void UnregisterForPushNotifications();
 
@@ -154,17 +161,17 @@ namespace Plugin.FirebasePushNotifications
         //void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive);
 
         /// <summary>
-        /// Clear all notifications
+        /// Clear all notifications.
         /// </summary>
         void ClearAllNotifications();
 
         /// <summary>
-        /// Remove specific id notification
+        /// Remove specific id notification.
         /// </summary>
         void RemoveNotification(int id);
 
         /// <summary>
-        /// Remove specific id and tag notification
+        /// Remove specific id and tag notification.
         /// </summary>
         void RemoveNotification(string tag, int id);
     }

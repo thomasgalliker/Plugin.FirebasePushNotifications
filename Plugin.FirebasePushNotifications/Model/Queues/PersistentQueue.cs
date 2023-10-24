@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
+using Plugin.FirebasePushNotifications.Internals;
 
 namespace Plugin.FirebasePushNotifications.Model.Queues
 {
@@ -15,7 +16,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
     public class PersistentQueue<T> : IQueue<T> //TODO: Mark internal
     {
         private readonly Queue<T> queue;
-        private readonly FileInfo fileInfo;
+        private readonly IFileInfo fileInfo;
         private readonly PersistentQueueOptions options;
 
         /// <summary>
@@ -31,12 +32,17 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         /// </summary>
         /// <param name="options">The options.</param>
         public PersistentQueue(PersistentQueueOptions options)
+            : this(new FileInfoFactory(), options)
+        {
+        }
+
+        internal PersistentQueue(IFileInfoFactory fileInfoFactory, PersistentQueueOptions options)
         {
             this.options = options ?? throw new ArgumentNullException(nameof(options));
 
             var baseDirectoryInfo = this.CreateDirectoryIfNotExists(options.BaseDirectory);
 
-            this.fileInfo = new FileInfo(Path.Combine(baseDirectoryInfo.FullName, this.options.FileNameSelector(typeof(T))));
+            this.fileInfo = fileInfoFactory.FromPath(Path.Combine(baseDirectoryInfo.FullName, this.options.FileNameSelector(typeof(T))));
             this.queue = ReadQueueFile(this.fileInfo);
         }
 
@@ -141,16 +147,28 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             }
         }
 
-        private static Queue<T> ReadQueueFile(FileInfo fileInfo)
+        private static Queue<T> ReadQueueFile(IFileInfo fileInfo)
         {
             if (fileInfo.Exists)
             {
-                using (var reader = fileInfo.OpenText())
+                try
                 {
-                    var json = reader.ReadToEnd();
-                    var items = JsonConvert.DeserializeObject<List<T>>(json);
-                    return new Queue<T>(items);
+                    using (var streamReader = fileInfo.OpenText())
+                    {
+                        var json = streamReader.ReadToEnd();
+                        var items = JsonConvert.DeserializeObject<List<T>>(json);
+                        if (items != null)
+                        {
+                            return new Queue<T>(items);
+                        }
+                    }
                 }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"ReadQueueFile failed with exception: {ex}");
+                }
+
+                return new Queue<T>();
             }
             else
             {
@@ -158,7 +176,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             }
         }
 
-        private static void WriteQueueFile(FileInfo fileInfo, Queue<T> queue)
+        private static void WriteQueueFile(IFileInfo fileInfo, Queue<T> queue)
         {
             if (fileInfo.Exists)
             {

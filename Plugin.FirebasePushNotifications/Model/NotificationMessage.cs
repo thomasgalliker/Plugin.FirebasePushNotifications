@@ -1,27 +1,35 @@
-﻿using Plugin.FirebasePushNotifications.Internals;
+﻿using Newtonsoft.Json;
+using Plugin.FirebasePushNotifications.Internals;
 
 namespace Plugin.FirebasePushNotifications.Model
 {
-    public class NotificationData : INotificationData
+    public class NotificationMessage : INotificationMessage
     {
         private readonly string body;
         private readonly string title;
 
-        public NotificationData(
-            string body = null,
-            string title = null,
-            IDictionary<string, string> data = null)
+        public NotificationMessage(
+            string body,
+            string title,
+            IDictionary<string, string> data = null) 
+            : this(data)
         {
             this.body = body;
             this.title = title;
+        }
+
+        public NotificationMessage(IDictionary<string, string> data)
+        {
             this.Data = data;
         }
 
+        [JsonProperty("title")]
         public string Title
         {
             get => this.title ?? this.Data?["title"];
         }
 
+        [JsonProperty("body")]
         public string Body
         {
             get => this.body ?? this.Data?["body"];

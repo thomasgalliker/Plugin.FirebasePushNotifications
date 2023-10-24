@@ -1,4 +1,7 @@
+using System.Text;
 using FluentAssertions;
+using Moq;
+using Plugin.FirebasePushNotifications.Internals;
 using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
@@ -23,6 +26,36 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
 
             // Assert
             action.Should().Throw<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("invalid content")]
+        public void ShouldCreate_FromInvalidContent(string fileContent)
+        {
+            // Arrange
+            var fileInfoMock = new Mock<IFileInfo>();
+            fileInfoMock.SetupGet(f => f.Exists)
+                .Returns(true);
+            fileInfoMock.Setup(f => f.OpenText())
+                .Returns(() => GetStreamReaderFromString(fileContent));
+
+            var fileInfoFactoryMock = new Mock<IFileInfoFactory>();
+            fileInfoFactoryMock.Setup(f => f.FromPath(It.IsAny<string>()))
+                .Returns(fileInfoMock.Object);
+
+            // Act
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, PersistentQueueOptions.Default);
+
+            // Assert
+            queue.Count.Should().Be(0);
+        }
+
+        private static StreamReader GetStreamReaderFromString(string text)
+        {
+            var bytes = text != null ? Encoding.UTF8.GetBytes(text) : Array.Empty<byte>();
+            return new StreamReader(new MemoryStream(bytes));
         }
 
         [Fact]

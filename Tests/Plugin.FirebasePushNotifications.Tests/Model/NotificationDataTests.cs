@@ -9,7 +9,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
         public void ShouldCreateNotificationData_Empty()
         {
             // Act
-            var notificationData = new NotificationData();
+            var notificationData = new NotificationMessage(data: null);
 
             // Assert
             notificationData.Title.Should().BeNull();
@@ -27,7 +27,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
             };
 
             // Act
-            var notificationData = new NotificationData(data: data);
+            var notificationData = new NotificationMessage(data: data);
 
             // Assert
             notificationData.Title.Should().Be("Title");
@@ -44,7 +44,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
                 { "body", "Body" },
                 { "nullProperty", null },
             };
-            var notificationData = new NotificationData(data: data);
+            var notificationData = new NotificationMessage(data: data);
 
             // Act
             var toString = notificationData.ToString();
