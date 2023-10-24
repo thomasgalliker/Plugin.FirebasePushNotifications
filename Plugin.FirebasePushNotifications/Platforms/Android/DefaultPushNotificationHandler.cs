@@ -138,16 +138,20 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// </summary>
         public const string BigTextStyleKey = "bigtextstyle";
 
+        public DefaultPushNotificationHandler()
+        {
+        }
+
         public virtual void OnOpened(IDictionary<string, object> parameters, string identifier, NotificationCategoryType notificationCategoryType)
         {
             Log.Debug(Tag, $"OnOpened");
         }
 
-        public virtual void OnReceived(IDictionary<string, object> parameters)
+        public virtual void OnReceived(IDictionary<string, object> data)
         {
             Debug.WriteLine($"{Tag} - OnReceived");
 
-            if ((parameters.TryGetValue(SilentKey, out var silent) && (silent.ToString() == "true" || silent.ToString() == "1")) || (IsInForeground() && (!(!parameters.ContainsKey(ChannelIdKey) && parameters.TryGetValue(PriorityKey, out var imp) && ($"{imp}" == "high" || $"{imp}" == "max")) || (!parameters.ContainsKey(PriorityKey) && !parameters.ContainsKey(ChannelIdKey) && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.High && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.Max))))
+            if ((data.TryGetValue(SilentKey, out var silent) && (silent.ToString() == "true" || silent.ToString() == "1")) || (IsInForeground() && (!(!data.ContainsKey(ChannelIdKey) && data.TryGetValue(PriorityKey, out var imp) && ($"{imp}" == "high" || $"{imp}" == "max")) || (!data.ContainsKey(PriorityKey) && !data.ContainsKey(ChannelIdKey) && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.High && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.Max))))
             {
                 return;
             }
@@ -166,36 +170,36 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var notificationColor = FirebasePushNotificationManager.Color;
             var chanId = FirebasePushNotificationManager.DefaultNotificationChannelId;
 
-            if (!string.IsNullOrEmpty(FirebasePushNotificationManager.NotificationContentTextKey) && parameters.TryGetValue(FirebasePushNotificationManager.NotificationContentTextKey, out var notificationContentText))
+            if (!string.IsNullOrEmpty(FirebasePushNotificationManager.NotificationContentTextKey) && data.TryGetValue(FirebasePushNotificationManager.NotificationContentTextKey, out var notificationContentText))
             {
                 message = notificationContentText.ToString();
             }
-            else if (parameters.TryGetValue(AlertKey, out var alert))
+            else if (data.TryGetValue(AlertKey, out var alert))
             {
                 message = $"{alert}";
             }
-            else if (parameters.TryGetValue(BodyKey, out var body))
+            else if (data.TryGetValue(BodyKey, out var body))
             {
                 message = $"{body}";
             }
-            else if (parameters.TryGetValue(MessageKey, out var messageContent))
+            else if (data.TryGetValue(MessageKey, out var messageContent))
             {
                 message = $"{messageContent}";
             }
-            else if (parameters.TryGetValue(SubtitleKey, out var subtitle))
+            else if (data.TryGetValue(SubtitleKey, out var subtitle))
             {
                 message = $"{subtitle}";
             }
-            else if (parameters.TryGetValue(TextKey, out var text))
+            else if (data.TryGetValue(TextKey, out var text))
             {
                 message = $"{text}";
             }
 
-            if (!string.IsNullOrEmpty(FirebasePushNotificationManager.NotificationContentTitleKey) && parameters.TryGetValue(FirebasePushNotificationManager.NotificationContentTitleKey, out var notificationContentTitle))
+            if (!string.IsNullOrEmpty(FirebasePushNotificationManager.NotificationContentTitleKey) && data.TryGetValue(FirebasePushNotificationManager.NotificationContentTitleKey, out var notificationContentTitle))
             {
                 title = notificationContentTitle.ToString();
             }
-            else if (parameters.TryGetValue(TitleKey, out var titleContent))
+            else if (data.TryGetValue(TitleKey, out var titleContent))
             {
                 if (!string.IsNullOrEmpty(message))
                 {
@@ -207,7 +211,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            if (parameters.TryGetValue(IdKey, out var id))
+            if (data.TryGetValue(IdKey, out var id))
             {
                 try
                 {
@@ -220,24 +224,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            if (parameters.TryGetValue(ShowWhenKey, out var shouldShowWhen))
+            if (data.TryGetValue(ShowWhenKey, out var shouldShowWhen))
             {
                 showWhenVisible = $"{shouldShowWhen}".ToLower() == "true";
             }
 
-            if (parameters.TryGetValue(BigTextStyleKey, out var shouldUseBigTextStyle) && shouldUseBigTextStyle != null)
+            if (data.TryGetValue(BigTextStyleKey, out var shouldUseBigTextStyle) && shouldUseBigTextStyle != null)
             {
                 useBigTextStyle = $"{shouldUseBigTextStyle}".ToLower() == "true";
             }
 
-            if (parameters.TryGetValue(TagKey, out var tagContent))
+            if (data.TryGetValue(TagKey, out var tagContent))
             {
                 tag = tagContent.ToString();
             }
 
             try
             {
-                if (parameters.TryGetValue(SoundKey, out var sound))
+                if (data.TryGetValue(SoundKey, out var sound))
                 {
                     var soundName = sound.ToString();
 
@@ -267,7 +271,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             try
             {
-                if (parameters.TryGetValue(IconKey, out var icon) && icon != null)
+                if (data.TryGetValue(IconKey, out var icon) && icon != null)
                 {
                     try
                     {
@@ -304,7 +308,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             try
             {
-                if (parameters.TryGetValue(LargeIconKey, out var largeIcon) && largeIcon != null)
+                if (data.TryGetValue(LargeIconKey, out var largeIcon) && largeIcon != null)
                 {
                     largeIconResource = context.Resources.GetIdentifier($"{largeIcon}", "drawable", Application.Context.PackageName);
                     if (largeIconResource == 0)
@@ -328,7 +332,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 Debug.WriteLine(ex.ToString());
             }
 
-            if (parameters.TryGetValue(ColorKey, out var color) && color != null)
+            if (data.TryGetValue(ColorKey, out var color) && color != null)
             {
                 try
                 {
@@ -345,7 +349,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 : (FirebasePushNotificationManager.DefaultNotificationActivityType == null ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName) : new Intent(Application.Context, FirebasePushNotificationManager.DefaultNotificationActivityType));
 
             var extras = new Bundle();
-            foreach (var p in parameters)
+            foreach (var p in data)
             {
                 extras.PutString(p.Key, p.Value.ToString());
             }
@@ -365,7 +369,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var pendingIntent = PendingIntent.GetActivity(context, requestCode, resultIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-            if (parameters.TryGetValue(ChannelIdKey, out var channelId) && channelId != null)
+            if (data.TryGetValue(ChannelIdKey, out var channelId) && channelId != null)
             {
                 chanId = $"{channelId}";
             }
@@ -397,7 +401,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (Build.VERSION.SdkInt < Android.OS.BuildVersionCodes.O)
             {
-                if (parameters.TryGetValue(PriorityKey, out var priority) && priority != null)
+                if (data.TryGetValue(PriorityKey, out var priority) && priority != null)
                 {
                     var priorityValue = $"{priority}";
                     if (!string.IsNullOrEmpty(priorityValue))
@@ -452,7 +456,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             // Try to resolve (and apply) localized parameters
-            ResolveLocalizedParameters(notificationBuilder, parameters);
+            ResolveLocalizedParameters(notificationBuilder, data);
 
             if (notificationColor != null)
             {
@@ -468,12 +472,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             var category = string.Empty;
-            if (parameters.TryGetValue(CategoryKey, out var categoryContent))
+            if (data.TryGetValue(CategoryKey, out var categoryContent))
             {
                 category = categoryContent.ToString();
             }
 
-            if (parameters.TryGetValue(ActionKey, out var actionContent))
+            if (data.TryGetValue(ActionKey, out var actionContent))
             {
                 category = actionContent.ToString();
             }
@@ -521,7 +525,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            this.OnBuildNotification(notificationBuilder, parameters);
+            this.OnBuildNotification(notificationBuilder, data);
 
             var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
             notificationManager.Notify(tag, notifyId, notificationBuilder.Build());
@@ -590,8 +594,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// Override to provide customization of the notification to build.
         /// </summary>
         /// <param name="notificationBuilder">Notification builder.</param>
-        /// <param name="parameters">Notification parameters.</param>
-        public virtual void OnBuildNotification(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters)
+        /// <param name="data">Notification data.</param>
+        public virtual void OnBuildNotification(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> data)
         {
         }
 
