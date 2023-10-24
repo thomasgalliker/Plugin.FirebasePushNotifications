@@ -44,6 +44,7 @@ namespace MauiSampleApp
 
             builder.Services.AddSingleton<INavigationService, MauiNavigationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
+            builder.Services.AddSingleton(_ => Share.Default);
 
             return builder.Build();
         }

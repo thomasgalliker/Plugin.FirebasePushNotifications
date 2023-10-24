@@ -4,8 +4,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
-    x:DataType="vm:MainViewModel"
-    Title="MainPage">
+    Title="MainPage"
+    x:DataType="vm:MainViewModel">
 
     <ScrollView>
         <VerticalStackLayout
@@ -42,11 +42,11 @@
                 FontAttributes="Bold"
                 FontSize="24"
                 Text="IFirebasePushNotification" />
-       
+
             <Button
                 Command="{Binding RegisterForPushNotificationsCommand}"
                 HorizontalOptions="Fill"
-                Text="Register  push notifications" />
+                Text="Register push notifications" />
 
             <Button
                 Command="{Binding UnregisterForPushNotificationsCommand}"
@@ -62,6 +62,31 @@
                 Command="{Binding UnsubscribeEventsCommand}"
                 HorizontalOptions="Fill"
                 Text="Unsubscribe events" />
+
+            <Grid
+                ColumnDefinitions="*, Auto"
+                ColumnSpacing="4"
+                RowDefinitions="Auto, *"
+                RowSpacing="4">
+                <Label
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    FontAttributes="Bold"
+                    Text="Push Notification Token" />
+                <Editor
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    IsReadOnly="True"
+                    Text="{Binding Token}" />
+                <Button
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Command="{Binding ShareTokenCommand}"
+                    HorizontalOptions="Fill"
+                    Text="Share"
+                    VerticalOptions="Start" />
+            </Grid>
 
             <Label
                 FontAttributes="Bold"
