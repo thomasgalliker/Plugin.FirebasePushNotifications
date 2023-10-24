@@ -1,10 +1,6 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using Android.App;
 using Android.Content;
-using Android.Content.PM;
-using Android.Media;
-using Android.OS;
 using Firebase.Messaging;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
@@ -118,6 +114,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /*
         [Obsolete]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Initialize(Context context, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
@@ -186,8 +183,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 notificationManager.CreateNotificationChannel(notificationChannel);
             }
 #endif
-
-            System.Diagnostics.Debug.WriteLine(CrossFirebasePushNotification.Current.Token);
         }
 
         [Obsolete]
@@ -197,23 +192,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
             this.RegisterUserNotificationCategories(notificationCategories);
         }
-
-        public void Reset()
+        
+        [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Initialize(Context context, IPushNotificationHandler pushNotificationHandler, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
-            // TODO: QueueUserWorkItem is this really necessary resp. of any advantage here?
-            ThreadPool.QueueUserWorkItem(state =>
-            {
-                try
-                {
-                    this.CleanUp();
-                }
-                catch (Exception ex)
-                {
-                    this.logger.LogError(ex, "Reset failed with exception");
-                    this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
-                }
-            });
+            this.NotificationHandler = pushNotificationHandler;
+            this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
         }
+
+         */
 
         public async Task RegisterForPushNotificationsAsync()
         {
@@ -258,6 +246,23 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.Reset();
         }
 
+        private void Reset()
+        {
+            // TODO: QueueUserWorkItem is this really necessary resp. of any advantage here?
+            ThreadPool.QueueUserWorkItem(state =>
+            {
+                try
+                {
+                    this.CleanUp();
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError(ex, "Reset failed with exception");
+                    this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
+                }
+            });
+        }
+
         private void CleanUp(bool clearAll = true)
         {
             if (clearAll)
@@ -266,17 +271,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             // TODO: DeleteToken seems to be an Android Task... await before continue!
+            // Use AddOnCompleteListener(...)
             FirebaseMessaging.Instance.DeleteToken();
 
             this.SaveToken(string.Empty);
-        }
-
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Initialize(Context context, IPushNotificationHandler pushNotificationHandler, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
-        {
-            this.NotificationHandler = pushNotificationHandler;
-            this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
         }
 
         public void ClearUserNotificationCategories()
@@ -285,7 +283,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         // TODO: Read FirebaseTokenKey in a central place (now it's spread all over the code
-        public string Token => Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).GetString(Constants.FirebaseTokenKey, string.Empty);
+        public string Token
+        {
+            get
+            {
+                using (var sharedPreferences = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private))
+                {
+                    return sharedPreferences.GetString(Constants.FirebaseTokenKey, string.Empty);
+                }
+            }
+        }
 
         public string[] SubscribedTopics
         {
@@ -368,13 +375,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
             foreach (var t in this.currentTopics)
             {
                 if (this.currentTopics.Contains(t))
-                {
+                { 
+                    // TODO: Use AddOnCompleteListener(...)
                     FirebaseMessaging.Instance.UnsubscribeFromTopic(t);
                 }
             }
 
             this.currentTopics.Clear();
 
+            // TODO: Unify access to preferences
             var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
             editor.PutStringSet(Constants.FirebaseTopicsKey, this.currentTopics);
             editor.Commit();
@@ -384,9 +393,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             if (this.currentTopics.Contains(topic))
             {
+                // TODO: Use AddOnCompleteListener(...)
                 FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
                 this.currentTopics.Remove(topic);
 
+                // TODO: Unify access to preferences
                 var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
                 editor.PutStringSet(Constants.FirebaseTopicsKey, this.currentTopics);
                 editor.Commit();
