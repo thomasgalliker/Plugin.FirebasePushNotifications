@@ -31,8 +31,4 @@
 	  <ProjectReference Include="..\..\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Platforms\" />
-	</ItemGroup>
-
 </Project>
