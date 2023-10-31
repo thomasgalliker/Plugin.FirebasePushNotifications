@@ -6,6 +6,7 @@ using MauiSampleApp.Views;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Extensions;
+using Plugin.FirebasePushNotifications.Model;
 
 namespace MauiSampleApp.ViewModels
 {
@@ -15,6 +16,7 @@ namespace MauiSampleApp.ViewModels
         private readonly IDialogService dialogService;
         private readonly INavigationService navigationService;
         private readonly IFirebasePushNotification firebasePushNotification;
+        private readonly INotificationPermissions notificationPermissions;
         private readonly IShare share;
 
         private AsyncRelayCommand registerForPushNotificationsCommand;
@@ -23,19 +25,59 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand unsubscribeEventsCommand;
         private AsyncRelayCommand navigateToQueuesPageCommand;
         private AsyncRelayCommand shareTokenCommand;
+        private AsyncRelayCommand requestNotificationPermissionsCommand;
+        private AuthorizationStatus authorizationStatus;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
             IDialogService dialogService,
             INavigationService navigationService,
             IFirebasePushNotification firebasePushNotification,
+            INotificationPermissions notificationPermissions,
             IShare share)
         {
             this.logger = logger;
             this.dialogService = dialogService;
             this.navigationService = navigationService;
             this.firebasePushNotification = firebasePushNotification;
+            this.notificationPermissions = notificationPermissions;
             this.share = share;
+
+            Task.Run(this.InitializeAsync);
+        }
+
+        private async Task InitializeAsync()
+        {
+            try
+            {
+                this.AuthorizationStatus = await this.notificationPermissions.GetAuthorizationStatusAsync();
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "InitializeAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Initialization failed", "OK");
+            }
+        }
+
+        public AuthorizationStatus AuthorizationStatus
+        {
+            get => this.authorizationStatus;
+            private set => this.SetProperty(ref this.authorizationStatus, value);
+        }
+
+        public ICommand RequestNotificationPermissionsCommand => this.requestNotificationPermissionsCommand ??= new AsyncRelayCommand(this.RequestNotificationPermissionsAsync);
+
+        private async Task RequestNotificationPermissionsAsync()
+        {
+            try
+            {
+                await this.notificationPermissions.RequestPermissionAsync();
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "RequestNotificationPermissionsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Request for permissions failed", "OK");
+            }
         }
 
         public ICommand RegisterForPushNotificationsCommand => this.registerForPushNotificationsCommand ??= new AsyncRelayCommand(this.RegisterForPushNotificationsAsync);

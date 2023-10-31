@@ -41,6 +41,18 @@
             <Label
                 FontAttributes="Bold"
                 FontSize="24"
+                Text="INotificationPermissions" />
+
+            <Label
+                Text="{Binding AuthorizationStatus, StringFormat='AuthorizationStatus: {0}'}" />
+            <Button
+                Command="{Binding RequestNotificationPermissionsCommand}"
+                HorizontalOptions="Fill"
+                Text="Request notification permissions" />
+
+            <Label
+                FontAttributes="Bold"
+                FontSize="24"
                 Text="IFirebasePushNotification" />
 
             <Button

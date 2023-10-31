@@ -92,6 +92,7 @@ namespace Plugin.FirebasePushNotifications
             // Service registrations
 #if ANDROID || IOS
             builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
+            builder.Services.AddSingleton<INotificationPermissions, NotificationPermissions>();
 #endif
             return builder;
         }
