@@ -53,15 +53,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return;
             }
 
+            var activityType = activity.GetType();
+
             if (intent == null)
             {
-                this.logger.LogDebug($"ProcessIntent: intent=null");
+                this.logger.LogDebug($"ProcessIntent: activity.Type={activityType.Name}, intent=null");
                 return;
             }
 
-            var activityType = activity.GetType();
             var extras = intent.GetExtrasDict();
-            this.logger.LogDebug($"ProcessIntent: activity.Type={activityType.Name}, intent.Flags={intent.Flags}, intent.Extras=[{string.Join(", ", extras)}]");
+            this.logger.LogDebug($"ProcessIntent: activity.Type={activityType.Name}, intent.Flags=[{intent.Flags}], intent.Extras=[{extras.ToDebugString()}]");
 
             var launchedFromHistory = intent.Flags.HasFlag(ActivityFlags.LaunchedFromHistory);
             if (launchedFromHistory)
@@ -77,7 +78,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (!intent.GetBooleanExtra(intentAlreadyHandledKey, false))
                 {
                     intent.PutExtra(intentAlreadyHandledKey, true);
-                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} not present --> Process push notification");
+                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} not present --> Process notification");
 
                     // TODO: Refactor this! This is for sure not a good behavior..
                     DefaultNotificationActivityType = activityType;
@@ -109,7 +110,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 else
                 {
-                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} is present --> Push notification already processed");
+                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} is present --> Notification already processed");
                 }
             }
         }
