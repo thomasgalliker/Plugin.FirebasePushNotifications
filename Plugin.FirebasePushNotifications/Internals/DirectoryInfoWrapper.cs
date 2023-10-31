@@ -7,6 +7,11 @@ namespace Plugin.FirebasePushNotifications.Internals
     {
         private readonly DirectoryInfo directoryInfo;
 
+        public DirectoryInfoWrapper(string path)
+            : this(new DirectoryInfo(path))
+        {
+        }
+        
         public DirectoryInfoWrapper(DirectoryInfo directoryInfo)
         {
             this.directoryInfo = directoryInfo;

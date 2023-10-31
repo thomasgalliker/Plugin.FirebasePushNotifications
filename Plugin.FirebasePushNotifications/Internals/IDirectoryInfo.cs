@@ -7,6 +7,7 @@
 
         string FullName { get; }
 
+        /// <inheritdoc cref="DirectoryInfo.Create"/>
         void Create();
     }
 }

@@ -17,6 +17,8 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
     {
         private readonly Queue<T> queue;
         private readonly IFileInfo fileInfo;
+        private readonly IFileInfoFactory fileInfoFactory;
+        private readonly IDirectoryInfoFactory directoryInfoFactory;
         private readonly PersistentQueueOptions options;
 
         /// <summary>
@@ -32,23 +34,27 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         /// </summary>
         /// <param name="options">The options.</param>
         public PersistentQueue(PersistentQueueOptions options)
-            : this(new FileInfoFactory(), options)
+            : this(FileInfoFactory.Current, DirectoryInfoFactory.Current, options)
         {
         }
 
-        internal PersistentQueue(IFileInfoFactory fileInfoFactory, PersistentQueueOptions options)
+        internal PersistentQueue(
+            IFileInfoFactory fileInfoFactory,
+            IDirectoryInfoFactory directoryInfoFactory,
+            PersistentQueueOptions options)
         {
+            this.fileInfoFactory = fileInfoFactory ?? throw new ArgumentNullException(nameof(fileInfoFactory));
+            this.directoryInfoFactory = directoryInfoFactory ?? throw new ArgumentNullException(nameof(directoryInfoFactory));
             this.options = options ?? throw new ArgumentNullException(nameof(options));
 
             var baseDirectoryInfo = this.CreateDirectoryIfNotExists(options.BaseDirectory);
-
             this.fileInfo = fileInfoFactory.FromPath(Path.Combine(baseDirectoryInfo.FullName, this.options.FileNameSelector(typeof(T))));
             this.queue = ReadQueueFile(this.fileInfo);
         }
 
-        private DirectoryInfo CreateDirectoryIfNotExists(string path)
+        private IDirectoryInfo CreateDirectoryIfNotExists(string path)
         {
-            var directoryInfo = new DirectoryInfo(path);
+            var directoryInfo = this.directoryInfoFactory.FromPath(path);
             if (!directoryInfo.Exists)
             {
                 directoryInfo.Create();
@@ -85,7 +91,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             lock (this)
             {
                 this.queue.Enqueue(item);
-                WriteQueueFile(this.fileInfo, this.queue);
+                this.WriteQueueFile(this.fileInfo, this.queue);
             }
         }
 
@@ -95,7 +101,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             lock (this)
             {
                 var item = this.queue.Dequeue();
-                WriteQueueFile(this.fileInfo, this.queue);
+                this.WriteQueueFile(this.fileInfo, this.queue);
                 return item;
             }
         }
@@ -106,17 +112,18 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             lock (this)
             {
                 var success = this.queue.TryDequeue(out result);
-                WriteQueueFile(this.fileInfo, this.queue);
+                this.WriteQueueFile(this.fileInfo, this.queue);
                 return success;
             }
         }
 
+        /// <inheritdoc />
         public IEnumerable<T> TryDequeueAll()
         {
             lock (this)
             {
                 var items = this.TryDequeueAllInternal().ToArray();
-                WriteQueueFile(this.fileInfo, this.queue);
+                this.WriteQueueFile(this.fileInfo, this.queue);
                 return items;
             }
         }
@@ -179,21 +186,25 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             }
         }
 
-        private static void WriteQueueFile(IFileInfo fileInfo, Queue<T> queue)
+        private void WriteQueueFile(IFileInfo fileInfo, Queue<T> queue)
         {
             if (fileInfo.Exists)
             {
                 fileInfo.Delete();
             }
 
-            if (!fileInfo.Directory.Exists)
+            var currentDirectory = fileInfo.Directory;
+            if (!currentDirectory.Exists)
             {
-                if (File.Exists(fileInfo.Directory.FullName))
+                // Make sure there is no file with the same location
+                // where we want to create a directory to store the queue files.
+                var conflictingFile = this.fileInfoFactory.FromPath(currentDirectory.FullName);
+                if (conflictingFile.Exists)
                 {
-                    File.Delete(fileInfo.Directory.FullName);
+                    throw new IOException($"Failed to create directory at path \"{currentDirectory.FullName}\". File with same name already exists.");
                 }
 
-                fileInfo.Directory.Create();
+                currentDirectory.Create();
             }
 
             using (var writer = fileInfo.CreateText())

@@ -1,63 +1,10 @@
-using System.Text;
 using FluentAssertions;
-using Moq;
-using Plugin.FirebasePushNotifications.Internals;
 using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
 {
-    public class PersistentQueueTests
+    public class PersistentQueueIntegrationTests
     {
-        [Fact]
-        public void ShouldCreateQueueWithDefaultOptions()
-        {
-            // Act
-            var action = () => new PersistentQueue<TestItem>();
-
-            // Assert
-            action.Should().NotThrow();
-        }
-
-        [Fact]
-        public void ShouldArgumentNullException_IfOptionsIsNull()
-        {
-            // Act
-            var action = () => new PersistentQueue<TestItem>(null);
-
-            // Assert
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("invalid content")]
-        public void ShouldCreate_FromInvalidContent(string fileContent)
-        {
-            // Arrange
-            var fileInfoMock = new Mock<IFileInfo>();
-            fileInfoMock.SetupGet(f => f.Exists)
-                .Returns(true);
-            fileInfoMock.Setup(f => f.OpenText())
-                .Returns(() => GetStreamReaderFromString(fileContent));
-
-            var fileInfoFactoryMock = new Mock<IFileInfoFactory>();
-            fileInfoFactoryMock.Setup(f => f.FromPath(It.IsAny<string>()))
-                .Returns(fileInfoMock.Object);
-
-            // Act
-            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, PersistentQueueOptions.Default);
-
-            // Assert
-            queue.Count.Should().Be(0);
-        }
-
-        private static StreamReader GetStreamReaderFromString(string text)
-        {
-            var bytes = text != null ? Encoding.UTF8.GetBytes(text) : Array.Empty<byte>();
-            return new StreamReader(new MemoryStream(bytes));
-        }
-
         [Fact]
         public void ShouldEnqueueItem()
         {
@@ -88,7 +35,6 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             queue.Count.Should().Be(0);
             dequeueItem.Id.Should().Be(1);
         }
-
 
         [Fact]
         public void ShouldTryDequeueItem()
@@ -166,7 +112,6 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             persistentQueue3.Count.Should().Be(1);
         }
 
-
         [Fact]
         public void ShouldPeekItem()
         {
@@ -201,11 +146,6 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             success.Should().BeTrue();
             peekItem.Should().NotBeNull();
             peekItem.Id.Should().Be(1);
-        }
-
-        internal class TestItem
-        {
-            public int Id { get; set; }
         }
     }
 }

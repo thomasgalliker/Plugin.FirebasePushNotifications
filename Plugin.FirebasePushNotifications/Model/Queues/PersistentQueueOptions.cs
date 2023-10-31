@@ -11,13 +11,14 @@
         /// The default options.
         /// </summary>
         public static readonly PersistentQueueOptions Default = new PersistentQueueOptions();
+
         private string baseDirectory;
 
         /// <summary>
         /// The base directory to be used to store queued items.
         /// If null/empty, "<see cref="Environment.SpecialFolder.MyDocuments"/>/FirebaseQueues" is used as fallback.
         /// </summary>
-        public string BaseDirectory
+        public virtual string BaseDirectory
         {
             get
             {
@@ -32,6 +33,6 @@
         /// <summary>
         /// Selects the file name from a given generic type T in <see cref="PersistentQueue{T}"/>.
         /// </summary>
-        public Func<Type, string> FileNameSelector { get; set; } = (t) => $"{t.Name}.json";
+        public virtual Func<Type, string> FileNameSelector { get; set; } = (t) => $"{t.Name}.json";
     }
 }
