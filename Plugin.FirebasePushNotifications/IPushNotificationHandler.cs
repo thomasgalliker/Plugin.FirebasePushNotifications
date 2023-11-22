@@ -11,7 +11,7 @@
         /// <summary>
         /// Method triggered when a notification is opened
         /// </summary>
-        void OnOpened(IDictionary<string, object> parameters, string identifier, NotificationCategoryType notificationCategoryType);
+        void OnOpened(IDictionary<string, object> parameters, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType);
 
         /// <summary>
         /// Method triggered when a notification is received.

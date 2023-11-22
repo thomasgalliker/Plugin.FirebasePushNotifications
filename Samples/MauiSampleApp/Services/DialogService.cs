@@ -6,7 +6,7 @@
         {
             return MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                await Application.Current.MainPage.DisplayAlert(title, message, cancel);
+                 await Application.Current.MainPage.DisplayAlert(title, message, cancel);
             });
         }
     }

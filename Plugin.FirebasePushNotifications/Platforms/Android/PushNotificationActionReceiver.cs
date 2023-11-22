@@ -11,17 +11,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             var extras = intent.GetExtrasDict();
 
-            var identifier = extras.GetStringOrDefault(DefaultPushNotificationHandler.ActionIdentifierKey);
-            var notificationCategoryType = NotificationCategoryType.Default;
+            var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
 
-            CrossFirebasePushNotification.Current.HandleNotificationAction(extras, identifier, notificationCategoryType);
+            CrossFirebasePushNotification.Current.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
 
             var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
-            var notificationId = extras.GetValueOrDefault(DefaultPushNotificationHandler.ActionNotificationIdKey, -1);
+            var notificationId = extras.GetValueOrDefault(Constants.ActionNotificationIdKey, -1);
             if (notificationId != -1)
             {
-                var notificationTag = extras.GetValueOrDefault(DefaultPushNotificationHandler.ActionNotificationTagKey, string.Empty);
-
+                var notificationTag = extras.GetStringOrDefault(Constants.ActionNotificationTagKey, null);
                 if (notificationTag == null)
                 {
                     manager.Cancel(notificationId);

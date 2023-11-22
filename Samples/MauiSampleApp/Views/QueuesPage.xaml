@@ -14,8 +14,7 @@
             VerticalOptions="Start">
 
             <Label
-                FontAttributes="Bold"
-                FontSize="24"
+                Style="{StaticResource Heading1LabelStyle}"
                 Text="PersistentQueue" />
             <Button
                 Command="{Binding EnqueueCommand}"

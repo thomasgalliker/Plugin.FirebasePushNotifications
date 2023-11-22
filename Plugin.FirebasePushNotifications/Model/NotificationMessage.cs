@@ -7,6 +7,7 @@ namespace Plugin.FirebasePushNotifications.Model
     {
         private readonly string body;
         private readonly string title;
+        private string tag;
 
         public NotificationMessage(
             string body,
@@ -23,18 +24,25 @@ namespace Plugin.FirebasePushNotifications.Model
             this.Data = data;
         }
 
-        [JsonProperty("title")]
+        [JsonProperty(Constants.NotificationTitleKey)]
         public string Title
         {
-            get => this.title ?? this.Data?["title"];
+            get => this.title ?? this.Data?[Constants.NotificationTitleKey];
         }
 
-        [JsonProperty("body")]
+        [JsonProperty(Constants.NotificationBodyKey)]
         public string Body
         {
-            get => this.body ?? this.Data?["body"];
+            get => this.body ?? this.Data?[Constants.NotificationBodyKey];
+        }
+        
+        [JsonProperty(Constants.NotificationTagKey)]
+        public string Tag
+        {
+            get => this.tag ?? this.Data?[Constants.NotificationTagKey];
         }
 
+        [JsonProperty(Constants.NotificationDataKey)]
         public IDictionary<string, string> Data { get; }
 
         public override string ToString()

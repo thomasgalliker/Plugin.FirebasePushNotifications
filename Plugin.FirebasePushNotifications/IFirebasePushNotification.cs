@@ -1,6 +1,7 @@
 ﻿#if ANDROID
 using Android.App;
 using Android.Content;
+using Plugin.FirebasePushNotifications.Platforms.Channels;
 #endif
 
 #if IOS
@@ -43,7 +44,7 @@ namespace Plugin.FirebasePushNotifications
 
         void HandleNotificationReceived(IDictionary<string, object> data);
 
-        void HandleNotificationAction(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType);
+        void HandleNotificationAction(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType);
 
         void HandleNotificationDeleted(IDictionary<string, object> data);
 
@@ -58,6 +59,8 @@ namespace Plugin.FirebasePushNotifications
         /// to your MauiProgram startup.
         /// </summary>
         void ProcessIntent(Activity activity, Intent intent);
+
+        IEnumerable<NotificationChannelRequest> NotificationChannels { get; }
 #endif
 
 #if IOS
@@ -71,9 +74,22 @@ namespace Plugin.FirebasePushNotifications
 #endif
 
         /// <summary>
-        /// Get all user notification categories.
+        /// Returns all registered notification categories.
         /// </summary>
-        NotificationUserCategory[] GetUserNotificationCategories();
+        NotificationCategory[] GetNotificationCategories();
+  
+        /// <summary>
+        /// Registers notification categories.
+        /// </summary>
+        /// <remarks>
+        /// All registered notification categories will be replaced with this call.
+        /// </remarks>
+        void RegisterNotificationCategories(NotificationCategory[] notificationCategories);
+
+        /// <summary>
+        /// Clears all notification categories.
+        /// </summary>
+        void ClearNotificationCategories();
 
         /// <summary>
         /// Get all subscribed topics.
@@ -81,22 +97,22 @@ namespace Plugin.FirebasePushNotifications
         string[] SubscribedTopics { get; }
 
         /// <summary>
-        /// Subscribe to multiple topics.
+        /// Subscribe to list of <paramref name="topics"/>.
         /// </summary>
         void Subscribe(string[] topics);
 
         /// <summary>
-        /// Subscribe to one topic.
+        /// Subscribe to <paramref name="topic"/>.
         /// </summary>
         void Subscribe(string topic);
 
         /// <summary>
-        /// Unsubscribe from one topic.
+        /// Unsubscribe from <paramref name="topic"/>.
         /// </summary>
         void Unsubscribe(string topic);
 
         /// <summary>
-        /// Unsubscribe to multiple topics.
+        /// Unsubscribe from list of <paramref name="topics"/>.
         /// </summary>
         void Unsubscribe(string[] topics);
 
@@ -113,7 +129,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Unregister push notifications.
         /// </summary>
-        void UnregisterForPushNotifications();
+        Task UnregisterForPushNotificationsAsync();
 
         /// <summary>
         /// Notification handler to receive, customize notification feedback and provide user actions

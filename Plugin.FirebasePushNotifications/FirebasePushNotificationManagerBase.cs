@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
+using Plugin.FirebasePushNotifications.Internals;
 using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications.Platforms
@@ -8,6 +9,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
     public abstract class FirebasePushNotificationManagerBase : IDisposable
     {
         private readonly string instanceId = Guid.NewGuid().ToString()[..5];
+
+        protected readonly IList<NotificationCategory> notificationCategories = new List<NotificationCategory>();
 
         protected ILogger<FirebasePushNotificationManager> logger;
 
@@ -95,11 +98,28 @@ namespace Plugin.FirebasePushNotifications.Platforms
             set => this.logger = value;
         }
 
+        /// <inheritdoc />
+        public NotificationCategory[] GetNotificationCategories()
+        {
+            return this.notificationCategories.ToArray();
+        }
+
+        /// <inheritdoc />
+        public void ClearNotificationCategories()
+        {
+            this.notificationCategories.Clear();
+        }
+        
+        protected virtual void ClearNotificationCategoriesPlatform()
+        {
+            this.notificationCategories.Clear();
+        }
+
         public IPushNotificationHandler NotificationHandler { get; set; }
 
         public void HandleTokenRefresh(string token)
         {
-            this.logger.LogDebug($"HandleTokenRefresh: \"{FormatTokenForLogging(token)}\"");
+            this.logger.LogDebug($"HandleTokenRefresh: \"{TokenFormatter.AnonymizeToken(token)}\"");
 
             this.OnTokenRefresh(token);
 
@@ -112,29 +132,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         protected virtual void OnTokenRefresh(string token)
         {
-        }
-
-        private static string FormatTokenForLogging(string token)
-        {
-            if (token == null)
-            {
-                return "null";
-            }
-
-            try
-            {
-                var substringLength = Math.Min(10, token.Length / 10);
-                if (substringLength < 5)
-                {
-                    return Constants.SuppressedString;
-                }
-
-                return $"{Constants.SuppressedString}...{token[^substringLength..]}";
-            }
-            catch
-            {
-                return Constants.SuppressedString;
-            }
         }
 
         public event EventHandler<FirebasePushNotificationTokenEventArgs> TokenRefreshed
@@ -229,22 +226,31 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public void HandleNotificationOpened(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
+        public void HandleNotificationOpened(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType)
         {
             this.logger.LogDebug("HandleNotificationOpened");
 
+            var notificationAction = this.GetNotificationAction(notificationActionId);
+
             this.RaiseOrQueueEvent(
                 this.notificationOpenedEventHandler,
-                () => new FirebasePushNotificationResponseEventArgs(data, identifier, notificationCategoryType),
+                () => new FirebasePushNotificationResponseEventArgs(data, notificationAction, notificationCategoryType),
                 this.notificationOpenedQueue,
                 nameof(NotificationOpened));
 
-            this.OnNotificationOpened(data, identifier, notificationCategoryType);
+            this.OnNotificationOpened(data, notificationAction, notificationCategoryType);
 
-            this.NotificationHandler?.OnOpened(data, identifier, notificationCategoryType);
+            this.NotificationHandler?.OnOpened(data, notificationAction, notificationCategoryType);
         }
 
-        protected virtual void OnNotificationOpened(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
+        private NotificationAction GetNotificationAction(string notificationActionId)
+        {
+            return this.notificationCategories
+                .SelectMany(c => c.Actions)
+                .SingleOrDefault(a => a.Id == notificationActionId);
+        }
+
+        protected virtual void OnNotificationOpened(IDictionary<string, object> data, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
         {
         }
 
@@ -260,13 +266,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public void HandleNotificationAction(IDictionary<string, object> data, string identifier, NotificationCategoryType notificationCategoryType)
+        public void HandleNotificationAction(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType)
         {
             this.logger.LogDebug("HandleNotificationAction");
 
+            var notificationAction = this.GetNotificationAction(notificationActionId);
+
             this.RaiseOrQueueEvent(
                 this.notificationActionEventHandler,
-                () => new FirebasePushNotificationResponseEventArgs(data, identifier, notificationCategoryType),
+                () => new FirebasePushNotificationResponseEventArgs(data, notificationAction, notificationCategoryType),
                 this.notificationActionQueue,
                 nameof(NotificationAction));
 

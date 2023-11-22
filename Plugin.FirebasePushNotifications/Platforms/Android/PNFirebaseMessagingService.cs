@@ -10,13 +10,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         public override void OnMessageReceived(RemoteMessage remoteMessage)
         {
+            // OnMessageReceived will be fired if a notification is received
+            // while the Android app runs in foreground - OR - if the notification
+            // only contains data payload.
+
             var data = new Dictionary<string, object>();
             var notification = remoteMessage.GetNotification();
             if (notification != null)
             {
                 if (!string.IsNullOrEmpty(notification.Body))
                 {
-                    data.Add("body", notification.Body);
+                    data.Add(Constants.NotificationBodyKey, notification.Body);
                 }
 
                 if (!string.IsNullOrEmpty(notification.BodyLocalizationKey))
@@ -32,7 +36,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 if (!string.IsNullOrEmpty(notification.Title))
                 {
-                    data.Add("title", notification.Title);
+                    data.Add(Constants.NotificationTitleKey, notification.Title);
                 }
 
                 if (!string.IsNullOrEmpty(notification.TitleLocalizationKey))
@@ -48,12 +52,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 if (!string.IsNullOrEmpty(notification.Tag))
                 {
-                    data.Add("tag", notification.Tag);
+                    data.Add(Constants.NotificationTagKey, notification.Tag);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Sound))
                 {
-                    data.Add("sound", notification.Sound);
+                    data.Add(Constants.SoundKey, notification.Sound);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Icon))
@@ -68,7 +72,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 if (!string.IsNullOrEmpty(notification.ClickAction))
                 {
-                    data.Add("click_action", notification.ClickAction);
+                    data.Add(Constants.ClickActionKey, notification.ClickAction);
                 }
 
                 if (!string.IsNullOrEmpty(notification.Color))

@@ -1,9 +1,9 @@
-using System.Collections.ObjectModel;
 using Android.App;
 using Android.Content;
 using Firebase.Messaging;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
+using Plugin.FirebasePushNotifications.Platforms.Channels;
 using Application = Android.App.Application;
 
 namespace Plugin.FirebasePushNotifications.Platforms
@@ -14,13 +14,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// </summary>
     public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        internal const string AppVersionCodeKey = "AppVersionCodeKey";
-        internal const string AppVersionNameKey = "AppVersionNameKey";
-        internal const string AppVersionPackageNameKey = "AppVersionPackageNameKey";
+        private HashSet<string> subscribedTopics;
 
-        // internal const string NotificationDeletedActionId = "Plugin.PushNotification.NotificationDeletedActionId";
-        private readonly ICollection<string> currentTopics = new HashSet<string>(Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).GetStringSet(Constants.FirebaseTopicsKey, new Collection<string>()));
-        private readonly IList<NotificationUserCategory> userNotificationCategories = new List<NotificationUserCategory>();
         public static string NotificationContentTitleKey { get; set; }
         public static string NotificationContentTextKey { get; set; }
         public static string NotificationContentDataKey { get; set; }
@@ -32,17 +27,75 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public static Android.Graphics.Color? Color { get; set; }
         public static Type NotificationActivityType { get; set; }
         public static ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
-
-        public static string DefaultNotificationChannelId { get; set; } = "FirebasePushNotificationChannel";
-        public static string DefaultNotificationChannelName { get; set; } = "General";
         public static NotificationImportance DefaultNotificationChannelImportance { get; set; } = NotificationImportance.Default;
 
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
+        public FirebasePushNotificationManager()
+            : base()
+        {
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<NotificationChannelRequest> NotificationChannels { get; private set; }
+
+        private static readonly NotificationChannelRequest DefaultNotificationChannel = new NotificationChannelRequest
+        {
+            ChannelId = Constants.DefaultNotificationChannelId,
+            ChannelName = Constants.DefaultNotificationChannelName,
+            IsDefault = true,
+        };
+
         protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
             NotificationActivityType = options.Android.NotificationActivityType;
-            DefaultNotificationChannelId = options.Android.DefaultNotificationChannelId;
+            //DefaultNotificationChannelId = options.Android.DefaultNotificationChannelId;
+
+            var notificationChannels = options.Android.NotificationChannels;
+            var duplicateChannelIds = notificationChannels
+                .Select(c => c.ChannelId).Concat(new[] { DefaultNotificationChannel.ChannelId })
+                .GroupBy(c => c)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key);
+
+            if (duplicateChannelIds.Any())
+            {
+                throw new ArgumentException(
+                 $"FirebasePushNotificationOptions contains {nameof(NotificationChannelRequest)} with duplicate {nameof(NotificationChannelRequest.ChannelId)}: " +
+                 $"[{string.Join(", ", duplicateChannelIds.Select(id => $"\"{id}\""))}]",
+                 nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
+            }
+
+            if (notificationChannels.Length == 0)
+            {
+                notificationChannels = new[] { DefaultNotificationChannel };
+                StaticNotificationChannels.UpdateChannels(notificationChannels);
+            }
+            else
+            {
+                var defaultNotificationChannels = notificationChannels.Where(c => c.IsDefault).ToArray();
+                if (defaultNotificationChannels.Length > 1)
+                {
+                    throw new ArgumentException(
+                        $"FirebasePushNotificationOptions contains more than one {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true: " +
+                        $"[{string.Join(", ", defaultNotificationChannels.Select(c => $"\"{c.ChannelId}\""))}]",
+                        nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
+                }
+                else if (defaultNotificationChannels.Length < 1)
+                {
+                    throw new ArgumentException(
+                        $"FirebasePushNotificationOptions does not contain any {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true",
+                        nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
+                }
+
+                StaticNotificationChannels.UpdateChannels(notificationChannels);
+            }
+
+            this.NotificationChannels = notificationChannels;
+
+
+            // TODO: REmove this again!!
+            this.NotificationHandler = new DefaultPushNotificationHandler();
         }
 
         public void ProcessIntent(Activity activity, Intent intent)
@@ -85,27 +138,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                     var notificationManager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
 
-                    if (extras.TryGetInt(DefaultPushNotificationHandler.ActionNotificationIdKey, out var notificationId))
+                    if (extras.TryGetInt(Constants.ActionNotificationIdKey, out var notificationId))
                     {
-                        if (extras.TryGetString(DefaultPushNotificationHandler.ActionNotificationTagKey, out var notificationTag))
+                        if (extras.TryGetString(Constants.ActionNotificationTagKey, out var notificationTag))
                         {
-                            notificationManager.Cancel(notificationId);
+                            notificationManager.Cancel(notificationTag, notificationId);
                         }
                         else
                         {
-                            notificationManager.Cancel(notificationTag, notificationId);
+                            notificationManager.Cancel(notificationId);
                         }
                     }
 
                     // TODO: Pass object instead of 3 parameters
-                    var identifier = extras.GetStringOrDefault(DefaultPushNotificationHandler.ActionIdentifierKey);
-                    if (identifier == null)
+                    var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
+                    if (notificationActionId == null)
                     {
-                        this.HandleNotificationOpened(extras, identifier, NotificationCategoryType.Default);
+                        this.HandleNotificationOpened(extras, notificationActionId, NotificationCategoryType.Default);
                     }
                     else
                     {
-                        this.HandleNotificationAction(extras, identifier, NotificationCategoryType.Default);
+                        this.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
                     }
                 }
                 else
@@ -204,110 +257,113 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
          */
 
+        /// <inheritdoc />
         public async Task RegisterForPushNotificationsAsync()
         {
             this.logger.LogDebug("RegisterForPushNotificationsAsync");
 
-            FirebaseMessaging.Instance.AutoInitEnabled = true;
-            await Task.Run(async () =>
+            try
             {
-                var token = await this.GetTokenAsync();
-                if (!string.IsNullOrEmpty(token))
-                {
-                    this.SaveToken(token);
-                }
-            });
+                FirebaseMessaging.Instance.AutoInitEnabled = true;
+
+                await Task.Run(this.GetTokenAsync);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
+                this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, ex.ToString());
+            }
         }
 
-        private async Task<string> GetTokenAsync()
+        private async Task GetTokenAsync()
         {
             var tcs = new TaskCompletionSource<Java.Lang.Object>();
             var taskCompleteListener = new TaskCompleteListener(tcs);
             FirebaseMessaging.Instance.GetToken().AddOnCompleteListener(taskCompleteListener);
 
-            string token = null;
-
             try
             {
                 var taskResult = await tcs.Task;
-                token = taskResult.ToString();
+                var token = taskResult.ToString();
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    this.UpdateToken(token);
+                }
             }
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "GetTokenAsync failed with exception");
                 this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, $"{ex}");
             }
-
-            return token;
         }
 
-        public void UnregisterForPushNotifications()
+        /// <inheritdoc />
+        public async Task UnregisterForPushNotificationsAsync()
         {
-            FirebaseMessaging.Instance.AutoInitEnabled = false;
-            this.Reset();
-        }
+            this.logger.LogDebug("UnregisterForPushNotificationsAsync");
 
-        private void Reset()
-        {
-            // TODO: QueueUserWorkItem is this really necessary resp. of any advantage here?
-            ThreadPool.QueueUserWorkItem(state =>
+            try
             {
-                try
-                {
-                    this.CleanUp();
-                }
-                catch (Exception ex)
-                {
-                    this.logger.LogError(ex, "Reset failed with exception");
-                    this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
-                }
-            });
-        }
+                FirebaseMessaging.Instance.AutoInitEnabled = false;
 
-        private void CleanUp(bool clearAll = true)
-        {
-            if (clearAll)
-            {
-                this.UnsubscribeAll();
+                await Task.Run(this.DeleteTokenAsync);
             }
-
-            // TODO: DeleteToken seems to be an Android Task... await before continue!
-            // Use AddOnCompleteListener(...)
-            FirebaseMessaging.Instance.DeleteToken();
-
-            this.SaveToken(string.Empty);
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "UnregisterForPushNotificationsAsync failed with exception");
+                this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
+            }
         }
 
-        public void ClearUserNotificationCategories()
+        private async Task DeleteTokenAsync()
         {
-            this.userNotificationCategories.Clear();
+            this.logger.LogDebug("DeleteTokenAsync");
+
+            try
+            {
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.DeleteToken().AddOnCompleteListener(taskCompleteListener);
+
+                await tcs.Task;
+
+                this.RemoveToken();
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "DeleteTokenAsync failed with exception");
+            }
         }
 
-        // TODO: Read FirebaseTokenKey in a central place (now it's spread all over the code
+        /// <inheritdoc />
         public string Token
         {
             get
             {
+                // TODO: Read FirebaseTokenKey in a central place (now it's spread all over the code
                 using (var sharedPreferences = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private))
                 {
-                    return sharedPreferences.GetString(Constants.FirebaseTokenKey, string.Empty);
+                    return sharedPreferences.GetString(Constants.FirebaseTokenKey, null);
                 }
             }
         }
 
+        /// <inheritdoc />
         public string[] SubscribedTopics
         {
             get
             {
-                IList<string> topics = new List<string>();
-
-                foreach (var t in this.currentTopics)
+                if (this.subscribedTopics == null)
                 {
-
-                    topics.Add(t);
+                    using (var sharedPreferences = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private))
+                    {
+                        var topicsSettingsValue = sharedPreferences.GetStringSet(Constants.FirebaseTopicsKey, null) ?? Array.Empty<string>();
+                        this.subscribedTopics = new HashSet<string>(topicsSettingsValue);
+                    }
                 }
 
-                return topics.ToArray();
+                return this.subscribedTopics.ToArray();
             }
         }
 
@@ -320,29 +376,28 @@ namespace Plugin.FirebasePushNotifications.Platforms
         //    FirebaseMessaging.Instance.Send(message.Build());
         //}
 
-        public NotificationUserCategory[] GetUserNotificationCategories()
+        /// <inheritdoc />
+        public void RegisterNotificationCategories(NotificationCategory[] notificationCategories)
         {
-            return this.userNotificationCategories?.ToArray();
-        }
-
-        public void RegisterUserNotificationCategories(NotificationUserCategory[] notificationCategories)
-        {
-            if (notificationCategories != null && notificationCategories.Length > 0)
+            if (notificationCategories == null)
             {
-                this.ClearUserNotificationCategories();
-
-                foreach (var userCat in notificationCategories)
-                {
-                    this.userNotificationCategories.Add(userCat);
-                }
-
+                throw new ArgumentNullException(nameof(notificationCategories));
             }
-            else
+
+            if (notificationCategories.Length == 0)
             {
-                this.ClearUserNotificationCategories();
+                throw new ArgumentException($"{nameof(notificationCategories)} must not be empty", nameof(notificationCategories));
+            }
+
+            this.ClearNotificationCategories();
+
+            foreach (var notificationCategory in notificationCategories)
+            {
+                this.notificationCategories.Add(notificationCategory);
             }
         }
 
+        /// <inheritdoc />
         public void Subscribe(string[] topics)
         {
             foreach (var t in topics)
@@ -351,18 +406,44 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /// <inheritdoc />
         public void Subscribe(string topic)
         {
-            if (!this.currentTopics.Contains(topic))
+            if (topic == null)
             {
+                throw new ArgumentNullException(nameof(topic), "Topic must not be null");
+            }
+
+            if (topic == string.Empty)
+            {
+                throw new ArgumentException("Topic must not be empty", nameof(topic));
+            }
+
+            this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
+
+            var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
+            if (!subscribedTopics.Contains(topic))
+            {
+                // TODO: Use AddOnCompleteListener(...)
                 FirebaseMessaging.Instance.SubscribeToTopic(topic);
-                this.currentTopics.Add(topic);
-                var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
-                editor.PutStringSet(Constants.FirebaseTopicsKey, this.currentTopics);
-                editor.Commit();
+
+                subscribedTopics.Add(topic);
+
+                using (var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit())
+                {
+                    editor.PutStringSet(Constants.FirebaseTopicsKey, subscribedTopics);
+                    editor.Commit();
+                }
+
+                this.subscribedTopics = subscribedTopics;
+            }
+            else
+            {
+                this.logger.LogInformation($"Subscribe ignored topic \"{topic}\"; topic is already subscribed");
             }
         }
 
+        /// <inheritdoc />
         public void Unsubscribe(string[] topics)
         {
             foreach (var t in topics)
@@ -371,48 +452,66 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /// <inheritdoc />
         public void UnsubscribeAll()
         {
-            foreach (var t in this.currentTopics)
-            {
-                if (this.currentTopics.Contains(t))
-                { 
-                    // TODO: Use AddOnCompleteListener(...)
-                    FirebaseMessaging.Instance.UnsubscribeFromTopic(t);
-                }
-            }
-
-            this.currentTopics.Clear();
-
-            // TODO: Unify access to preferences
-            var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutStringSet(Constants.FirebaseTopicsKey, this.currentTopics);
-            editor.Commit();
-        }
-
-        public void Unsubscribe(string topic)
-        {
-            if (this.currentTopics.Contains(topic))
+            foreach (var topic in this.SubscribedTopics)
             {
                 // TODO: Use AddOnCompleteListener(...)
                 FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
-                this.currentTopics.Remove(topic);
+            }
+
+            this.subscribedTopics.Clear();
+
+            // TODO: Unify access to preferences
+            var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
+            editor.PutStringSet(Constants.FirebaseTopicsKey, this.subscribedTopics);
+            editor.Commit();
+        }
+
+        /// <inheritdoc />
+        public void Unsubscribe(string topic)
+        {
+            if (topic == null)
+            {
+                throw new ArgumentNullException(nameof(topic), "Topic must not be null");
+            }
+
+            if (topic == string.Empty)
+            {
+                throw new ArgumentException("Topic must not be empty", nameof(topic));
+            }
+
+            this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
+
+            var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
+            if (subscribedTopics.Contains(topic))
+            {
+                // TODO: Use AddOnCompleteListener(...)
+                FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
+                subscribedTopics.Remove(topic);
 
                 // TODO: Unify access to preferences
                 var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
-                editor.PutStringSet(Constants.FirebaseTopicsKey, this.currentTopics);
+                editor.PutStringSet(Constants.FirebaseTopicsKey, subscribedTopics);
                 editor.Commit();
+
+                this.subscribedTopics = subscribedTopics;
+            }
+            else
+            {
+                this.logger.LogInformation($"Unsubscribe ignored topic \"{topic}\"; topic is not subscribed");
             }
         }
 
         protected override void OnTokenRefresh(string token)
         {
-            this.SaveToken(token);
+            this.UpdateToken(token);
         }
 
-        private void SaveToken(string token)
+        private void UpdateToken(string token)
         {
-            this.logger.LogDebug("SaveToken");
+            this.logger.LogDebug("UpdateToken");
 
             using (var editor = Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit())
             {
@@ -421,18 +520,32 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        private void RemoveToken()
+        {
+            this.logger.LogDebug("RemoveToken");
+
+            using (var editor = Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit())
+            {
+                editor.Remove(Constants.FirebaseTokenKey);
+                editor.Commit();
+            }
+        }
+
+        /// <inheritdoc />
         public void ClearAllNotifications()
         {
             var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
             manager.CancelAll();
         }
 
+        /// <inheritdoc />
         public void RemoveNotification(int id)
         {
             var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
             manager.Cancel(id);
         }
 
+        /// <inheritdoc />
         public void RemoveNotification(string tag, int id)
         {
             if (string.IsNullOrEmpty(tag))

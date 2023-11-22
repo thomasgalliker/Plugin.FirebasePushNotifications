@@ -1,19 +1,23 @@
-﻿namespace Plugin.FirebasePushNotifications
+﻿using Plugin.FirebasePushNotifications.Extensions;
+
+namespace Plugin.FirebasePushNotifications
 {
-    public class FirebasePushNotificationResponseEventArgs : EventArgs
+    public class FirebasePushNotificationResponseEventArgs : FirebasePushNotificationDataEventArgs
     {
-        public FirebasePushNotificationResponseEventArgs(IDictionary<string, object> data, string identifier = null, NotificationCategoryType type = NotificationCategoryType.Default)
+        public FirebasePushNotificationResponseEventArgs(IDictionary<string, object> data, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
+            : base(data)
         {
-            this.Identifier = identifier;
-            this.Data = data;
-            this.Type = type;
+            this.Action = notificationAction;
+            this.Type = notificationCategoryType;
         }
 
-        public string Identifier { get; }
-
-        public IDictionary<string, object> Data { get; }
+        public NotificationAction Action { get; }
 
         public NotificationCategoryType Type { get; }
 
+        public override string ToString()
+        {
+            return $"Action.Id={(this.Action is NotificationAction action ? $"\"{action.Id}\"" : "null")}, Type={this.Type}, Data=[{this.Data.ToDebugString()}]";
+        }
     }
 }

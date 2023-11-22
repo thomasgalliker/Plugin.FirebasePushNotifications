@@ -1,18 +1,11 @@
 ﻿using Plugin.FirebasePushNotifications.Model.Queues;
 
+#if ANDROID
+using Plugin.FirebasePushNotifications.Platforms;
+#endif
+
 namespace Plugin.FirebasePushNotifications
 {
-    public class FirebasePushNotificationAndroidOptions
-    {
-        /// <summary>
-        /// The activity which handles incoming push notifications.
-        /// Typically, this is <c>typeof(MainActivity)</c>.
-        /// </summary>
-        public virtual Type NotificationActivityType { get; set; }
-
-        public virtual string DefaultNotificationChannelId { get; set; }
-    }
-
     public class FirebasePushNotificationOptions
     {
         public virtual bool AutoInitEnabled { get; set; }
@@ -31,7 +24,6 @@ namespace Plugin.FirebasePushNotifications
         public virtual IQueueFactory QueueFactory { get; set; }
 
 #if ANDROID
-
         public virtual FirebasePushNotificationAndroidOptions Android { get; set; } = new FirebasePushNotificationAndroidOptions();
 #endif
 

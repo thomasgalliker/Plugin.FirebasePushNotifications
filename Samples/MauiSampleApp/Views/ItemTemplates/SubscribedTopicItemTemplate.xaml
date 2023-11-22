@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ViewCell
+    x:Class="MauiSampleApp.Views.ItemTemplates.SubscribedTopicItemTemplate"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
+    x:DataType="vm:SubscribedTopicViewModel">
+
+    <Grid ColumnDefinitions="*, Auto">
+        <Label
+            Grid.Column="0"
+            Text="{Binding Topic}" />
+        <Button
+            Grid.Column="1"
+            Command="{Binding UnsubscribeCommand}"
+            Text="Unsubscribe" />
+    </Grid>
+</ViewCell>

@@ -38,7 +38,7 @@
 		<PackageReleaseNotes>1.0
 - Initial release
 		</PackageReleaseNotes>
-		<Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) &#169; Thomas Galliker</Copyright>
+		<Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup> 
 

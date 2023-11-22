@@ -1,12 +1,17 @@
 ﻿namespace Plugin.FirebasePushNotifications.Extensions
 {
-    internal static class DictionaryExtensions
+    public static class DictionaryExtensions
     {
+        public static string ToDebugString<T>(this IDictionary<string, T> data)
+        {
+            return string.Join(",", data.Select(d => $"{{{d.Key}={d.Value?.ToString() ?? "null"}}}"));
+        }
+
         public static T GetValueOrDefault<T>(this IDictionary<string, object> items, string key, T defaultValue = default)
         {
             if (items.TryGetValue(key, out var value))
             {
-                return (T)value;
+                return (T)Convert.ChangeType(value, typeof(T));
             }
 
             return defaultValue;
@@ -14,7 +19,12 @@
 
         public static string GetStringOrDefault(this IDictionary<string, object> items, string key, string defaultValue = default)
         {
-            return items.GetValueOrDefault(key, defaultValue);
+            if (items.TryGetValue(key, out var value))
+            {
+                return value?.ToString();
+            }
+
+            return defaultValue;
         }
 
         public static bool TryGetInt(this IDictionary<string, object> items, string key, out int value)
@@ -28,13 +38,41 @@
             value = default;
             return false;
         }
-        
+
         public static bool TryGetString(this IDictionary<string, object> items, string key, out string value)
         {
             if (items.TryGetValue(key, out var item) && item is string stringValue)
             {
                 value = stringValue;
                 return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        public static bool TryGetBool(this IDictionary<string, object> items, string key, out bool value)
+        {
+            if (items.TryGetValue(key, out var item) && item is bool boolValue)
+            {
+                value = boolValue;
+                return true;
+            }
+            else if (items.TryGetString(key, out var stringValue))
+            {
+                if (stringValue.Equals("true", StringComparison.InvariantCultureIgnoreCase) ||
+                    stringValue.Equals("1", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    value = true;
+                    return true;
+                }
+                else if (
+                    stringValue.Equals("false", StringComparison.InvariantCultureIgnoreCase) ||
+                    stringValue.Equals("0", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    value = false;
+                    return true;
+                }
             }
 
             value = default;
