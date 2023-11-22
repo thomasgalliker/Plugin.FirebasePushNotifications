@@ -1,12 +1,15 @@
-﻿namespace MauiSampleApp
+﻿using MauiSampleApp.Views;
+
+namespace MauiSampleApp
 {
     public partial class App : Application
     {
-        public App()
+        public App(IServiceProvider serviceProvider)
         {
             this.InitializeComponent();
 
-            this.MainPage = new AppShell();
+            var mainPage = serviceProvider.GetRequiredService<MainPage>();
+            this.MainPage = new NavigationPage(mainPage);
         }
     }
 }

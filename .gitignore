@@ -253,3 +253,7 @@ paket-files/
 *.bak
 *.p8
 *.p12
+
+# Firebase config files
+**/GoogleService-Info.plist
+**/google-services.json

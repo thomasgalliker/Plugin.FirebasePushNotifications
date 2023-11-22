@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
+using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -8,25 +9,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         public override void OnReceive(Context context, Intent intent)
         {
-            IDictionary<string, object> parameters = new Dictionary<string, object>();
-            var extras = intent.Extras;
+            var extras = intent.GetExtrasDict();
 
-            if (extras != null && !extras.IsEmpty)
-            {
-                foreach (var key in extras.KeySet())
-                {
-                    parameters.Add(key, $"{extras.Get(key)}");
-                    System.Diagnostics.Debug.WriteLine(key, $"{extras.Get(key)}");
-                }
-            }
-            FirebasePushNotificationManager.RegisterAction(parameters);
+            var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
+
+            CrossFirebasePushNotification.Current.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
 
             var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
-            var notificationId = extras.GetInt(DefaultPushNotificationHandler.ActionNotificationIdKey, -1);
+            var notificationId = extras.GetValueOrDefault(Constants.ActionNotificationIdKey, -1);
             if (notificationId != -1)
             {
-                var notificationTag = extras.GetString(DefaultPushNotificationHandler.ActionNotificationTagKey, string.Empty);
-
+                var notificationTag = extras.GetStringOrDefault(Constants.ActionNotificationTagKey, null);
                 if (notificationTag == null)
                 {
                     manager.Cancel(notificationId);
