@@ -34,7 +34,6 @@ namespace MauiSampleApp.ViewModels
         private AuthorizationStatus authorizationStatus;
         private string token;
         private string topic;
-        private AsyncRelayCommand unsubscribeFromTopicCommand;
         private AsyncRelayCommand unsubscribeAllTopicsCommand;
         private SubscribedTopicViewModel[] subscribedTopics;
         private AsyncRelayCommand getSubscribedTopicsCommand;
@@ -79,8 +78,6 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                this.RegisterSampleNotificationCategories();
-
                 await this.UpdateAuthorizationStatusAsync();
                 this.UpdateToken();
 
@@ -93,18 +90,15 @@ namespace MauiSampleApp.ViewModels
                 {
                     await this.SubscribeEventsAsync();
                 }
+
+                await this.UpdateSubscribedTopicsAsync();
+                await this.UpdateNotificationCategoriesAsync();
             }
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "InitializeAsync failed with exception");
                 await this.dialogService.ShowDialogAsync("Error", "Initialization failed", "OK");
             }
-        }
-
-        private void RegisterSampleNotificationCategories()
-        {
-            var categories = NotificationCategorySamples.GetAll().ToArray();
-            this.firebasePushNotification.RegisterNotificationCategories(categories);
         }
 
         private async Task UpdateAuthorizationStatusAsync()
@@ -286,9 +280,9 @@ namespace MauiSampleApp.ViewModels
             private set => this.SetProperty(ref this.subscribedTopics, value);
         }
 
-        public ICommand GetSubscribedTopicsCommand => this.getSubscribedTopicsCommand ??= new AsyncRelayCommand(this.GetSubscribedTopicsAsync);
+        public ICommand GetSubscribedTopicsCommand => this.getSubscribedTopicsCommand ??= new AsyncRelayCommand(this.UpdateSubscribedTopicsAsync);
 
-        private async Task GetSubscribedTopicsAsync()
+        private async Task UpdateSubscribedTopicsAsync()
         {
             try
             {
@@ -321,7 +315,7 @@ namespace MauiSampleApp.ViewModels
             try
             {
                 var topic = this.Topic;
-                this.firebasePushNotification.Subscribe(topic);
+                this.firebasePushNotification.SubscribeTopic(topic);
                 this.UpdateSubscribedTopics();
                 this.Topic = null;
             }
@@ -332,13 +326,11 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public ICommand UnsubscribeFromTopicCommand => this.unsubscribeFromTopicCommand ??= new AsyncRelayCommand(() => this.UnsubscribeFromTopicAsync(this.Topic));
-
         private async Task UnsubscribeFromTopicAsync(string topic)
         {
             try
             {
-                this.firebasePushNotification.Unsubscribe(topic);
+                this.firebasePushNotification.UnsubscribeTopic(topic);
                 this.UpdateSubscribedTopics();
             }
             catch (Exception ex)
@@ -354,7 +346,7 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                this.firebasePushNotification.UnsubscribeAll();
+                this.firebasePushNotification.UnsubscribeAllTopics();
                 this.UpdateSubscribedTopics();
             }
             catch (Exception ex)
@@ -371,13 +363,13 @@ namespace MauiSampleApp.ViewModels
             private set => this.SetProperty(ref this.notificationCategories, value);
         }
 
-        public ICommand GetNotificationCategoriesCommand => this.getNotificationCategoriesCommand ??= new AsyncRelayCommand(this.GetNotificationCategoriesAsync);
+        public ICommand GetNotificationCategoriesCommand => this.getNotificationCategoriesCommand ??= new AsyncRelayCommand(this.UpdateNotificationCategoriesAsync);
 
-        private async Task GetNotificationCategoriesAsync()
+        private async Task UpdateNotificationCategoriesAsync()
         {
             try
             {
-                var notificationCategories = this.firebasePushNotification.GetNotificationCategories();
+                var notificationCategories = this.firebasePushNotification.NotificationCategories;
                 this.NotificationCategories = notificationCategories
                     .Select(n => new NotificationCategoryViewModel(n))
                     .ToArray();
@@ -395,8 +387,10 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                this.RegisterSampleNotificationCategories();
-                await this.GetNotificationCategoriesAsync();
+                var categories = NotificationCategorySamples.GetAll().ToArray();
+                this.firebasePushNotification.RegisterNotificationCategories(categories);
+
+                await this.UpdateNotificationCategoriesAsync();
             }
             catch (Exception ex)
             {
@@ -404,7 +398,7 @@ namespace MauiSampleApp.ViewModels
                 await this.dialogService.ShowDialogAsync("Error", "Registration of notification categories failed with exception", "OK");
             }
         }
-        
+
         public ICommand ClearNotificationCategoriesCommand => this.clearNotificationCategoriesCommand ??= new AsyncRelayCommand(this.ClearNotificationCategoriesAsync);
 
         private async Task ClearNotificationCategoriesAsync()
@@ -412,7 +406,7 @@ namespace MauiSampleApp.ViewModels
             try
             {
                 this.firebasePushNotification.ClearNotificationCategories();
-                await this.GetNotificationCategoriesAsync();
+                await this.UpdateNotificationCategoriesAsync();
             }
             catch (Exception ex)
             {

@@ -76,13 +76,14 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Returns all registered notification categories.
         /// </summary>
-        NotificationCategory[] GetNotificationCategories();
-  
+        NotificationCategory[] NotificationCategories { get; }
+
         /// <summary>
-        /// Registers notification categories.
+        /// Registers the list notification categories <paramref name="notificationCategories"/>.
         /// </summary>
         /// <remarks>
-        /// All registered notification categories will be replaced with this call.
+        /// All registered notification categories will be replaced 
+        /// with the given <paramref name="notificationCategories"/>.
         /// </remarks>
         void RegisterNotificationCategories(NotificationCategory[] notificationCategories);
 
@@ -97,29 +98,29 @@ namespace Plugin.FirebasePushNotifications
         string[] SubscribedTopics { get; }
 
         /// <summary>
-        /// Subscribe to list of <paramref name="topics"/>.
-        /// </summary>
-        void Subscribe(string[] topics);
-
-        /// <summary>
         /// Subscribe to <paramref name="topic"/>.
         /// </summary>
-        void Subscribe(string topic);
+        void SubscribeTopic(string topic);
+
+        /// <summary>
+        /// Subscribe to list of <paramref name="topics"/>.
+        /// </summary>
+        void SubscribeTopics(string[] topics);
 
         /// <summary>
         /// Unsubscribe from <paramref name="topic"/>.
         /// </summary>
-        void Unsubscribe(string topic);
+        void UnsubscribeTopic(string topic);
 
         /// <summary>
         /// Unsubscribe from list of <paramref name="topics"/>.
         /// </summary>
-        void Unsubscribe(string[] topics);
+        void UnsubscribeTopics(string[] topics);
 
         /// <summary>
         /// Unsubscribe all topics.
         /// </summary>
-        void UnsubscribeAll();
+        void UnsubscribeAllTopics();
 
         /// <summary>
         /// Register for push notifications.
@@ -129,7 +130,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Unregister push notifications.
         /// </summary>
-        Task UnregisterForPushNotificationsAsync();
+        Task UnregisterForPushNotificationsAsync(); // TODO: Clear all preferences when unregistering from push notification!
 
         /// <summary>
         /// Notification handler to receive, customize notification feedback and provide user actions

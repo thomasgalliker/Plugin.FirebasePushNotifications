@@ -15,9 +15,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         private readonly Queue<Tuple<string, bool>> pendingTopics = new Queue<Tuple<string, bool>>();
         private bool hasToken = false;
-
-        private readonly NSMutableArray currentTopics = (NSUserDefaults.StandardUserDefaults.ValueForKey(Constants.FirebaseTopicsKey) as NSArray ?? new NSArray()).MutableCopy() as NSMutableArray;
-
         private bool disposed;
 
         public FirebasePushNotificationManager()
@@ -36,25 +33,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 else
                 {
-                    return NSUserDefaults.StandardUserDefaults.StringForKey(Constants.FirebaseTokenKey);
+                    return this.preferences.Get<string>(Constants.Preferences.TokenKey);
                 }
-            }
-        }
-
-        /// <inheritdoc />
-        public string[] SubscribedTopics
-        {
-            get
-            {
-                //Load all subscribed topics
-                var topics = new List<string>();
-
-                for (nuint i = 0; i < this.currentTopics.Count; i++)
-                {
-                    topics.Add(this.currentTopics.GetItem<NSString>(i));
-                }
-
-                return topics.ToArray();
             }
         }
 
@@ -104,55 +84,40 @@ namespace Plugin.FirebasePushNotifications.Platforms
         //}
 
         /// <inheritdoc />
-        public void RegisterNotificationCategories(NotificationCategory[] notificationCategories)
+        protected override void RegisterNotificationCategoriesPlatform(NotificationCategory[] notificationCategories)
         {
-            if (notificationCategories == null)
-            {
-                throw new ArgumentNullException(nameof(notificationCategories));
-            }
+            var unNotificationCategories = new List<UNNotificationCategory>();
 
-            if (notificationCategories.Length == 0)
+            foreach (var notificationCategory in notificationCategories)
             {
-                throw new ArgumentException($"{nameof(notificationCategories)} must not be empty", nameof(notificationCategories));
-            }
+                var notificationActions = new List<UNNotificationAction>();
 
-            this.ClearNotificationCategories();
-
-            if (notificationCategories.Length > 0)
-            {
-                var categories = new List<UNNotificationCategory>();
-                foreach (var notificationCategory in notificationCategories)
+                foreach (var action in notificationCategory.Actions)
                 {
-                    var notificationActions = new List<UNNotificationAction>();
-
-                    foreach (var action in notificationCategory.Actions)
-                    {
-                        var notificationActionType = GetUNNotificationActionOptions(action.Type);
-                        var notificationAction = UNNotificationAction.FromIdentifier(action.Id, action.Title, notificationActionType);
-                        notificationActions.Add(notificationAction);
-                    }
-
-                    // Create category
-                    var options = notificationCategory.Type == NotificationCategoryType.Dismiss
-                        ? UNNotificationCategoryOptions.CustomDismissAction
-                        : UNNotificationCategoryOptions.None;
-
-                    var category = UNNotificationCategory.FromIdentifier(
-                        identifier: notificationCategory.CategoryId,
-                        actions: notificationActions.ToArray(),
-                        intentIdentifiers: Array.Empty<string>(),
-                        options);
-                    categories.Add(category);
-
-                    this.notificationCategories.Add(notificationCategory);
+                    var notificationActionType = GetUNNotificationActionOptions(action.Type);
+                    var notificationAction = UNNotificationAction.FromIdentifier(action.Id, action.Title, notificationActionType);
+                    notificationActions.Add(notificationAction);
                 }
 
-                // Register categories
-                var notificationCategoriesSet = new NSSet<UNNotificationCategory>(categories.ToArray());
-                UNUserNotificationCenter.Current.SetNotificationCategories(notificationCategoriesSet);
+                // Create UNNotificationCategory
+                var options = notificationCategory.Type == NotificationCategoryType.Dismiss
+                    ? UNNotificationCategoryOptions.CustomDismissAction
+                    : UNNotificationCategoryOptions.None;
+
+                var unNotificationCategory = UNNotificationCategory.FromIdentifier(
+                    identifier: notificationCategory.CategoryId,
+                    actions: notificationActions.ToArray(),
+                    intentIdentifiers: Array.Empty<string>(),
+                    options);
+                unNotificationCategories.Add(unNotificationCategory);
             }
+
+            // Register categories
+            var notificationCategoriesSet = new NSSet<UNNotificationCategory>(unNotificationCategories.ToArray());
+            UNUserNotificationCenter.Current.SetNotificationCategories(notificationCategoriesSet);
         }
 
+        /// <inheritdoc />
         protected override void ClearNotificationCategoriesPlatform()
         {
             var categories = new NSSet<UNNotificationCategory>(Array.Empty<UNNotificationCategory>());
@@ -247,13 +212,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (this.hasToken)
             {
-                this.UnsubscribeAll();
+                this.UnsubscribeAllTopics();
                 this.hasToken = false;
             }
 
             Messaging.SharedInstance.AutoInitEnabled = false;
             UIApplication.SharedApplication.UnregisterForRemoteNotifications();
-            NSUserDefaults.StandardUserDefaults.SetString(string.Empty, Constants.FirebaseTokenKey);
+            this.preferences.Remove(Constants.Preferences.TokenKey);
 
             return Task.CompletedTask;
         }
@@ -400,69 +365,106 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return parameters;
         }
 
-        public void Subscribe(string[] topics)
+        public void SubscribeTopics(string[] topics)
         {
             foreach (var t in topics)
             {
-                this.Subscribe(t);
+                this.SubscribeTopic(t);
             }
         }
 
-        public void Subscribe(string topic)
+        public void SubscribeTopic(string topic)
         {
+            if (topic == null)
+            {
+                throw new ArgumentNullException(nameof(topic), "Topic must not be null");
+            }
+
+            if (topic == string.Empty)
+            {
+                throw new ArgumentException("Topic must not be empty", nameof(topic));
+            }
+
             if (!this.hasToken)
             {
                 this.pendingTopics.Enqueue(new Tuple<string, bool>(topic, true));
                 return;
             }
 
-            if (!this.currentTopics.Contains(new NSString(topic)))
+            var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
+            if (!subscribedTopics.Contains(topic))
             {
-                Messaging.SharedInstance.Subscribe($"{topic}");
-                this.currentTopics.Add(new NSString(topic));
-            }
+                this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
 
-            NSUserDefaults.StandardUserDefaults.SetValueForKey(this.currentTopics, Constants.FirebaseTopicsKey);
-            NSUserDefaults.StandardUserDefaults.Synchronize();
+                Messaging.SharedInstance.Subscribe(topic);
+                subscribedTopics.Add(topic);
+
+                // TODO: Improve write performance here; don't loop all topics one by one
+                this.SubscribedTopics = subscribedTopics.ToArray();
+            }
+            else
+            {
+                this.logger.LogInformation($"Subscribe: skipping topic \"{topic}\"; topic is already subscribed");
+            }
         }
 
-        public void UnsubscribeAll()
+        public void UnsubscribeAllTopics()
         {
-            for (nuint i = 0; i < this.currentTopics.Count; i++)
+            foreach (var topic in this.SubscribedTopics)
             {
-                this.Unsubscribe(this.currentTopics.GetItem<NSString>(i));
+                Messaging.SharedInstance.Unsubscribe(topic);
             }
+
+            this.SubscribedTopics = null;
         }
 
-        public void Unsubscribe(string[] topics)
+        public void UnsubscribeTopics(string[] topics)
         {
+            if (topics == null)
+            {
+                throw new ArgumentNullException(nameof(topics), $"Parameter '{nameof(topics)}' must not be null");
+            }
+
+            // TODO: Improve efficiency here (move to base class maybe)
             foreach (var t in topics)
             {
-                this.Unsubscribe(t);
+                this.UnsubscribeTopic(t);
             }
         }
 
-        public void Unsubscribe(string topic)
+        public void UnsubscribeTopic(string topic)
         {
+            if (topic == null)
+            {
+                throw new ArgumentNullException(nameof(topic), "Topic must not be null");
+            }
+
+            if (topic == string.Empty)
+            {
+                throw new ArgumentException("Topic must not be empty", nameof(topic));
+            }
+
             if (!this.hasToken)
             {
                 this.pendingTopics.Enqueue(new Tuple<string, bool>(topic, false));
                 return;
             }
 
-            var deletedKey = new NSString(topic);
-            if (this.currentTopics.Contains(deletedKey))
+            var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
+            if (subscribedTopics.Contains(topic))
             {
-                Messaging.SharedInstance.Unsubscribe(topic);
-                var idx = (nint)this.currentTopics.IndexOf(deletedKey);
-                if (idx != -1)
-                {
-                    this.currentTopics.RemoveObject(idx);
-                }
-            }
+                this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
 
-            NSUserDefaults.StandardUserDefaults.SetValueForKey(this.currentTopics, Constants.FirebaseTopicsKey);
-            NSUserDefaults.StandardUserDefaults.Synchronize();
+                Messaging.SharedInstance.Unsubscribe(topic);
+                subscribedTopics.Remove(topic);
+
+                // TODO: Improve write performance here; don't loop all topics one by one
+                this.SubscribedTopics = subscribedTopics.ToArray();
+            }
+            else
+            {
+                this.logger.LogInformation($"Unsubscribe: skipping topic \"{topic}\"; topic is not subscribed");
+            }
         }
 
         //public void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive)
@@ -540,17 +542,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     {
                         if (pendingTopic.Item2)
                         {
-                            this.Subscribe(pendingTopic.Item1);
+                            this.SubscribeTopic(pendingTopic.Item1);
                         }
                         else
                         {
-                            this.Unsubscribe(pendingTopic.Item1);
+                            this.UnsubscribeTopic(pendingTopic.Item1);
                         }
                     }
                 }
             }
-
-            NSUserDefaults.StandardUserDefaults.SetString(fcmToken ?? string.Empty, Constants.FirebaseTokenKey);
         }
 
         public void ClearAllNotifications()

@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="MauiSampleApp.Views.MainPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:MauiSampleApp.Controls"
     xmlns:itemTemplates="clr-namespace:MauiSampleApp.Views.ItemTemplates"
     xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
+    x:Class="MauiSampleApp.Views.MainPage"
     Title="Firebase Push Notifications"
     x:DataType="vm:MainViewModel">
 
@@ -38,8 +38,8 @@
                 ColumnSpacing="10">
                 <Image
                     Grid.Column="0"
-                    HeightRequest="100"
-                    Source="dotnet_bot.png" />
+                    Source="dotnet_bot.png"
+                    HeightRequest="100" />
                 <Label
                     Grid.Column="1"
                     Text="MAUI sample app for Firebase push notifications. This sample app is used to demonstrate and test the main features of the nuget package Plugin.FirebasePushNotifications." />
@@ -53,8 +53,8 @@
 
             <Button
                 Command="{Binding RequestNotificationPermissionsCommand}"
-                HorizontalOptions="Fill"
-                Text="Request notification permissions" />
+                Text="Request notification permissions"
+                HorizontalOptions="Fill" />
             <Label>
                 <Label.FormattedText>
                     <FormattedString>
@@ -71,22 +71,23 @@
             <Label
                 Style="{StaticResource Heading1LabelStyle}"
                 Text="IFirebasePushNotification" />
+            <VerticalStackLayout Spacing="8">
+                <Button
+                    Command="{Binding RegisterForPushNotificationsCommand}"
+                    Text="Register for push notifications"
+                    HorizontalOptions="Fill" />
 
-            <Button
-                Command="{Binding RegisterForPushNotificationsCommand}"
-                HorizontalOptions="Fill"
-                Text="Register push notifications" />
-
-            <Button
-                Command="{Binding UnregisterForPushNotificationsCommand}"
-                HorizontalOptions="Fill"
-                Text="Unregister push notifications" />
+                <Button
+                    Command="{Binding UnregisterForPushNotificationsCommand}"
+                    Text="Unregister from push notifications"
+                    HorizontalOptions="Fill" />
+            </VerticalStackLayout>
 
             <Grid
                 ColumnDefinitions="*, Auto"
                 ColumnSpacing="4"
                 RowDefinitions="Auto, *"
-                RowSpacing="4">
+                RowSpacing="8">
                 <Label
                     Grid.Row="0"
                     Grid.Column="0"
@@ -103,23 +104,19 @@
                     Grid.Row="1"
                     Grid.Column="1"
                     Command="{Binding ShareTokenCommand}"
-                    HorizontalOptions="Fill"
                     Text="Share"
+                    HorizontalOptions="Fill"
                     VerticalOptions="Center" />
             </Grid>
 
-            <Grid
-                RowDefinitions="Auto, Auto, Auto"
-                RowSpacing="4">
+            <VerticalStackLayout Spacing="8">
                 <Label
-                    Grid.Row="0"
                     Style="{StaticResource Heading2LabelStyle}"
                     Text="Notification Events" />
 
                 <Grid
-                    Grid.Row="1"
                     ColumnDefinitions="Auto, *"
-                    ColumnSpacing="4">
+                    ColumnSpacing="8">
                     <CheckBox
                         Grid.Column="0"
                         IsChecked="{Binding SubscribeEventsAtStartup}" />
@@ -129,120 +126,72 @@
                         VerticalOptions="Center" />
                 </Grid>
 
-                <Grid
-                    Grid.Row="2"
-                    ColumnDefinitions="*, *"
-                    ColumnSpacing="4">
-                    <Button
-                        Grid.Row="2"
-                        Grid.Column="0"
-                        Command="{Binding SubscribeEventsCommand}"
-                        HorizontalOptions="Fill"
-                        Text="Subscribe events" />
-                    <Button
-                        Grid.Row="2"
-                        Grid.Column="1"
-                        Command="{Binding UnsubscribeEventsCommand}"
-                        HorizontalOptions="Fill"
-                        Text="Unsubscribe events" />
-                </Grid>
-            </Grid>
+                <Button
+                    Command="{Binding SubscribeEventsCommand}"
+                    Text="Subscribe events"
+                    HorizontalOptions="Fill" />
+                <Button
+                    Command="{Binding UnsubscribeEventsCommand}"
+                    Text="Unsubscribe events"
+                    HorizontalOptions="Fill" />
+            </VerticalStackLayout>
 
-            <Grid
-                ColumnDefinitions="*, *"
-                ColumnSpacing="4"
-                RowDefinitions="Auto, Auto, *, Auto, Auto, Auto"
-                RowSpacing="4">
+            <VerticalStackLayout Spacing="8">
                 <Label
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2"
                     Style="{StaticResource Heading2LabelStyle}"
                     Text="Topics" />
                 <Button
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2"
                     Command="{Binding GetSubscribedTopicsCommand}"
-                    HorizontalOptions="Fill"
                     Text="Get subscribed topics"
+                    HorizontalOptions="Fill"
                     VerticalOptions="Start" />
                 <ListView
-                    Grid.Row="2"
-                    Grid.ColumnSpan="2"
+                    HasUnevenRows="True"
                     ItemTemplate="{StaticResource SubscribedTopicItemTemplate}"
                     ItemsSource="{Binding SubscribedTopics}" />
 
                 <Entry
-                    Grid.Row="3"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2"
                     Placeholder="New topic name"
                     Text="{Binding Topic}" />
                 <Button
-                    Grid.Row="4"
-                    Grid.Column="0"
                     Command="{Binding SubscribeToTopicCommand}"
-                    HorizontalOptions="Fill"
                     Text="Subscribe to topic"
-                    VerticalOptions="Start" />
-                <Button
-                    Grid.Row="4"
-                    Grid.Column="1"
-                    Command="{Binding UnsubscribeFromTopicCommand}"
                     HorizontalOptions="Fill"
-                    Text="Unsubscribe from topic"
                     VerticalOptions="Start" />
                 <Button
-                    Grid.Row="5"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2"
                     Command="{Binding UnsubscribeAllTopicsCommand}"
+                    LineBreakMode="MiddleTruncation"
+                    Text="Unsubscribe all"
                     HorizontalOptions="Fill"
-                    Text="Unsubscribe from all topics"
                     VerticalOptions="Start" />
-            </Grid>
+            </VerticalStackLayout>
 
-            <Grid
-                ColumnDefinitions="*, *"
-                ColumnSpacing="4"
-                RowDefinitions="Auto, Auto, *, Auto, Auto, Auto"
-                RowSpacing="4">
+            <VerticalStackLayout Spacing="8">
                 <Label
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2"
                     Style="{StaticResource Heading2LabelStyle}"
                     Text="Notification Categories" />
                 <Button
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2"
                     Command="{Binding GetNotificationCategoriesCommand}"
-                    HorizontalOptions="Fill"
                     Text="Get notification categories"
+                    HorizontalOptions="Fill"
                     VerticalOptions="Start" />
                 <ListView
-                    Grid.Row="2"
-                    Grid.ColumnSpan="2"
+                    HasUnevenRows="True"
                     ItemTemplate="{StaticResource NotificationCategoryItemTemplate}"
                     ItemsSource="{Binding NotificationCategories}" />
 
                 <Button
-                    Grid.Row="4"
-                    Grid.Column="0"
                     Command="{Binding RegisterNotificationCategoriesCommand}"
+                    Text="Register sample categories"
                     HorizontalOptions="Fill"
-                    Text="Register categories"
                     VerticalOptions="Start" />
                 <Button
-                    Grid.Row="4"
-                    Grid.Column="1"
                     Command="{Binding ClearNotificationCategoriesCommand}"
+                    Text="Clear"
                     HorizontalOptions="Fill"
-                    Text="Clear categories"
                     VerticalOptions="Start" />
-            </Grid>
+
+            </VerticalStackLayout>
 
             <controls:DividerLine />
 
@@ -252,8 +201,8 @@
 
             <Button
                 Command="{Binding NavigateToQueuesPageCommand}"
-                HorizontalOptions="Fill"
-                Text="Queues" />
+                Text="Queues"
+                HorizontalOptions="Fill" />
 
         </VerticalStackLayout>
     </ScrollView>

@@ -114,20 +114,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public override void OnNewToken(string refreshedToken)
         {
             var firebasePushNotification = CrossFirebasePushNotification.Current;
-
-            // TODO: Use existing code in FirebasePushNotificationManager!
-
-            // Resubscribe to topics since the old instance id isn't valid anymore
-            foreach (var topic in firebasePushNotification.SubscribedTopics)
-            {
-                FirebaseMessaging.Instance.SubscribeToTopic(topic);
-            }
-
-            // TODO: Very dangerous! GetSharedPreferences access everywhere!
-            var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutString(Constants.FirebaseTokenKey, refreshedToken);
-            editor.Commit();
-
             firebasePushNotification.HandleTokenRefresh(refreshedToken);
         }
     }

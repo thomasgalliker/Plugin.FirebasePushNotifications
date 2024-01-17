@@ -10,9 +10,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         private readonly string instanceId = Guid.NewGuid().ToString()[..5];
 
-        protected readonly IList<NotificationCategory> notificationCategories = new List<NotificationCategory>();
+        private string[] subscribedTopics;
+        private NotificationCategory[] notificationCategories = null;
 
         protected ILogger<FirebasePushNotificationManager> logger;
+        protected IFirebasePushNotificationPreferences preferences;
+        private bool disposed;
 
         private IQueue<FirebasePushNotificationTokenEventArgs> tokenRefreshQueue;
         private IQueue<FirebasePushNotificationDataEventArgs> notificationReceivedQueue;
@@ -28,8 +31,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private EventHandler<FirebasePushNotificationErrorEventArgs> notificationErrorEventHandler;
         private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
 
-        private bool disposed;
-
         protected FirebasePushNotificationManagerBase()
         {
         }
@@ -38,6 +39,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public void Configure(FirebasePushNotificationOptions options)
         {
             this.logger.LogDebug("Configure");
+
+            this.preferences = options.Preferences;
 
             this.CreateOrUpdateQueues(options.QueueFactory);
 
@@ -88,6 +91,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.notificationErrorQueue?.Clear();
         }
 
+        /// <summary>
+        /// Platform-specific additions to <see cref="Configure(FirebasePushNotificationOptions)"/>.
+        /// </summary>
         protected virtual void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
         }
@@ -98,30 +104,109 @@ namespace Plugin.FirebasePushNotifications.Platforms
             set => this.logger = value;
         }
 
+        public IPushNotificationHandler NotificationHandler { get; set; }
+
         /// <inheritdoc />
-        public NotificationCategory[] GetNotificationCategories()
+        public NotificationCategory[] NotificationCategories
         {
-            return this.notificationCategories.ToArray();
+            get
+            {
+                this.notificationCategories ??= this.preferences.Get(Constants.Preferences.NotificationCategoriesKey, Array.Empty<NotificationCategory>());
+                return this.notificationCategories;
+            }
+            protected set
+            {
+                if (value != null)
+                {
+                    this.preferences.Set(Constants.Preferences.NotificationCategoriesKey, value);
+                }
+                else
+                {
+                    this.preferences.Remove(Constants.Preferences.NotificationCategoriesKey);
+                }
+
+                this.notificationCategories = value;
+            }
+        }
+
+        /// <inheritdoc />
+        public void RegisterNotificationCategories(NotificationCategory[] notificationCategories)
+        {
+            if (notificationCategories == null)
+            {
+                throw new ArgumentNullException(nameof(notificationCategories));
+            }
+
+            if (notificationCategories.Length == 0)
+            {
+                throw new ArgumentException($"{nameof(notificationCategories)} must not be empty", nameof(notificationCategories));
+            }
+
+            this.RegisterNotificationCategoriesPlatform(notificationCategories);
+
+            this.NotificationCategories = notificationCategories;
+        }
+
+        /// <summary>
+        /// Platform-specific additions to <see cref="RegisterNotificationCategories"/>.
+        /// </summary>
+        protected virtual void RegisterNotificationCategoriesPlatform(NotificationCategory[] notificationCategories)
+        {
         }
 
         /// <inheritdoc />
         public void ClearNotificationCategories()
         {
-            this.notificationCategories.Clear();
-        }
-        
-        protected virtual void ClearNotificationCategoriesPlatform()
-        {
-            this.notificationCategories.Clear();
+            this.NotificationCategories = null;
+
+            this.ClearNotificationCategoriesPlatform();
         }
 
-        public IPushNotificationHandler NotificationHandler { get; set; }
+        /// <summary>
+        /// Platform-specific additions to <see cref="ClearNotificationCategories"/>.
+        /// </summary>
+        protected virtual void ClearNotificationCategoriesPlatform()
+        {
+        }
+
+        /// <inheritdoc />
+        public string[] SubscribedTopics
+        {
+            get
+            {
+                this.subscribedTopics ??= this.preferences.Get(Constants.Preferences.SubscribedTopicsKey, Array.Empty<string>());
+                return this.subscribedTopics;
+            }
+            protected set
+            {
+                if (value != null)
+                {
+                    this.preferences.Set(Constants.Preferences.SubscribedTopicsKey, value);
+                }
+                else
+                {
+                    this.preferences.Remove(Constants.Preferences.SubscribedTopicsKey);
+                }
+
+                this.subscribedTopics = value;
+            }
+        }
 
         public void HandleTokenRefresh(string token)
         {
             this.logger.LogDebug($"HandleTokenRefresh: \"{TokenFormatter.AnonymizeToken(token)}\"");
 
-            this.OnTokenRefresh(token);
+            // TODO: Move Token property to base class and add virtual/protected setter with this code:
+            if (!string.IsNullOrEmpty(token))
+            {
+                this.preferences.Set(Constants.Preferences.TokenKey, token);
+            }
+            else
+            {
+                this.preferences.Remove(Constants.Preferences.TokenKey);
+            }
+
+            this.HandleTokenRefreshPlatform(token);
 
             this.RaiseOrQueueEvent(
                 this.tokenRefreshEventHandler,
@@ -130,7 +215,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 nameof(TokenRefreshed));
         }
 
-        protected virtual void OnTokenRefresh(string token)
+        /// <summary>
+        /// Platform-specific additions to <see cref="HandleTokenRefresh(string)"/>.
+        /// </summary>
+        protected virtual void HandleTokenRefreshPlatform(string token)
         {
         }
 
@@ -245,7 +333,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private NotificationAction GetNotificationAction(string notificationActionId)
         {
-            return this.notificationCategories
+            return this.NotificationCategories
                 .SelectMany(c => c.Actions)
                 .SingleOrDefault(a => a.Id == notificationActionId);
         }

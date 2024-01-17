@@ -14,8 +14,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// </summary>
     public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        private HashSet<string> subscribedTopics;
-
         public static string NotificationContentTitleKey { get; set; }
         public static string NotificationContentTextKey { get; set; }
         public static string NotificationContentDataKey { get; set; }
@@ -184,7 +182,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     var packageName = packageInfo.PackageName;
                     var versionCode = packageInfo.VersionCode;
                     var versionName = packageInfo.VersionName;
-                    var prefs = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private);
+                    var prefs = Android.App.Application.Context.GetSharedPreferences(Constants.Preferences.KeyGroupName, FileCreationMode.Private);
 
                     try
                     {
@@ -288,7 +286,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 if (!string.IsNullOrEmpty(token))
                 {
-                    this.UpdateToken(token);
+                    this.preferences.Set(Constants.Preferences.TokenKey, token);
                 }
             }
             catch (Exception ex)
@@ -307,32 +305,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 FirebaseMessaging.Instance.AutoInitEnabled = false;
 
-                await Task.Run(this.DeleteTokenAsync);
+                await Task.Run(async () => 
+                {
+                    var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                    var taskCompleteListener = new TaskCompleteListener(tcs);
+                    FirebaseMessaging.Instance.DeleteToken().AddOnCompleteListener(taskCompleteListener);
+
+                    await tcs.Task;
+                }
+                );
             }
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "UnregisterForPushNotificationsAsync failed with exception");
                 this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
             }
-        }
-
-        private async Task DeleteTokenAsync()
-        {
-            this.logger.LogDebug("DeleteTokenAsync");
-
-            try
+            finally
             {
-                var tcs = new TaskCompletionSource<Java.Lang.Object>();
-                var taskCompleteListener = new TaskCompleteListener(tcs);
-                FirebaseMessaging.Instance.DeleteToken().AddOnCompleteListener(taskCompleteListener);
-
-                await tcs.Task;
-
-                this.RemoveToken();
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogError(ex, "DeleteTokenAsync failed with exception");
+                this.preferences.Remove(Constants.Preferences.TokenKey);
             }
         }
 
@@ -341,30 +331,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             get
             {
-                // TODO: Read FirebaseTokenKey in a central place (now it's spread all over the code
-                using (var sharedPreferences = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private))
-                {
-                    return sharedPreferences.GetString(Constants.FirebaseTokenKey, null);
-                }
+                return this.preferences.Get<string>(Constants.Preferences.TokenKey);
             }
-        }
+            //private set
+            //{
 
-        /// <inheritdoc />
-        public string[] SubscribedTopics
-        {
-            get
-            {
-                if (this.subscribedTopics == null)
-                {
-                    using (var sharedPreferences = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private))
-                    {
-                        var topicsSettingsValue = sharedPreferences.GetStringSet(Constants.FirebaseTopicsKey, null) ?? Array.Empty<string>();
-                        this.subscribedTopics = new HashSet<string>(topicsSettingsValue);
-                    }
-                }
-
-                return this.subscribedTopics.ToArray();
-            }
+            //}
         }
 
         //public void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive)
@@ -377,37 +349,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
         //}
 
         /// <inheritdoc />
-        public void RegisterNotificationCategories(NotificationCategory[] notificationCategories)
-        {
-            if (notificationCategories == null)
-            {
-                throw new ArgumentNullException(nameof(notificationCategories));
-            }
-
-            if (notificationCategories.Length == 0)
-            {
-                throw new ArgumentException($"{nameof(notificationCategories)} must not be empty", nameof(notificationCategories));
-            }
-
-            this.ClearNotificationCategories();
-
-            foreach (var notificationCategory in notificationCategories)
-            {
-                this.notificationCategories.Add(notificationCategory);
-            }
-        }
-
-        /// <inheritdoc />
-        public void Subscribe(string[] topics)
+        public void SubscribeTopics(string[] topics)
         {
             foreach (var t in topics)
             {
-                this.Subscribe(t);
+                this.SubscribeTopic(t);
             }
         }
 
         /// <inheritdoc />
-        public void Subscribe(string topic)
+        public void SubscribeTopic(string topic)
         {
             if (topic == null)
             {
@@ -419,41 +370,42 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 throw new ArgumentException("Topic must not be empty", nameof(topic));
             }
 
-            this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
-
             var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
             if (!subscribedTopics.Contains(topic))
             {
+                this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
+
                 // TODO: Use AddOnCompleteListener(...)
                 FirebaseMessaging.Instance.SubscribeToTopic(topic);
 
                 subscribedTopics.Add(topic);
 
-                using (var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit())
-                {
-                    editor.PutStringSet(Constants.FirebaseTopicsKey, subscribedTopics);
-                    editor.Commit();
-                }
-
-                this.subscribedTopics = subscribedTopics;
+                // TODO: Improve write performance here; don't loop all topics one by one
+                this.SubscribedTopics = subscribedTopics.ToArray();
             }
             else
             {
-                this.logger.LogInformation($"Subscribe ignored topic \"{topic}\"; topic is already subscribed");
+                this.logger.LogInformation($"Subscribe: skipping topic \"{topic}\"; topic is already subscribed");
             }
         }
 
         /// <inheritdoc />
-        public void Unsubscribe(string[] topics)
+        public void UnsubscribeTopics(string[] topics)
         {
+            if (topics == null)
+            {
+                throw new ArgumentNullException(nameof(topics), $"Parameter '{nameof(topics)}' must not be null");
+            }
+
+            // TODO: Improve efficiency here (move to base class maybe)
             foreach (var t in topics)
             {
-                this.Unsubscribe(t);
+                this.UnsubscribeTopic(t);
             }
         }
 
         /// <inheritdoc />
-        public void UnsubscribeAll()
+        public void UnsubscribeAllTopics()
         {
             foreach (var topic in this.SubscribedTopics)
             {
@@ -461,16 +413,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
             }
 
-            this.subscribedTopics.Clear();
-
-            // TODO: Unify access to preferences
-            var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutStringSet(Constants.FirebaseTopicsKey, this.subscribedTopics);
-            editor.Commit();
+            this.SubscribedTopics = null;
         }
 
         /// <inheritdoc />
-        public void Unsubscribe(string topic)
+        public void UnsubscribeTopic(string topic)
         {
             if (topic == null)
             {
@@ -482,52 +429,39 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 throw new ArgumentException("Topic must not be empty", nameof(topic));
             }
 
-            this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
-
             var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
             if (subscribedTopics.Contains(topic))
             {
+                this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
+
                 // TODO: Use AddOnCompleteListener(...)
                 FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
                 subscribedTopics.Remove(topic);
 
-                // TODO: Unify access to preferences
-                var editor = Android.App.Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit();
-                editor.PutStringSet(Constants.FirebaseTopicsKey, subscribedTopics);
-                editor.Commit();
-
-                this.subscribedTopics = subscribedTopics;
+                // TODO: Improve write performance here; don't loop all topics one by one
+                this.SubscribedTopics = subscribedTopics.ToArray();
             }
             else
             {
-                this.logger.LogInformation($"Unsubscribe ignored topic \"{topic}\"; topic is not subscribed");
+                this.logger.LogInformation($"Unsubscribe: skipping topic \"{topic}\"; topic is not subscribed");
             }
         }
 
-        protected override void OnTokenRefresh(string token)
+        protected override void HandleTokenRefreshPlatform(string token)
         {
-            this.UpdateToken(token);
+            this.ResubscribeExistingTopics();
         }
 
-        private void UpdateToken(string token)
+        /// <summary>
+        /// Resubscribes all existing topics since the old instance id isn't valid anymore.
+        /// This is obviously necessary but seems a very bad design decision...
+        /// </summary>
+        private void ResubscribeExistingTopics()
         {
-            this.logger.LogDebug("UpdateToken");
-
-            using (var editor = Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit())
+            foreach (var topic in this.SubscribedTopics)
             {
-                editor.PutString(Constants.FirebaseTokenKey, token);
-                editor.Commit();
-            }
-        }
-
-        private void RemoveToken()
-        {
-            this.logger.LogDebug("RemoveToken");
-
-            using (var editor = Application.Context.GetSharedPreferences(Constants.KeyGroupName, FileCreationMode.Private).Edit())
-            {
-                editor.Remove(Constants.FirebaseTokenKey);
-                editor.Commit();
+                // TODO: Use AddOnCompleteListener(...)
+                FirebaseMessaging.Instance.SubscribeToTopic(topic);
             }
         }
 

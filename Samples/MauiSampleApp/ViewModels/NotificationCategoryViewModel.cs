@@ -7,11 +7,11 @@ namespace MauiSampleApp.ViewModels
         public NotificationCategoryViewModel(NotificationCategory notificationCategory)
         {
             this.Category = notificationCategory.CategoryId;
-            this.Actions = string.Join(Environment.NewLine, notificationCategory.Actions.Select(a => $"> ActionIdentifier: {a.Id}"));
+            this.Actions = notificationCategory.Actions;
         }
 
         public string Category { get; }
 
-        public string Actions { get; }
+        public NotificationAction[] Actions { get; }
     }
 }

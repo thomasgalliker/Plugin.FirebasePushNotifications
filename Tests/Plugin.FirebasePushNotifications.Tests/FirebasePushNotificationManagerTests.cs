@@ -24,7 +24,8 @@ namespace Plugin.FirebasePushNotifications.Tests
 
             this.autoMocker.Use(new FirebasePushNotificationOptions
             {
-                QueueFactory = new InMemoryQueueFactory()
+                QueueFactory = new InMemoryQueueFactory(),
+                Preferences = this.autoMocker.GetMock<IFirebasePushNotificationPreferences>().Object,
             });
         }
 
@@ -32,6 +33,8 @@ namespace Plugin.FirebasePushNotifications.Tests
         public void OnTokenRefresh_ShouldDeliverImmediately_IfEventIsSubscribed()
         {
             // Arrange
+            var firebasePushNotificationPreferences = this.autoMocker.GetMock<IFirebasePushNotificationPreferences>();
+
             var listOfEventArgs = new List<EventArgs>();
 
             var token = "test-push-token-63fd4bc9-c337-488f-bac4-13eb50e66a9c";
@@ -46,6 +49,9 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Assert
             listOfEventArgs.Should().HaveCount(2);
             listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationTokenEventArgs>();
+
+            firebasePushNotificationPreferences.Verify(p => p.Set(Constants.Preferences.TokenKey, token), Times.Exactly(2));
+            firebasePushNotificationPreferences.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -308,13 +314,16 @@ namespace Plugin.FirebasePushNotifications.Tests
         public void OnNotificationAction_ShouldDropEvent_IfNoSubscriptionAndNoQueueIsPresent()
         {
             // Arrange
+            var firebasePushNotificationPreferences = this.autoMocker.GetMock<IFirebasePushNotificationPreferences>();
+
             var queueFactoryMock = new Mock<IQueueFactory>();
             queueFactoryMock.Setup(q => q.Create<FirebasePushNotificationDataEventArgs>())
                 .Returns((IQueue<FirebasePushNotificationDataEventArgs>)null);
 
             this.autoMocker.Use(new FirebasePushNotificationOptions
             {
-                QueueFactory = queueFactoryMock.Object
+                QueueFactory = queueFactoryMock.Object,
+                Preferences = firebasePushNotificationPreferences.Object,
             });
 
             var loggerMock = new Mock<ILogger<FirebasePushNotificationManager>>();
@@ -339,7 +348,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             listOfEventArgs.Should().HaveCount(0);
 
             queueFactoryMock.VerifyNoOtherCalls();
-
+            
             loggerMock.Verify(l => l.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),

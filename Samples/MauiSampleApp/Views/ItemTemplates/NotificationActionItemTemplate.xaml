@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="MauiSampleApp.Views.ItemTemplates.NotificationActionItemTemplate"
+    Padding="0,0,0,8">
+    <Grid
+        ColumnDefinitions="Auto, *"
+        ColumnSpacing="4"
+        RowDefinitions="Auto, Auto, Auto, Auto">
+        <Label
+            Grid.Row="0"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            FontAttributes="Bold"
+            Text="NotificationAction:" />
+        <Label
+            Grid.Row="1"
+            Grid.Column="0"
+            Text="Id:" />
+        <Label
+            Grid.Row="1"
+            Grid.Column="1"
+            Text="{Binding Id}" />
+
+        <Label
+            Grid.Row="2"
+            Grid.Column="0"
+            Text="Title:" />
+        <Label
+            Grid.Row="2"
+            Grid.Column="1"
+            Text="{Binding Title}" />
+
+        <Label
+            Grid.Row="3"
+            Grid.Column="0"
+            Text="Type:" />
+        <Label
+            Grid.Row="3"
+            Grid.Column="1"
+            Text="{Binding Type}" />
+    </Grid>
+</ContentView>

@@ -376,7 +376,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             // TODO: Move this logic to Android's FirebasePushNotificationManager
 
-            var notificationCategories = CrossFirebasePushNotification.Current.GetNotificationCategories();
+            var notificationCategories = CrossFirebasePushNotification.Current.NotificationCategories;
             if (notificationCategories != null && notificationCategories.Length > 0)
             {
                 foreach (var notificationCategory in notificationCategories)

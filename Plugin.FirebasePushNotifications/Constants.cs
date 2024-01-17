@@ -8,5 +8,22 @@
         internal const string NotificationDataKey = "data";
 
         internal const string SuppressedString = "{suppressed}";
+
+        internal static class Preferences
+        {
+            internal const string SharedName = "Plugin.FirebasePushNotifications";
+            internal static readonly string KeyPrefix = "Plugin.FirebasePushNotifications";
+
+            internal static readonly string TokenKey = $"{KeyPrefix}.Token";
+            internal static readonly string SubscribedTopicsKey = $"{KeyPrefix}.SubscribedTopics";
+            internal static readonly string NotificationCategoriesKey = $"{KeyPrefix}.NotificationCategories";
+
+            internal static readonly HashSet<string> AllKeys =
+            [
+                TokenKey,
+                SubscribedTopicsKey,
+                NotificationCategoriesKey,
+            ];
+        }
     }
 }
