@@ -18,12 +18,12 @@
             internal static readonly string SubscribedTopicsKey = $"{KeyPrefix}.SubscribedTopics";
             internal static readonly string NotificationCategoriesKey = $"{KeyPrefix}.NotificationCategories";
 
-            internal static readonly HashSet<string> AllKeys =
-            [
+            internal static readonly HashSet<string> AllKeys = new HashSet<string>
+            {
                 TokenKey,
                 SubscribedTopicsKey,
                 NotificationCategoriesKey,
-            ];
+            };
         }
     }
 }

@@ -9,7 +9,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<IsPackable>false</IsPackable>
-		<LangVersion>latest</LangVersion>
 		
 		<!-- Display name -->
 		<ApplicationTitle>MauiSampleApp</ApplicationTitle>
