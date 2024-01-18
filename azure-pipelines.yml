@@ -88,6 +88,13 @@ steps:
       dotnet nuget locals all --clear 
       dotnet workload install maui android ios maui-android maui-ios --source https://api.nuget.org/v3/index.json
 
+ - task: JavaToolInstaller@0
+   displayName: "Install Java"
+   inputs:
+     versionSpec: '11'
+     jdkArchitectureOption: 'x64'
+     jdkSourceOption: 'PreInstalled'
+
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 6.x'
   inputs:
