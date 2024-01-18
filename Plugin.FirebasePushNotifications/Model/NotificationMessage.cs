@@ -1,49 +1,49 @@
 ﻿using Newtonsoft.Json;
 using Plugin.FirebasePushNotifications.Internals;
+using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications.Model
 {
     public class NotificationMessage : INotificationMessage
     {
-        private readonly string body;
-        private readonly string title;
-        private string tag;
-
         public NotificationMessage(
-            string body,
             string title,
-            IDictionary<string, string> data = null) 
+            string body,
+            IDictionary<string, string> data = null)
             : this(data)
         {
-            this.body = body;
-            this.title = title;
+            this.Title = title;
+            this.Body = body;
         }
 
         public NotificationMessage(IDictionary<string, string> data)
         {
-            this.Data = data;
+            this.Data = data ?? new Dictionary<string, string>();
         }
 
         [JsonProperty(Constants.NotificationTitleKey)]
         public string Title
         {
-            get => this.title ?? this.Data?[Constants.NotificationTitleKey];
+            get => this.Data.GetValueOrDefault(Constants.NotificationTitleKey);
+            set => this.Data[Constants.NotificationTitleKey] = value;
         }
 
         [JsonProperty(Constants.NotificationBodyKey)]
         public string Body
         {
-            get => this.body ?? this.Data?[Constants.NotificationBodyKey];
+            get => this.Data.GetValueOrDefault(Constants.NotificationBodyKey);
+            set => this.Data[Constants.NotificationBodyKey] = value;
         }
-        
+
         [JsonProperty(Constants.NotificationTagKey)]
         public string Tag
         {
-            get => this.tag ?? this.Data?[Constants.NotificationTagKey];
+            get => this.Data.GetValueOrDefault(Constants.NotificationTagKey);
+            set => this.Data[Constants.NotificationTagKey] = value;
         }
 
         [JsonProperty(Constants.NotificationDataKey)]
-        public IDictionary<string, string> Data { get; }
+        public IDictionary<string, string> Data { get; private set; } = new Dictionary<string, string>();
 
         public override string ToString()
         {

@@ -6,6 +6,49 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
     public class NotificationDataTests
     {
         [Fact]
+        public void ShouldCreateNotificationData_WithTitleAndBody()
+        {
+            // Act
+            const string title = "Title";
+            const string body = "Body";
+
+            var notificationData = new NotificationMessage(title, body);
+
+            // Assert
+            notificationData.Title.Should().Be(title);
+            notificationData.Body.Should().Be(body);
+            notificationData.Data.Should().BeEquivalentTo(new Dictionary<string, string>
+            {
+                { "title", "Title" },
+                { "body", "Body" },
+            });
+        }
+
+        [Fact]
+        public void ShouldCreateNotificationData_WithTitleBodyAndData()
+        {
+            // Act
+            const string title = "Title";
+            const string body = "Body";
+            var data = new Dictionary<string, string>
+            {
+                { "key1", "Value1" }
+            };
+
+            var notificationData = new NotificationMessage(title, body, data);
+
+            // Assert
+            notificationData.Title.Should().Be(title);
+            notificationData.Body.Should().Be(body);
+            notificationData.Data.Should().BeEquivalentTo(new Dictionary<string, string>
+            {
+                { "title", "Title" },
+                { "body", "Body" },
+                { "key1", "Value1" }
+            });
+        }
+
+        [Fact]
         public void ShouldCreateNotificationData_Empty()
         {
             // Act
@@ -14,6 +57,8 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
             // Assert
             notificationData.Title.Should().BeNull();
             notificationData.Body.Should().BeNull();
+            notificationData.Tag.Should().BeNull();
+            notificationData.Data.Should().BeEmpty();
         }
 
         [Fact]
@@ -27,11 +72,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
             };
 
             // Act
-            var notificationData = new NotificationMessage(data: data);
+            var notificationData = new NotificationMessage(data);
 
             // Assert
             notificationData.Title.Should().Be("Title");
             notificationData.Body.Should().Be("Body");
+            notificationData.Tag.Should().BeNull();
         }
 
         [Fact]

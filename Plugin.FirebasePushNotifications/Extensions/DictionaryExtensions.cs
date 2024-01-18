@@ -7,11 +7,21 @@
             return string.Join(",", data.Select(d => $"{{{d.Key}={d.Value?.ToString() ?? "null"}}}"));
         }
 
-        public static T GetValueOrDefault<T>(this IDictionary<string, object> items, string key, T defaultValue = default)
+        public static T GetValueOrDefault<T>(this IDictionary<string, T> items, string key, T defaultValue = default)
         {
             if (items.TryGetValue(key, out var value))
             {
-                return (T)Convert.ChangeType(value, typeof(T));
+                return value;
+            }
+
+            return defaultValue;
+        }
+
+        public static Ty GetValueOrDefault<Tx, Ty>(this IDictionary<string, Tx> items, string key, Ty defaultValue = default)
+        {
+            if (items.TryGetValue(key, out var value))
+            {
+                return (Ty)Convert.ChangeType(value, typeof(Ty));
             }
 
             return defaultValue;
