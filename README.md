@@ -16,7 +16,19 @@ Use the following command to install Plugin.FirebasePushNotifications using NuGe
 
 You can use this library in any .NET MAUI project compatible to .NET 7 and higher.
 
+### Setup
+Add UseFirebasePushNotifications to CreateMauiApp
+
 ### API Usage
+> *to be documented*
+
+#### Receive Notification Events
+> *to be documented*
+
+#### Topics
+> *to be documented*
+
+#### Notification Actions 
 > *to be documented*
 
 ### Contribution
