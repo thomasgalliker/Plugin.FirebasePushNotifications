@@ -168,6 +168,7 @@ Use the Firebase Admin SDK (or any other HTTP client) to send a push notificatio
 ```
 
 If everything works fine, the mobile device with push notification token "d5xOmbOu...." displays the notification action as follows:
+
 ![Notification Category medication_intake](Docs/notificationcategory_takemedicine.png?raw=true)
 
 
