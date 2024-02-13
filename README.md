@@ -103,29 +103,33 @@ Following .NET events can be subscribed:
 #### Topics
 The most common way of sending push notifications is by targeting notification message directly to push tokens. Firebase allows to send push notifications to groups of devices, so called topics. If a user subscribes to a topic, e.g. "weather_updates" you can send push notifications to this topic instead of a list of push tokens.
 
-Use method SubscribeTopic with the name of the topic:
+##### Subscribe to Topics
+Use method `SubscribeTopic` with the name of the topic:
 ```csharp
 this.firebasePushNotification.SubscribeTopic("weather_updates");
 ```
 
+##### Send Notifications to Topic Subscribers
 Use the Firebase Admin SDK (or any other HTTP client) to send a push notification targeting subscribers of the "weather_updates" topic:
 
 `HTTP POST https://fcm.googleapis.com/fcm/send`
 ```
 {
     "data": {
-        "body" : "body",
-        "title": "title"
+        "title" : "Weather Update",
+        "body": "Pleasant with clouds and sun"
      },
      "priority": "high",
      "condition": "'weather_updates' in topics"
 }
 ```
 
+![Notification Topic weather_updates](Docs/notificationtopic_weatherupdates.png?raw=true)
+
 #### Notification Actions
 Notification actions are special buttons which allow for immediate response to a particular notification. A list of `NotificationActions` is consolidated within a `NotificationCategory`.
 
-#### Register Notification Actions
+##### Register Notification Actions
 The following example demonstrates the registration of a notification category with identifier "medication_intake" and two actions "Take medicine" and "Skip medicine":
 ```csharp
 var categories = new[]
@@ -143,11 +147,11 @@ Notification categories are usually registered at app startup time using the fol
 IFirebasePushNotification.RegisterNotificationCategories(categories);
 ```
 
-#### Subscribe to Notification Actions
+##### Subscribe to Notification Actions
 Subscribe the event `IFirebasePushNotification.NotificationAction` to get notified if a user presses one of the notification action buttons.
 The delivered event args `FirebasePushNotificationResponseEventArgs` will let you know which action was pressed.
 
-#### Send Notification Actions
+##### Send Notification Actions
 Use the Firebase Admin SDK (or any other HTTP client) to send a push notification with:
 
 `HTTP POST https://fcm.googleapis.com/fcm/send`
