@@ -2,6 +2,10 @@
 
 namespace Plugin.FirebasePushNotifications
 {
+    /// <summary>
+    /// A notification category consolidates a list of <see cref="NotificationAction"/>.
+    /// Each notification category is identifiable via its <see cref="CategoryId"/>.
+    /// </summary>
     public class NotificationCategory
     {
         public NotificationCategory(
@@ -33,12 +37,22 @@ namespace Plugin.FirebasePushNotifications
             this.Type = type;
         }
 
+        /// <summary>
+        /// Identifier of the notification category.
+        /// </summary>
         [JsonProperty("categoryId")]
         public string CategoryId { get; }
 
+        /// <summary>
+        /// Notification actions which belong to this notification category.
+        /// </summary>
         [JsonProperty("actions")]
         public NotificationAction[] Actions { get; }
 
+        /// <summary>
+        /// Notification category type, used to display special-purpose
+        /// notification categories. Default is <see cref="NotificationCategoryType.Default"/>.
+        /// </summary>
         [JsonProperty("type")]
         public NotificationCategoryType Type { get; }
 
