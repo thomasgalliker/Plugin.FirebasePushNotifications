@@ -122,8 +122,54 @@ Use the Firebase Admin SDK (or any other HTTP client) to send a push notificatio
 }
 ```
 
-#### Notification Actions 
-> *to be documented*
+#### Notification Actions
+Notification actions are special buttons which allow for immediate response to a particular notification. A list of `NotificationActions` is consolidated within a `NotificationCategory`.
+
+#### Register Notification Actions
+The following example demonstrates the registration of a notification category with identifier "medication_intake" and two actions "Take medicine" and "Skip medicine":
+```csharp
+var categories = new[]
+{
+    new NotificationCategory("medication_intake", new[]
+    {
+        new NotificationAction("take_medication", "Take medicine", NotificationActionType.Foreground),
+        new NotificationAction("skip_medication", "Skip medicine", NotificationActionType.Foreground),
+    })
+};
+```
+
+Notification categories are usually registered at app startup time using the following method call:
+```csharp
+IFirebasePushNotification.RegisterNotificationCategories(categories);
+```
+
+#### Subscribe to Notification Actions
+Subscribe the event `IFirebasePushNotification.NotificationAction` to get notified if a user presses one of the notification action buttons.
+The delivered event args `FirebasePushNotificationResponseEventArgs` will let you know which action was pressed.
+
+#### Send Notification Actions
+Use the Firebase Admin SDK (or any other HTTP client) to send a push notification with:
+
+`HTTP POST https://fcm.googleapis.com/fcm/send`
+```
+{
+    "data": {
+        "click_action": "medication_intake",
+        "title": "title",
+        "body": "body",
+        "priority": "high",
+        "id": "99"
+    },
+    "priority": "high",
+    "registration_ids": [
+        "d5xOmbOuSpSL3GytYDUptm:APA91bEhnZ5lOgACKxNJS0Tutm6M9x19hGbHkbBJ4-k7nNSiz7N9a5vYBoteRNWHFNGu6ahb51vIjzRmi2NC50V3mJkNGLpOWBA_CFbV409n1OtS2k48FtyeOdYj_HRosEQzYjqlWg0l"
+    ]
+}
+```
+
+If everything works fine, the mobile device with push notification token "d5xOmbOu...." displays the notification action as follows:
+![Notification Category medication_intake](Docs/notificationcategory_takemedicine.png?raw=true)
+
 
 ### Options
 > *to be documented*
