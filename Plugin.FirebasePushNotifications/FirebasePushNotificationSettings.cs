@@ -45,11 +45,16 @@ namespace Plugin.FirebasePushNotifications
             EnsureKeyRegistered(key);
 
             T value;
-            var serializedValue = this.preferences.Get<string>(key, null);
 
             try
             {
-                if (serializedValue is T stringValue)
+                var serializedValue = this.preferences.Get<string>(key, null);
+
+                if (serializedValue is null)
+                {
+                    value = defaultValue;
+                }
+                else if (serializedValue is T stringValue)
                 {
                     value = stringValue;
                 }
