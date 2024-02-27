@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net7.0-android;net7.0-ios</TargetFrameworks>
+		<TargetFrameworks>net7.0;net7.0-android;net7.0-ios;net8.0;net8.0-android;net8.0-ios</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
@@ -50,8 +50,14 @@
 
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="[13.0.3,)" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="$(TargetFramework.Contains('net7.0'))">
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[7.0.0,)" />
-		<PackageReference Include="ObjectDumper.NET" Version="4.1.3" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="$(TargetFramework.Contains('net8.0'))">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.0,)" />
 	</ItemGroup>
 	
 	<!--Platform-specific package references--> 
@@ -65,8 +71,8 @@
 		<PackageReference Include="Xamarin.Firebase.Common" Version="120.3.3.1" />
 
 		<!--Temporary workaround for issue in AndroidX: https://github.com/xamarin/AndroidX/issues/742-->
-		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2" />
-		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2" />
+		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2.1" />
+		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
