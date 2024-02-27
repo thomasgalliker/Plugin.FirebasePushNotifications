@@ -1,11 +1,9 @@
-using System.Collections.ObjectModel;
 using Android.App;
 using Android.Content;
-using Android.Content.PM;
-using Android.Gms.Tasks;
-using Android.Media;
-using Android.OS;
 using Firebase.Messaging;
+using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Extensions;
+using Plugin.FirebasePushNotifications.Platforms.Channels;
 using Application = Android.App.Application;
 
 namespace Plugin.FirebasePushNotifications.Platforms
@@ -14,20 +12,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// Implementation of <see cref="IFirebasePushNotification"/>
     /// for Android.
     /// </summary>
-    public partial class FirebasePushNotificationManager : Java.Lang.Object, IFirebasePushNotification, IOnCompleteListener
+    public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        private static NotificationResponse delayedNotificationResponse = null;
-        private static TaskCompletionSource<string> _tokenTcs;
-        internal const string KeyGroupName = "Plugin.FirebasePushNotification";
-        internal const string FirebaseTopicsKey = "FirebaseTopicsKey";
-        internal const string FirebaseTokenKey = "FirebaseTokenKey";
-        internal const string AppVersionCodeKey = "AppVersionCodeKey";
-        internal const string AppVersionNameKey = "AppVersionNameKey";
-        internal const string AppVersionPackageNameKey = "AppVersionPackageNameKey";
-
-        // internal const string NotificationDeletedActionId = "Plugin.PushNotification.NotificationDeletedActionId";
-        private static readonly ICollection<string> currentTopics = new HashSet<string>(Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).GetStringSet(FirebaseTopicsKey, new Collection<string>()));
-        private static readonly IList<NotificationUserCategory> userNotificationCategories = new List<NotificationUserCategory>();
         public static string NotificationContentTitleKey { get; set; }
         public static string NotificationContentTextKey { get; set; }
         public static string NotificationContentDataKey { get; set; }
@@ -39,85 +25,153 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public static Android.Graphics.Color? Color { get; set; }
         public static Type NotificationActivityType { get; set; }
         public static ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
-
-        public static string DefaultNotificationChannelId { get; set; } = "FirebasePushNotificationChannel";
-        public static string DefaultNotificationChannelName { get; set; } = "General";
         public static NotificationImportance DefaultNotificationChannelImportance { get; set; } = NotificationImportance.Default;
 
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
-        //internal static PushNotificationActionReceiver ActionReceiver = new PushNotificationActionReceiver();
-
-        public static void ProcessIntent(Activity activity, Intent intent, bool enableDelayedResponse = true)
+        public FirebasePushNotificationManager()
+            : base()
         {
-            DefaultNotificationActivityType = activity.GetType();
-            var extras = intent?.Extras;
-            if (extras != null && !extras.IsEmpty)
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<NotificationChannelRequest> NotificationChannels { get; private set; }
+
+        private static readonly NotificationChannelRequest DefaultNotificationChannel = new NotificationChannelRequest
+        {
+            ChannelId = Constants.DefaultNotificationChannelId,
+            ChannelName = Constants.DefaultNotificationChannelName,
+            IsDefault = true,
+        };
+
+        protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
+        {
+            NotificationActivityType = options.Android.NotificationActivityType;
+            //DefaultNotificationChannelId = options.Android.DefaultNotificationChannelId;
+
+            var notificationChannels = options.Android.NotificationChannels;
+            var duplicateChannelIds = notificationChannels
+                .Select(c => c.ChannelId).Concat(new[] { DefaultNotificationChannel.ChannelId })
+                .GroupBy(c => c)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key);
+
+            if (duplicateChannelIds.Any())
             {
-                var parameters = new Dictionary<string, object>();
-                foreach (var key in extras.KeySet())
+                throw new ArgumentException(
+                 $"FirebasePushNotificationOptions contains {nameof(NotificationChannelRequest)} with duplicate {nameof(NotificationChannelRequest.ChannelId)}: " +
+                 $"[{string.Join(", ", duplicateChannelIds.Select(id => $"\"{id}\""))}]",
+                 nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
+            }
+
+            if (notificationChannels.Length == 0)
+            {
+                notificationChannels = new[] { DefaultNotificationChannel };
+                StaticNotificationChannels.UpdateChannels(notificationChannels);
+            }
+            else
+            {
+                var defaultNotificationChannels = notificationChannels.Where(c => c.IsDefault).ToArray();
+                if (defaultNotificationChannels.Length > 1)
                 {
-                    if (!parameters.ContainsKey(key) && extras.Get(key) != null)
-                    {
-                        parameters.Add(key, $"{extras.Get(key)}");
-                    }
+                    throw new ArgumentException(
+                        $"FirebasePushNotificationOptions contains more than one {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true: " +
+                        $"[{string.Join(", ", defaultNotificationChannels.Select(c => $"\"{c.ChannelId}\""))}]",
+                        nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
+                }
+                else if (defaultNotificationChannels.Length < 1)
+                {
+                    throw new ArgumentException(
+                        $"FirebasePushNotificationOptions does not contain any {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true",
+                        nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
                 }
 
-                if (parameters.Count > 0)
+                StaticNotificationChannels.UpdateChannels(notificationChannels);
+            }
+
+            this.NotificationChannels = notificationChannels;
+
+
+            // TODO: REmove this again!!
+            this.NotificationHandler = new DefaultPushNotificationHandler();
+        }
+
+        public void ProcessIntent(Activity activity, Intent intent)
+        {
+            if (activity == null)
+            {
+                this.logger.LogDebug($"ProcessIntent: activity=null");
+                return;
+            }
+
+            var activityType = activity.GetType();
+
+            if (intent == null)
+            {
+                this.logger.LogDebug($"ProcessIntent: activity.Type={activityType.Name}, intent=null");
+                return;
+            }
+
+            var extras = intent.GetExtrasDict();
+            this.logger.LogDebug($"ProcessIntent: activity.Type={activityType.Name}, intent.Flags=[{intent.Flags}], intent.Extras=[{extras.ToDebugString()}]");
+
+            var launchedFromHistory = intent.Flags.HasFlag(ActivityFlags.LaunchedFromHistory);
+            if (launchedFromHistory)
+            {
+                // Don't process the intent if flag FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY is present
+                return;
+            }
+
+            if (extras.Any())
+            {
+                // Don't process old/historic intents which are recycled for whatever reasons
+                var intentAlreadyHandledKey = Constants.ExtraFirebaseProcessIntentHandled;
+                if (!intent.GetBooleanExtra(intentAlreadyHandledKey, false))
                 {
-                    var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
-                    var notificationId = extras.GetInt(DefaultPushNotificationHandler.ActionNotificationIdKey, -1);
-                    if (notificationId != -1)
+                    intent.PutExtra(intentAlreadyHandledKey, true);
+                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} not present --> Process notification");
+
+                    // TODO: Refactor this! This is for sure not a good behavior..
+                    DefaultNotificationActivityType = activityType;
+
+                    var notificationManager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
+
+                    if (extras.TryGetInt(Constants.ActionNotificationIdKey, out var notificationId))
                     {
-                        var notificationTag = extras.GetString(DefaultPushNotificationHandler.ActionNotificationTagKey, string.Empty);
-                        if (notificationTag == null)
+                        if (extras.TryGetString(Constants.ActionNotificationTagKey, out var notificationTag))
                         {
-                            manager.Cancel(notificationId);
+                            notificationManager.Cancel(notificationTag, notificationId);
                         }
                         else
                         {
-                            manager.Cancel(notificationTag, notificationId);
+                            notificationManager.Cancel(notificationId);
                         }
                     }
 
-
-                    var response = new NotificationResponse(parameters, extras.GetString(DefaultPushNotificationHandler.ActionIdentifierKey, string.Empty));
-
-
-                    if (string.IsNullOrEmpty(response.Identifier))
+                    // TODO: Pass object instead of 3 parameters
+                    var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
+                    if (notificationActionId == null)
                     {
-                        if (_onNotificationOpened == null && enableDelayedResponse)
-                        {
-                            delayedNotificationResponse = response;
-                        }
-                        else
-                        {
-                            _onNotificationOpened?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(response.Data, response.Identifier, response.Type));
-                        }
+                        this.HandleNotificationOpened(extras, notificationActionId, NotificationCategoryType.Default);
                     }
                     else
                     {
-                        if (_onNotificationAction == null && enableDelayedResponse)
-                        {
-                            delayedNotificationResponse = response;
-                        }
-                        else
-                        {
-                            _onNotificationAction?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(response.Data, response.Identifier, response.Type));
-                        }
+                        this.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
                     }
-
-
-                    CrossFirebasePushNotification.Current.NotificationHandler?.OnOpened(response);
                 }
-
+                else
+                {
+                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} is present --> Notification already processed");
+                }
             }
         }
 
+        /*
         [Obsolete]
-        public static void Initialize(Context context, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Initialize(Context context, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
-            CrossFirebasePushNotification.Current.NotificationHandler = CrossFirebasePushNotification.Current.NotificationHandler ?? new DefaultPushNotificationHandler();
+            this.NotificationHandler ??= new DefaultPushNotificationHandler();
             FirebaseMessaging.Instance.AutoInitEnabled = autoRegistration;
             if (autoRegistration)
             {
@@ -128,26 +182,23 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     var packageName = packageInfo.PackageName;
                     var versionCode = packageInfo.VersionCode;
                     var versionName = packageInfo.VersionName;
-                    var prefs = Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private);
+                    var prefs = Android.App.Application.Context.GetSharedPreferences(Constants.Preferences.KeyGroupName, FileCreationMode.Private);
 
                     try
                     {
-
                         var storedVersionName = prefs.GetString(AppVersionNameKey, string.Empty);
                         var storedVersionCode = prefs.GetString(AppVersionCodeKey, string.Empty);
                         var storedPackageName = prefs.GetString(AppVersionPackageNameKey, string.Empty);
 
-
                         if (resetToken || (!string.IsNullOrEmpty(storedPackageName) && (!storedPackageName.Equals(packageName, StringComparison.CurrentCultureIgnoreCase) || !storedVersionName.Equals(versionName, StringComparison.CurrentCultureIgnoreCase) || !storedVersionCode.Equals($"{versionCode}", StringComparison.CurrentCultureIgnoreCase))))
                         {
-                            CleanUp(false);
-
+                            this.CleanUp(false);
                         }
-
                     }
                     catch (Exception ex)
                     {
-                        _onNotificationError?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString()));
+                        this.logger.LogError(ex, "Initialize failed with exception");
+                        this.HandleNotificationError(FirebasePushNotificationErrorType.Unknown, ex.ToString());
                     }
                     finally
                     {
@@ -158,11 +209,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                         editor.Commit();
                     }
 
-                    CrossFirebasePushNotification.Current.RegisterForPushNotifications();
+                    _ = CrossFirebasePushNotification.Current.RegisterForPushNotificationsAsync();
                 });
             }
 
-
+#if ANDROID26_0_OR_GREATER
             if (Build.VERSION.SdkInt >= BuildVersionCodes.O && createDefaultNotificationChannel)
             {
                 // Create channel to show notifications.
@@ -183,235 +234,109 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 notificationManager.CreateNotificationChannel(notificationChannel);
             }
-
-            System.Diagnostics.Debug.WriteLine(CrossFirebasePushNotification.Current.Token);
+#endif
         }
 
         [Obsolete]
-        public static void Initialize(Context context, NotificationUserCategory[] notificationCategories, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Initialize(Context context, NotificationUserCategory[] notificationCategories, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
         {
-            Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
-            RegisterUserNotificationCategories(notificationCategories);
+            this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
+            this.RegisterUserNotificationCategories(notificationCategories);
+        }
+        
+        [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Initialize(Context context, IPushNotificationHandler pushNotificationHandler, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
+        {
+            this.NotificationHandler = pushNotificationHandler;
+            this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
         }
 
-        public static void Reset()
+         */
+
+        /// <inheritdoc />
+        public async Task RegisterForPushNotificationsAsync()
         {
-            ThreadPool.QueueUserWorkItem(state =>
+            this.logger.LogDebug("RegisterForPushNotificationsAsync");
+
+            try
             {
-                try
-                {
-                    CleanUp();
-                }
-                catch (Exception ex)
-                {
-                    _onNotificationError?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString()));
-                }
-            });
+                FirebaseMessaging.Instance.AutoInitEnabled = true;
+
+                await Task.Run(this.GetTokenAsync);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
+                this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, ex.ToString());
+            }
         }
 
-        public void RegisterForPushNotifications()
+        private async Task GetTokenAsync()
         {
-            FirebaseMessaging.Instance.AutoInitEnabled = true;
-            System.Threading.Tasks.Task.Run(async () =>
+            var tcs = new TaskCompletionSource<Java.Lang.Object>();
+            var taskCompleteListener = new TaskCompleteListener(tcs);
+            FirebaseMessaging.Instance.GetToken().AddOnCompleteListener(taskCompleteListener);
+
+            try
             {
-                var token = await this.GetTokenAsync();
+                var taskResult = await tcs.Task;
+                var token = taskResult.ToString();
+
                 if (!string.IsNullOrEmpty(token))
                 {
-
-                    SaveToken(token);
+                    this.preferences.Set(Constants.Preferences.TokenKey, token);
                 }
-            });
-        }
-
-        public async Task<string> GetTokenAsync()
-        {
-            _tokenTcs = new TaskCompletionSource<string>();
-            FirebaseMessaging.Instance.GetToken().AddOnCompleteListener(this);
-
-            string retVal = null;
-
-            try
-            {
-                retVal = await _tokenTcs.Task;
             }
             catch (Exception ex)
             {
-                _onNotificationError?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationErrorEventArgs(FirebasePushNotificationErrorType.RegistrationFailed, $"{ex}"));
+                this.logger.LogError(ex, "GetTokenAsync failed with exception");
+                this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, $"{ex}");
             }
-
-            return retVal;
         }
 
-        public void OnComplete(Android.Gms.Tasks.Task task)
+        /// <inheritdoc />
+        public async Task UnregisterForPushNotificationsAsync()
         {
+            this.logger.LogDebug("UnregisterForPushNotificationsAsync");
+
             try
             {
-                if (task.IsSuccessful)
-                {
-                    var token = task.Result.ToString();
-                    _tokenTcs?.TrySetResult(token);
-                }
-                else
-                {
-                    _tokenTcs?.TrySetException(task.Exception);
-                }
+                FirebaseMessaging.Instance.AutoInitEnabled = false;
 
+                await Task.Run(async () => 
+                {
+                    var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                    var taskCompleteListener = new TaskCompleteListener(tcs);
+                    FirebaseMessaging.Instance.DeleteToken().AddOnCompleteListener(taskCompleteListener);
+
+                    await tcs.Task;
+                }
+                );
             }
             catch (Exception ex)
             {
-                _tokenTcs?.TrySetException(ex);
+                this.logger.LogError(ex, "UnregisterForPushNotificationsAsync failed with exception");
+                this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
             }
-        }
-
-        public void UnregisterForPushNotifications()
-        {
-            FirebaseMessaging.Instance.AutoInitEnabled = false;
-            Reset();
-        }
-
-        private static void CleanUp(bool clearAll = true)
-        {
-            if (clearAll)
+            finally
             {
-                CrossFirebasePushNotification.Current.UnsubscribeAll();
-            }
-
-            FirebaseMessaging.Instance.DeleteToken();
-            SaveToken(string.Empty);
-        }
-
-        [Obsolete]
-        public static void Initialize(Context context, IPushNotificationHandler pushNotificationHandler, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
-        {
-            CrossFirebasePushNotification.Current.NotificationHandler = pushNotificationHandler;
-            Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
-        }
-
-        public static void ClearUserNotificationCategories()
-        {
-            userNotificationCategories.Clear();
-        }
-
-        public string Token => Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).GetString(FirebaseTokenKey, string.Empty);
-
-        private static FirebasePushNotificationDataEventHandler _onNotificationReceived;
-        public event FirebasePushNotificationDataEventHandler OnNotificationReceived
-        {
-            add
-            {
-                _onNotificationReceived += value;
-            }
-            remove
-            {
-                _onNotificationReceived -= value;
+                this.preferences.Remove(Constants.Preferences.TokenKey);
             }
         }
 
-
-        public IPushNotificationHandler NotificationHandler { get; set; }
-
-        public string[] SubscribedTopics
+        /// <inheritdoc />
+        public string Token
         {
             get
             {
-                IList<string> topics = new List<string>();
-
-                foreach (var t in currentTopics)
-                {
-
-                    topics.Add(t);
-                }
-
-                return topics.ToArray();
+                return this.preferences.Get<string>(Constants.Preferences.TokenKey);
             }
-        }
+            //private set
+            //{
 
-        private static FirebasePushNotificationResponseEventHandler _onNotificationOpened;
-        public event FirebasePushNotificationResponseEventHandler OnNotificationOpened
-        {
-            add
-            {
-                var previousVal = _onNotificationOpened;
-                _onNotificationOpened += value;
-                if (delayedNotificationResponse != null && previousVal == null)
-                {
-                    var tmpParams = delayedNotificationResponse;
-                    if (string.IsNullOrEmpty(tmpParams.Identifier))
-                    {
-                        _onNotificationOpened?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(tmpParams.Data, tmpParams.Identifier, tmpParams.Type));
-                        delayedNotificationResponse = null;
-                    }
-
-                }
-
-            }
-            remove
-            {
-                _onNotificationOpened -= value;
-            }
-        }
-
-        private static FirebasePushNotificationResponseEventHandler _onNotificationAction;
-        public event FirebasePushNotificationResponseEventHandler OnNotificationAction
-        {
-            add
-            {
-                var previousVal = _onNotificationAction;
-                _onNotificationAction += value;
-                if (delayedNotificationResponse != null && previousVal == null)
-                {
-                    var tmpParams = delayedNotificationResponse;
-                    if (!string.IsNullOrEmpty(tmpParams.Identifier))
-                    {
-                        _onNotificationAction?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(tmpParams.Data, tmpParams.Identifier, tmpParams.Type));
-                        delayedNotificationResponse = null;
-                    }
-
-                }
-            }
-            remove
-            {
-                _onNotificationAction -= value;
-            }
-        }
-
-        private static FirebasePushNotificationTokenEventHandler _onTokenRefresh;
-        public event FirebasePushNotificationTokenEventHandler OnTokenRefresh
-        {
-            add
-            {
-                _onTokenRefresh += value;
-            }
-            remove
-            {
-                _onTokenRefresh -= value;
-            }
-        }
-
-        private static FirebasePushNotificationDataEventHandler _onNotificationDeleted;
-        public event FirebasePushNotificationDataEventHandler OnNotificationDeleted
-        {
-            add
-            {
-                _onNotificationDeleted += value;
-            }
-            remove
-            {
-                _onNotificationDeleted -= value;
-            }
-        }
-
-        private static FirebasePushNotificationErrorEventHandler _onNotificationError;
-        public event FirebasePushNotificationErrorEventHandler OnNotificationError
-        {
-            add
-            {
-                _onNotificationError += value;
-            }
-            remove
-            {
-                _onNotificationError -= value;
-            }
+            //}
         }
 
         //public void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive)
@@ -423,131 +348,138 @@ namespace Plugin.FirebasePushNotifications.Platforms
         //    FirebaseMessaging.Instance.Send(message.Build());
         //}
 
-        public NotificationUserCategory[] GetUserNotificationCategories()
+        /// <inheritdoc />
+        public void SubscribeTopics(string[] topics)
         {
-            return userNotificationCategories?.ToArray();
+            foreach (var t in topics)
+            {
+                this.SubscribeTopic(t);
+            }
         }
 
-        public static void RegisterUserNotificationCategories(NotificationUserCategory[] notificationCategories)
+        /// <inheritdoc />
+        public void SubscribeTopic(string topic)
         {
-            if (notificationCategories != null && notificationCategories.Length > 0)
+            if (topic == null)
             {
-                ClearUserNotificationCategories();
+                throw new ArgumentNullException(nameof(topic), "Topic must not be null");
+            }
 
-                foreach (var userCat in notificationCategories)
-                {
-                    userNotificationCategories.Add(userCat);
-                }
+            if (topic == string.Empty)
+            {
+                throw new ArgumentException("Topic must not be empty", nameof(topic));
+            }
 
+            var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
+            if (!subscribedTopics.Contains(topic))
+            {
+                this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
+
+                // TODO: Use AddOnCompleteListener(...)
+                FirebaseMessaging.Instance.SubscribeToTopic(topic);
+
+                subscribedTopics.Add(topic);
+
+                // TODO: Improve write performance here; don't loop all topics one by one
+                this.SubscribedTopics = subscribedTopics.ToArray();
             }
             else
             {
-                ClearUserNotificationCategories();
+                this.logger.LogInformation($"Subscribe: skipping topic \"{topic}\"; topic is already subscribed");
             }
         }
 
-        public void Subscribe(string[] topics)
+        /// <inheritdoc />
+        public void UnsubscribeTopics(string[] topics)
         {
+            if (topics == null)
+            {
+                throw new ArgumentNullException(nameof(topics), $"Parameter '{nameof(topics)}' must not be null");
+            }
+
+            // TODO: Improve efficiency here (move to base class maybe)
             foreach (var t in topics)
             {
-                this.Subscribe(t);
+                this.UnsubscribeTopic(t);
             }
         }
 
-        public void Subscribe(string topic)
+        /// <inheritdoc />
+        public void UnsubscribeAllTopics()
         {
-
-            if (!currentTopics.Contains(topic))
+            foreach (var topic in this.SubscribedTopics)
             {
-                FirebaseMessaging.Instance.SubscribeToTopic(topic);
-                currentTopics.Add(topic);
-                var editor = Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).Edit();
-                editor.PutStringSet(FirebaseTopicsKey, currentTopics);
-                editor.Commit();
-            }
-        }
-
-        public void Unsubscribe(string[] topics)
-        {
-            foreach (var t in topics)
-            {
-                this.Unsubscribe(t);
-            }
-        }
-
-        public void UnsubscribeAll()
-        {
-            foreach (var t in currentTopics)
-            {
-                if (currentTopics.Contains(t))
-                {
-                    FirebaseMessaging.Instance.UnsubscribeFromTopic(t);
-                }
-            }
-
-            currentTopics.Clear();
-
-            var editor = Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutStringSet(FirebaseTopicsKey, currentTopics);
-            editor.Commit();
-        }
-
-        public void Unsubscribe(string topic)
-        {
-            if (currentTopics.Contains(topic))
-            {
+                // TODO: Use AddOnCompleteListener(...)
                 FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
-                currentTopics.Remove(topic);
-
-                var editor = Android.App.Application.Context.GetSharedPreferences(KeyGroupName, FileCreationMode.Private).Edit();
-                editor.PutStringSet(FirebaseTopicsKey, currentTopics);
-                editor.Commit();
             }
 
+            this.SubscribedTopics = null;
         }
 
-        internal static void RegisterToken(string token)
+        /// <inheritdoc />
+        public void UnsubscribeTopic(string topic)
         {
-            SaveToken(token);
-            _onTokenRefresh?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationTokenEventArgs(token));
+            if (topic == null)
+            {
+                throw new ArgumentNullException(nameof(topic), "Topic must not be null");
+            }
+
+            if (topic == string.Empty)
+            {
+                throw new ArgumentException("Topic must not be empty", nameof(topic));
+            }
+
+            var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
+            if (subscribedTopics.Contains(topic))
+            {
+                this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
+
+                // TODO: Use AddOnCompleteListener(...)
+                FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
+                subscribedTopics.Remove(topic);
+
+                // TODO: Improve write performance here; don't loop all topics one by one
+                this.SubscribedTopics = subscribedTopics.ToArray();
+            }
+            else
+            {
+                this.logger.LogInformation($"Unsubscribe: skipping topic \"{topic}\"; topic is not subscribed");
+            }
         }
 
-        internal static void RegisterData(IDictionary<string, object> data)
+        protected override void HandleTokenRefreshPlatform(string token)
         {
-            _onNotificationReceived?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationDataEventArgs(data));
+            this.ResubscribeExistingTopics();
         }
 
-        internal static void RegisterAction(IDictionary<string, object> data, string identifier = "", NotificationCategoryType type = NotificationCategoryType.Default)
+        /// <summary>
+        /// Resubscribes all existing topics since the old instance id isn't valid anymore.
+        /// This is obviously necessary but seems a very bad design decision...
+        /// </summary>
+        private void ResubscribeExistingTopics()
         {
-            var response = new NotificationResponse(data, data.ContainsKey(DefaultPushNotificationHandler.ActionIdentifierKey) ? $"{data[DefaultPushNotificationHandler.ActionIdentifierKey]}" : string.Empty);
-
-            _onNotificationAction?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationResponseEventArgs(response.Data, response.Identifier, response.Type));
+            foreach (var topic in this.SubscribedTopics)
+            {
+                // TODO: Use AddOnCompleteListener(...)
+                FirebaseMessaging.Instance.SubscribeToTopic(topic);
+            }
         }
 
-        internal static void RegisterDelete(IDictionary<string, object> data)
-        {
-            _onNotificationDeleted?.Invoke(CrossFirebasePushNotification.Current, new FirebasePushNotificationDataEventArgs(data));
-        }
-
-        internal static void SaveToken(string token)
-        {
-            var editor = Android.App.Application.Context.GetSharedPreferences(FirebasePushNotificationManager.KeyGroupName, FileCreationMode.Private).Edit();
-            editor.PutString(FirebasePushNotificationManager.FirebaseTokenKey, token);
-            editor.Commit();
-        }
-
+        /// <inheritdoc />
         public void ClearAllNotifications()
         {
             var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
             manager.CancelAll();
         }
 
+        /// <inheritdoc />
         public void RemoveNotification(int id)
         {
             var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
             manager.Cancel(id);
         }
 
+        /// <inheritdoc />
         public void RemoveNotification(string tag, int id)
         {
             if (string.IsNullOrEmpty(tag))

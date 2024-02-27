@@ -1,53 +1,136 @@
-﻿namespace Plugin.FirebasePushNotifications
+﻿#if ANDROID
+using Android.App;
+using Android.Content;
+using Plugin.FirebasePushNotifications.Platforms.Channels;
+#endif
+
+#if IOS
+using Foundation;
+using UIKit;
+#endif
+
+using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Platforms;
+
+namespace Plugin.FirebasePushNotifications
 {
     public interface IFirebasePushNotification
     {
         /// <summary>
-        /// Get all user notification categories
+        /// Configures this instance of <see cref="IFirebasePushNotification"/>
+        /// with <paramref name="options"/>.
         /// </summary>
-        NotificationUserCategory[] GetUserNotificationCategories();
+        /// <param name="options">The firebase push notification options.</param>
+        void Configure(FirebasePushNotificationOptions options);
 
         /// <summary>
-        /// Get all subscribed topics
+        /// Clears all queues (if any exist).
+        /// </summary>
+        /// <remarks>
+        /// This is usually done when the content in the queues is no longer needed,
+        /// e.g. when the user is logged-out or if the queued data has become outdated.
+        /// </remarks>
+        void ClearQueues();
+
+        /// <summary>
+        /// Sets the logger instance.
+        /// </summary>
+        /// <remarks>
+        /// The logger instance can be injected at runtime.
+        /// This is helpful since <see cref="CrossFirebasePushNotification.Current"/> is a singleton instance 
+        /// and does therefore not allow to inject any logger via constructor injection.
+        /// </remarks>
+        ILogger<FirebasePushNotificationManager> Logger { set; }
+
+        void HandleNotificationReceived(IDictionary<string, object> data);
+
+        void HandleNotificationAction(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType);
+
+        void HandleNotificationDeleted(IDictionary<string, object> data);
+
+        void HandleTokenRefresh(string token);
+
+#if ANDROID
+        /// <summary>
+        /// ProcessIntent is called OnCreate and OnNewIntent in order to check
+        /// for incoming push/local notifications.
+        /// This method is automatically called when you add
+        /// <see cref="MauiAppBuilderExtensions.UseFirebasePushNotifications"/>
+        /// to your MauiProgram startup.
+        /// </summary>
+        void ProcessIntent(Activity activity, Intent intent);
+
+        IEnumerable<NotificationChannelRequest> NotificationChannels { get; }
+#endif
+
+#if IOS
+        void RegisteredForRemoteNotifications(NSData deviceToken);
+
+        void FailedToRegisterForRemoteNotifications(NSError error);
+
+        void DidReceiveRemoteNotification(NSDictionary userInfo);
+
+        void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler);
+#endif
+
+        /// <summary>
+        /// Returns all registered notification categories.
+        /// </summary>
+        NotificationCategory[] NotificationCategories { get; }
+
+        /// <summary>
+        /// Registers the list notification categories <paramref name="notificationCategories"/>.
+        /// </summary>
+        /// <remarks>
+        /// All registered notification categories will be replaced 
+        /// with the given <paramref name="notificationCategories"/>.
+        /// </remarks>
+        void RegisterNotificationCategories(NotificationCategory[] notificationCategories);
+
+        /// <summary>
+        /// Clears all notification categories.
+        /// </summary>
+        void ClearNotificationCategories();
+
+        /// <summary>
+        /// Get all subscribed topics.
         /// </summary>
         string[] SubscribedTopics { get; }
 
         /// <summary>
-        /// Subscribe to multiple topics
+        /// Subscribe to <paramref name="topic"/>.
         /// </summary>
-        void Subscribe(string[] topics);
+        void SubscribeTopic(string topic);
 
         /// <summary>
-        /// Subscribe to one topic
+        /// Subscribe to list of <paramref name="topics"/>.
         /// </summary>
-        void Subscribe(string topic);
+        void SubscribeTopics(string[] topics);
 
         /// <summary>
-        /// Unsubscribe to one topic
+        /// Unsubscribe from <paramref name="topic"/>.
         /// </summary>
-        void Unsubscribe(string topic);
+        void UnsubscribeTopic(string topic);
 
         /// <summary>
-        /// Unsubscribe to multiple topics
+        /// Unsubscribe from list of <paramref name="topics"/>.
         /// </summary>
-        void Unsubscribe(string[] topics);
+        void UnsubscribeTopics(string[] topics);
 
         /// <summary>
-        /// Unsubscribe all topics
+        /// Unsubscribe all topics.
         /// </summary>
-        void UnsubscribeAll();
+        void UnsubscribeAllTopics();
 
         /// <summary>
-        /// Register push notifications on demand
+        /// Register for push notifications.
         /// </summary>
-        /// <returns></returns>
-        void RegisterForPushNotifications();
+        Task RegisterForPushNotificationsAsync();
 
         /// <summary>
-        /// Unregister push notifications on demand
+        /// Unregister push notifications.
         /// </summary>
-        /// <returns></returns>
-        void UnregisterForPushNotifications();
+        Task UnregisterForPushNotificationsAsync(); // TODO: Clear all preferences when unregistering from push notification!
 
         /// <summary>
         /// Notification handler to receive, customize notification feedback and provide user actions
@@ -55,41 +138,39 @@
         IPushNotificationHandler NotificationHandler { get; set; }
 
         /// <summary>
-        /// Event triggered when token is refreshed
+        /// Event triggered when token is refreshed.
         /// </summary>
-        event FirebasePushNotificationTokenEventHandler OnTokenRefresh;
+        event EventHandler<FirebasePushNotificationTokenEventArgs> TokenRefreshed;
 
         /// <summary>
-        /// Event triggered when a notification is opened
+        /// Event triggered when a notification is opened.
         /// </summary>
-        event FirebasePushNotificationResponseEventHandler OnNotificationOpened;
+        event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationOpened;
 
         /// <summary>
-        /// Event triggered when a notification is opened by tapping an action
+        /// Event triggered when a notification is opened by tapping an action.
         /// </summary>
-        event FirebasePushNotificationResponseEventHandler OnNotificationAction;
+        event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationAction;
 
         /// <summary>
-        /// Event triggered when a notification is received
+        /// Event triggered when a notification is received.
         /// </summary>
-        event FirebasePushNotificationDataEventHandler OnNotificationReceived;
+        event EventHandler<FirebasePushNotificationDataEventArgs> NotificationReceived;
 
         /// <summary>
-        /// Event triggered when a notification is deleted
+        /// Event triggered when a notification is deleted.
         /// </summary>
-        event FirebasePushNotificationDataEventHandler OnNotificationDeleted;
+        event EventHandler<FirebasePushNotificationDataEventArgs> NotificationDeleted;
 
         /// <summary>
-        /// Event triggered when there's an error
+        /// Event triggered when an error has occurred.
         /// </summary>
-        event FirebasePushNotificationErrorEventHandler OnNotificationError;
+        event EventHandler<FirebasePushNotificationErrorEventArgs> NotificationError;
 
         /// <summary>
-        /// Push notification token
+        /// The push notification token.
         /// </summary>
         string Token { get; }
-
-        Task<string> GetTokenAsync();
 
         /// <summary>
         /// Send device group message
@@ -97,26 +178,18 @@
         //void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive);
 
         /// <summary>
-        /// Clear all notifications
+        /// Clear all notifications.
         /// </summary>
         void ClearAllNotifications();
 
         /// <summary>
-        /// Remove specific id notification
+        /// Remove specific id notification.
         /// </summary>
         void RemoveNotification(int id);
 
         /// <summary>
-        /// Remove specific id and tag notification
+        /// Remove specific id and tag notification.
         /// </summary>
         void RemoveNotification(string tag, int id);
     }
-
-    public delegate void FirebasePushNotificationTokenEventHandler(object source, FirebasePushNotificationTokenEventArgs e);
-
-    public delegate void FirebasePushNotificationErrorEventHandler(object source, FirebasePushNotificationErrorEventArgs e);
-
-    public delegate void FirebasePushNotificationDataEventHandler(object source, FirebasePushNotificationDataEventArgs e);
-
-    public delegate void FirebasePushNotificationResponseEventHandler(object source, FirebasePushNotificationResponseEventArgs e);
 }

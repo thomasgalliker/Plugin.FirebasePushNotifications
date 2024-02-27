@@ -1,0 +1,1 @@
+﻿dotnet pack .\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj /p:Version=2.0.0-pre
