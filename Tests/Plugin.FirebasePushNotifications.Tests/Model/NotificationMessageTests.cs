@@ -3,21 +3,21 @@ using Plugin.FirebasePushNotifications.Model;
 
 namespace Plugin.FirebasePushNotifications.Tests.Model
 {
-    public class NotificationDataTests
+    public class NotificationMessageTests
     {
         [Fact]
-        public void ShouldCreateNotificationData_WithTitleAndBody()
+        public void ShouldCreatenotificationMessage_WithTitleAndBody()
         {
             // Act
             const string title = "Title";
             const string body = "Body";
 
-            var notificationData = new NotificationMessage(title, body);
+            var notificationMessage = new NotificationMessage(title, body);
 
             // Assert
-            notificationData.Title.Should().Be(title);
-            notificationData.Body.Should().Be(body);
-            notificationData.Data.Should().BeEquivalentTo(new Dictionary<string, string>
+            notificationMessage.Title.Should().Be(title);
+            notificationMessage.Body.Should().Be(body);
+            notificationMessage.Data.Should().BeEquivalentTo(new Dictionary<string, string>
             {
                 { "title", "Title" },
                 { "body", "Body" },
@@ -25,7 +25,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
         }
 
         [Fact]
-        public void ShouldCreateNotificationData_WithTitleBodyAndData()
+        public void ShouldCreatenotificationMessage_WithTitleBodyAndData()
         {
             // Act
             const string title = "Title";
@@ -35,12 +35,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
                 { "key1", "Value1" }
             };
 
-            var notificationData = new NotificationMessage(title, body, data);
+            var notificationMessage = new NotificationMessage(title, body, data);
 
             // Assert
-            notificationData.Title.Should().Be(title);
-            notificationData.Body.Should().Be(body);
-            notificationData.Data.Should().BeEquivalentTo(new Dictionary<string, string>
+            notificationMessage.Title.Should().Be(title);
+            notificationMessage.Body.Should().Be(body);
+            notificationMessage.Data.Should().BeEquivalentTo(new Dictionary<string, string>
             {
                 { "title", "Title" },
                 { "body", "Body" },
@@ -49,20 +49,20 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
         }
 
         [Fact]
-        public void ShouldCreateNotificationData_Empty()
+        public void ShouldCreatenotificationMessage_Empty()
         {
             // Act
-            var notificationData = new NotificationMessage(data: null);
+            var notificationMessage = new NotificationMessage(data: null);
 
             // Assert
-            notificationData.Title.Should().BeNull();
-            notificationData.Body.Should().BeNull();
-            notificationData.Tag.Should().BeNull();
-            notificationData.Data.Should().BeEmpty();
+            notificationMessage.Title.Should().BeNull();
+            notificationMessage.Body.Should().BeNull();
+            notificationMessage.Tag.Should().BeNull();
+            notificationMessage.Data.Should().BeEmpty();
         }
 
         [Fact]
-        public void ShouldCreateNotificationData_FromDictionary()
+        public void ShouldCreatenotificationMessage_FromDictionary()
         {
             // Arrange
             var data = new Dictionary<string, string>
@@ -72,12 +72,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
             };
 
             // Act
-            var notificationData = new NotificationMessage(data);
+            var notificationMessage = new NotificationMessage(data);
 
             // Assert
-            notificationData.Title.Should().Be("Title");
-            notificationData.Body.Should().Be("Body");
-            notificationData.Tag.Should().BeNull();
+            notificationMessage.Title.Should().Be("Title");
+            notificationMessage.Body.Should().Be("Body");
+            notificationMessage.Tag.Should().BeNull();
         }
 
         [Fact]
@@ -90,10 +90,10 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
                 { "body", "Body" },
                 { "nullProperty", null },
             };
-            var notificationData = new NotificationMessage(data: data);
+            var notificationMessage = new NotificationMessage(data: data);
 
             // Act
-            var toString = notificationData.ToString();
+            var toString = notificationMessage.ToString();
 
             // Assert
             toString.Should().Be(

@@ -169,10 +169,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     this.WillPresentNotification);
             }
 
-            if (options.AutoInitEnabled)
-            {
-                Messaging.SharedInstance.AutoInitEnabled = true;
-            }
+            Messaging.SharedInstance.AutoInitEnabled = options.AutoInitEnabled;
         }
 
         /// <inheritdoc />
@@ -180,28 +177,21 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("RegisterForPushNotificationsAsync");
 
-            if (UIDevice.CurrentDevice.CheckSystemVersion(10, 0))
-            {
-                Messaging.SharedInstance.AutoInitEnabled = true;
+            Messaging.SharedInstance.AutoInitEnabled = true;
 
-                var authOptions = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
-                var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
-                if (error != null)
-                {
-                    this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, error.Description);
-                }
-                else if (!granted)
-                {
-                    this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, "Push notification permission not granted");
-                }
-                else
-                {
-                    await MainThread.InvokeOnMainThreadAsync(UIApplication.SharedApplication.RegisterForRemoteNotifications);
-                }
+            var authOptions = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
+            var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
+            if (error != null)
+            {
+                this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, error.Description);
+            }
+            else if (!granted)
+            {
+                this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, "Push notification permission not granted");
             }
             else
             {
-                throw new NotSupportedException();
+                await MainThread.InvokeOnMainThreadAsync(UIApplication.SharedApplication.RegisterForRemoteNotifications);
             }
         }
 
@@ -217,7 +207,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             Messaging.SharedInstance.AutoInitEnabled = false;
+
+            //if (Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
+            //{
+            //    Messaging.SharedInstance.Delegate = null;
+            //}
+
             UIApplication.SharedApplication.UnregisterForRemoteNotifications();
+
             this.preferences.Remove(Constants.Preferences.TokenKey);
 
             return Task.CompletedTask;
