@@ -39,7 +39,7 @@ namespace Plugin.FirebasePushNotifications
                         Firebase.Core.App.Configure();
                     }
 
-                    var loggerFactory = ServiceLocator.Current.GetRequiredService<ILoggerFactory>();
+                    var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
 
                     if (launchOptions != null)
@@ -61,7 +61,7 @@ namespace Plugin.FirebasePushNotifications
                     }
 
                     var firebasePushNotification = CrossFirebasePushNotification.Current;
-                    firebasePushNotification.Logger = ServiceLocator.Current.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
+                    firebasePushNotification.Logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
                     firebasePushNotification.Configure(defaultOptions);
                     return true;
                 }));
@@ -69,7 +69,7 @@ namespace Plugin.FirebasePushNotifications
                 events.AddAndroid(android => android.OnApplicationCreate(d =>
                 {
                     var firebasePushNotification = CrossFirebasePushNotification.Current;
-                    firebasePushNotification.Logger = ServiceLocator.Current.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
+                    firebasePushNotification.Logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
                     firebasePushNotification.Configure(defaultOptions);
 
                     if (defaultOptions.AutoInitEnabled)
