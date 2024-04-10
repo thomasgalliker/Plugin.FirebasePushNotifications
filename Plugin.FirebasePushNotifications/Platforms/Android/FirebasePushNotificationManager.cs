@@ -75,14 +75,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (defaultNotificationChannels.Length > 1)
                 {
                     throw new ArgumentException(
-                        $"FirebasePushNotificationOptions contains more than one {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true: " +
+                        $"{nameof(FirebasePushNotificationOptions)} contains more than one {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true: " +
                         $"[{string.Join(", ", defaultNotificationChannels.Select(c => $"\"{c.ChannelId}\""))}]",
                         nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
                 }
                 else if (defaultNotificationChannels.Length < 1)
                 {
                     throw new ArgumentException(
-                        $"FirebasePushNotificationOptions does not contain any {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true",
+                        $"{nameof(FirebasePushNotificationOptions)} does not contain any {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true",
                         nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
                 }
 
