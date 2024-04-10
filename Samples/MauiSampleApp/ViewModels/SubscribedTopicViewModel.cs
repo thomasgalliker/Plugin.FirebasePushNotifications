@@ -1,6 +1,5 @@
 ﻿using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
-using Plugin.FirebasePushNotifications;
 
 namespace MauiSampleApp.ViewModels
 {

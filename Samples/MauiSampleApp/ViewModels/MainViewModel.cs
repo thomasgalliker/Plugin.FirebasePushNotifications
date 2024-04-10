@@ -19,6 +19,7 @@ namespace MauiSampleApp.ViewModels
         private readonly IDialogService dialogService;
         private readonly INavigationService navigationService;
         private readonly IFirebasePushNotification firebasePushNotification;
+        private readonly INotificationChannels notificationChannels;
         private readonly INotificationPermissions notificationPermissions;
         private readonly IShare share;
         private readonly IPreferences preferences;
@@ -44,12 +45,15 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand getNotificationCategoriesCommand;
         private AsyncRelayCommand clearNotificationCategoriesCommand;
         private NotificationCategoryViewModel[] notificationCategories;
+        private AsyncRelayCommand getNotificationChannelsCommand;
+        private string[] channels;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
             IDialogService dialogService,
             INavigationService navigationService,
             IFirebasePushNotification firebasePushNotification,
+            INotificationChannels notificationChannels,
             INotificationPermissions notificationPermissions,
             IShare share,
             IPreferences preferences)
@@ -58,6 +62,7 @@ namespace MauiSampleApp.ViewModels
             this.dialogService = dialogService;
             this.navigationService = navigationService;
             this.firebasePushNotification = firebasePushNotification;
+            this.notificationChannels = notificationChannels;
             this.notificationPermissions = notificationPermissions;
             this.share = share;
             this.preferences = preferences;
@@ -91,7 +96,7 @@ namespace MauiSampleApp.ViewModels
                     await this.SubscribeEventsAsync();
                 }
 
-                await this.UpdateSubscribedTopicsAsync();
+                await this.GetSubscribedTopicsAsync();
                 await this.UpdateNotificationCategoriesAsync();
             }
             catch (Exception ex)
@@ -274,15 +279,45 @@ namespace MauiSampleApp.ViewModels
             await this.share.RequestAsync(shareRequest);
         }
 
+        public string[] Channels
+        {
+            get => this.channels;
+            private set => this.SetProperty(ref this.channels, value);
+        }
+
+        public ICommand GetNotificationChannelsCommand => this.getNotificationChannelsCommand ??= new AsyncRelayCommand(this.GetNotificationChannelsAsync);
+
+        private async Task GetNotificationChannelsAsync()
+        {
+            try
+            {
+                this.UpdateNotificationChannels();
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "UpdateNotificationChannelsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Get subscribed topics failed with exception", "OK");
+            }
+        }
+
+        private void UpdateNotificationChannels()
+        {
+#if ANDROID
+            this.Channels = this.notificationChannels.Channels
+                .Select(c => c.ChannelId)
+                .ToArray();
+#endif
+        }
+        
         public SubscribedTopicViewModel[] SubscribedTopics
         {
             get => this.subscribedTopics;
             private set => this.SetProperty(ref this.subscribedTopics, value);
         }
 
-        public ICommand GetSubscribedTopicsCommand => this.getSubscribedTopicsCommand ??= new AsyncRelayCommand(this.UpdateSubscribedTopicsAsync);
+        public ICommand GetSubscribedTopicsCommand => this.getSubscribedTopicsCommand ??= new AsyncRelayCommand(this.GetSubscribedTopicsAsync);
 
-        private async Task UpdateSubscribedTopicsAsync()
+        private async Task GetSubscribedTopicsAsync()
         {
             try
             {
