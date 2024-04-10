@@ -59,8 +59,6 @@ namespace Plugin.FirebasePushNotifications
         /// to your MauiProgram startup.
         /// </summary>
         void ProcessIntent(Activity activity, Intent intent);
-
-        IEnumerable<NotificationChannelRequest> NotificationChannels { get; }
 #endif
 
 #if IOS

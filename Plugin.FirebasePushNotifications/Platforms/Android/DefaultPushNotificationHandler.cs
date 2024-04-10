@@ -9,6 +9,7 @@ using Android.Util;
 using AndroidX.Core.App;
 using Java.Util;
 using Plugin.FirebasePushNotifications.Extensions;
+using Plugin.FirebasePushNotifications.Platforms.Channels;
 using static Android.App.ActivityManager;
 using Application = Android.App.Application;
 using Debug = System.Diagnostics.Debug;
@@ -264,7 +265,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (string.IsNullOrEmpty(channelId))
             {
-                var notificationChannels = CrossFirebasePushNotification.Current.NotificationChannels;
+                var notificationChannels = NotificationChannels.Current.Channels;
                 var defaultNotificationChannelId = notificationChannels.Single(c => c.IsDefault);
                 channelId = defaultNotificationChannelId.ChannelId;
             }

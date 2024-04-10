@@ -1,19 +1,50 @@
-using Android.App;
+﻿using Android.App;
 using Android.Media;
 using Android.OS;
 using AndroidX.Core.App;
+using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications.Platforms.Channels
 {
-    public static class StaticNotificationChannels
+    public class NotificationChannels : INotificationChannels
     {
-        public static void UpdateChannels(params NotificationChannelRequest[] allChannels)
+        private static readonly Lazy<INotificationChannels> Implementation = new Lazy<INotificationChannels>(CreateNotificationChannels, LazyThreadSafetyMode.PublicationOnly);
+
+        public static INotificationChannels Current
         {
-            DeleteChannels(allChannels);
-            CreateChannels(allChannels.Where(c => c.IsActive).ToArray());
+            get => Implementation.Value;
         }
 
-        public static void CreateChannels(params NotificationChannelRequest[] notificationChannelRequests)
+        private static INotificationChannels CreateNotificationChannels()
+        {
+#if ANDROID
+            return new NotificationChannels();
+#else
+            throw Exceptions.NotImplementedInReferenceAssembly();
+#endif
+        }
+
+        private static readonly NotificationChannelRequest DefaultNotificationChannel = new NotificationChannelRequest
+        {
+            ChannelId = Constants.DefaultNotificationChannelId,
+            ChannelName = Constants.DefaultNotificationChannelName,
+            IsDefault = true,
+        };
+
+        /// <inheritdoc />
+        public IEnumerable<NotificationChannelRequest> Channels { get; private set; } = Array.Empty<NotificationChannelRequest>();
+
+        public void CreateChannels(NotificationChannelRequest[] notificationChannelRequests)
+        {
+            FirebasePushNotificationAndroidOptions.EnsureNotificationChannelRequests(
+                    notificationChannelRequests,
+                    $"{nameof(CreateChannels)}",
+                    nameof(notificationChannelRequests));
+
+            this.CreateChannelsInternal(notificationChannelRequests);
+        }
+
+        private void CreateChannelsInternal(NotificationChannelRequest[] notificationChannelRequests)
         {
             // TODO: Compare new code with old code
 
@@ -45,6 +76,11 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 return;
             }
 
+            if (notificationChannelRequests.Length == 0)
+            {
+                notificationChannelRequests = new[] { DefaultNotificationChannel };
+            }
+
             var notificationManager = NotificationManagerCompat.From(Android.App.Application.Context);
 
             foreach (var notificationChannelRequest in notificationChannelRequests)
@@ -68,16 +104,55 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 {
                     notificationChannel.SetVibrationPattern(notificationChannelRequest.VibrationPattern);
                 }
-                
+
                 notificationChannel.SetShowBadge(true);
                 notificationChannel.EnableLights(true);
                 notificationChannel.EnableVibration(true);
 
                 notificationManager.CreateNotificationChannel(notificationChannel);
             }
+
+            this.Channels = notificationChannelRequests;
         }
 
-        private static void DeleteChannels(IEnumerable<NotificationChannelRequest> notificationChannelRequests)
+        public void UpdateChannels()
+        {
+            this.UpdateChannels(this.Channels.ToArray());
+        }
+
+        public void UpdateChannels(NotificationChannelRequest[] notificationChannelRequests)
+        {
+            FirebasePushNotificationAndroidOptions.EnsureNotificationChannelRequests(
+                 notificationChannelRequests,
+                 $"{nameof(UpdateChannels)}",
+                 nameof(notificationChannelRequests));
+
+            this.DeleteAllChannels();
+            this.CreateChannelsInternal(notificationChannelRequests.Where(c => c.IsActive).ToArray());
+        }
+
+        public void DeleteAllChannels()
+        {
+            this.DeleteChannelsInternals(this.Channels.ToArray(), Array.Empty<NotificationChannelRequest>());
+        }
+
+        public void DeleteChannels(string[] channelIds)
+        {
+            var fork = this.Channels.Fork(c => channelIds.Contains(c.ChannelId)).ToArray();
+            var notificationChannelsToDelete = fork.Items1;
+            var notificationChannelsToKeep = fork.Items2;
+
+            FirebasePushNotificationAndroidOptions.EnsureNotificationChannelRequests(
+                 notificationChannelsToKeep,
+                 $"{nameof(DeleteChannels)}",
+                 nameof(channelIds));
+
+            this.DeleteChannelsInternals(notificationChannelsToDelete, notificationChannelsToKeep);
+        }
+
+        private void DeleteChannelsInternals(
+            NotificationChannelRequest[] notificationChannelsToDelete,
+            NotificationChannelRequest[] notificationChannelsToKeep)
         {
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
@@ -85,10 +160,12 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             }
 
             var notificationManager = NotificationManagerCompat.From(Android.App.Application.Context);
-            foreach (var notificationChannelRequest in notificationChannelRequests)
+            foreach (var notificationChannelRequest in notificationChannelsToDelete)
             {
                 notificationManager.DeleteNotificationChannel(notificationChannelRequest.ChannelId);
             }
+
+            this.Channels = notificationChannelsToKeep;
         }
     }
 }

@@ -34,65 +34,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
-        /// <inheritdoc />
-        public IEnumerable<NotificationChannelRequest> NotificationChannels { get; private set; }
-
-        private static readonly NotificationChannelRequest DefaultNotificationChannel = new NotificationChannelRequest
-        {
-            ChannelId = Constants.DefaultNotificationChannelId,
-            ChannelName = Constants.DefaultNotificationChannelName,
-            IsDefault = true,
-        };
-
         protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
             NotificationActivityType = options.Android.NotificationActivityType;
-            //DefaultNotificationChannelId = options.Android.DefaultNotificationChannelId;
 
-            var notificationChannels = options.Android.NotificationChannels;
-            var duplicateChannelIds = notificationChannels
-                .Select(c => c.ChannelId).Concat(new[] { DefaultNotificationChannel.ChannelId })
-                .GroupBy(c => c)
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key);
+            var notificationChannels = NotificationChannels.Current;
+            notificationChannels.CreateChannels(options.Android.NotificationChannels);
 
-            if (duplicateChannelIds.Any())
-            {
-                throw new ArgumentException(
-                 $"FirebasePushNotificationOptions contains {nameof(NotificationChannelRequest)} with duplicate {nameof(NotificationChannelRequest.ChannelId)}: " +
-                 $"[{string.Join(", ", duplicateChannelIds.Select(id => $"\"{id}\""))}]",
-                 nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
-            }
-
-            if (notificationChannels.Length == 0)
-            {
-                notificationChannels = new[] { DefaultNotificationChannel };
-                StaticNotificationChannels.UpdateChannels(notificationChannels);
-            }
-            else
-            {
-                var defaultNotificationChannels = notificationChannels.Where(c => c.IsDefault).ToArray();
-                if (defaultNotificationChannels.Length > 1)
-                {
-                    throw new ArgumentException(
-                        $"{nameof(FirebasePushNotificationOptions)} contains more than one {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true: " +
-                        $"[{string.Join(", ", defaultNotificationChannels.Select(c => $"\"{c.ChannelId}\""))}]",
-                        nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
-                }
-                else if (defaultNotificationChannels.Length < 1)
-                {
-                    throw new ArgumentException(
-                        $"{nameof(FirebasePushNotificationOptions)} does not contain any {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true",
-                        nameof(FirebasePushNotificationAndroidOptions.NotificationChannels));
-                }
-
-                StaticNotificationChannels.UpdateChannels(notificationChannels);
-            }
-
-            this.NotificationChannels = notificationChannels;
-
-
-            // TODO: REmove this again!!
+            // TODO: Remove this again!!
             this.NotificationHandler = new DefaultPushNotificationHandler();
         }
 

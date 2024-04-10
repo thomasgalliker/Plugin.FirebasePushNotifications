@@ -1,8 +1,5 @@
 ﻿#if ANDROID || IOS
 #define ANDROID_OR_IOS
-using Microsoft.Extensions.Logging.Abstractions;
-using Plugin.FirebasePushNotifications;
-using Plugin.FirebasePushNotifications.Model.Queues;
 using Plugin.FirebasePushNotifications.Platforms;
 #endif
 
@@ -44,16 +41,8 @@ namespace Plugin.FirebasePushNotifications
 #if ANDROID_OR_IOS
             return new FirebasePushNotificationManager();
 #else
-            throw NotImplementedInReferenceAssembly();
+            throw Exceptions.NotImplementedInReferenceAssembly();
 #endif
-        }
-
-
-        private static Exception NotImplementedInReferenceAssembly()
-        {
-            return new NotImplementedException(
-                "This functionality is not implemented for the current platform. " +
-                "You should reference the NuGet package from your main application project in order to reference the platform-specific implementation.");
         }
     }
 }

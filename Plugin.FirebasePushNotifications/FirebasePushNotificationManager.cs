@@ -2,8 +2,6 @@
 using Foundation;
 #endif
 
-using Microsoft.Extensions.Logging.Abstractions;
-
 namespace Plugin.FirebasePushNotifications.Platforms
 {
     // TODO: The situation here is not sorted out yet.

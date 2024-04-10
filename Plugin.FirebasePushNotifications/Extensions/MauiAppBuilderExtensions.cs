@@ -2,6 +2,7 @@
 
 #if ANDROID || IOS
 using Plugin.FirebasePushNotifications.Platforms;
+using Plugin.FirebasePushNotifications.Platforms.Channels;
 #endif
 
 #if IOS
@@ -16,6 +17,12 @@ namespace Plugin.FirebasePushNotifications
 {
     public static class MauiAppBuilderExtensions
     {
+        /// <summary>
+        /// Configures Plugin.FirebasePushNotifications to use with this app.
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
         public static MauiAppBuilder UseFirebasePushNotifications(this MauiAppBuilder builder, Action<FirebasePushNotificationOptions> options = null)
         {
             var defaultOptions = new FirebasePushNotificationOptions();
@@ -65,9 +72,6 @@ namespace Plugin.FirebasePushNotifications
                     firebasePushNotification.Logger = ServiceLocator.Current.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
                     firebasePushNotification.Configure(defaultOptions);
 
-                    // TODO: Create StaticNotificationChannels
-                    //StaticNotificationChannels.UpdateChannels(Context);
-
                     if (defaultOptions.AutoInitEnabled)
                     {
                         Firebase.FirebaseApp.InitializeApp(d.ApplicationContext);
@@ -93,6 +97,12 @@ namespace Plugin.FirebasePushNotifications
 #if ANDROID || IOS
             builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
             builder.Services.AddSingleton<INotificationPermissions, NotificationPermissions>();
+#endif
+
+#if ANDROID
+            builder.Services.AddSingleton(c => NotificationChannels.Current);
+#elif IOS
+            builder.Services.AddSingleton<INotificationChannels, NotificationChannels>();
 #endif
             return builder;
         }
