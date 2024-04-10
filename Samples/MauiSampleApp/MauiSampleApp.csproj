@@ -72,27 +72,6 @@
 		<ProjectReference Include="..\..\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Compile Update="Views\ItemTemplates\NotificationCategoryItemTemplate.xaml.cs">
-			<DependentUpon>NotificationCategoryItemTemplate.xaml</DependentUpon>
-		</Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-		<MauiXaml Update="Controls\DividerLine.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</MauiXaml>
-		<MauiXaml Update="Views\ItemTemplates\NotificationActionItemTemplate.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</MauiXaml>
-		<MauiXaml Update="Views\ItemTemplates\NotificationCategoryItemTemplate.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</MauiXaml>
-		<MauiXaml Update="Views\ItemTemplates\SubscribedTopicItemTemplate.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</MauiXaml>
-	</ItemGroup>
-
 	<ProjectExtensions>
 		<VisualStudio>
 			<UserProperties XamarinHotReloadDebuggerTimeoutExceptionMauiSampleAppHideInfoBar="True" />
