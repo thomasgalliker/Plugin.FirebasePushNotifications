@@ -33,6 +33,12 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// </summary>
         public string Description { get; set; }
 
+        /// <summary>
+        /// Marks this channel as the default notification channel.
+        /// </summary>
+        /// <remarks>
+        /// Exactly one notification channel has to be marked with IsDefault=true.
+        /// </remarks>
         public bool IsDefault { get; set; }
 
         /// <summary>
