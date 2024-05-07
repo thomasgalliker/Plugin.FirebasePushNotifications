@@ -41,7 +41,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var notificationChannels = NotificationChannels.Current;
             notificationChannels.CreateChannels(options.Android.NotificationChannels);
 
-            // TODO: Remove this again!!
+            // TODO: Remove this code asap!!
             this.NotificationHandler = new DefaultPushNotificationHandler();
         }
 
@@ -49,15 +49,25 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             if (activity == null)
             {
-                this.logger.LogDebug($"ProcessIntent: activity=null");
                 return;
             }
 
             var activityType = activity.GetType();
 
+            // Initialize NotificationActivityType in case it was left null
+            // in FirebasePushNotificationOptions.Android.NotificationActivityType.
+            if (NotificationActivityType == null && typeof(MauiAppCompatActivity).IsAssignableFrom(activityType))
+            {
+                NotificationActivityType = activityType;
+            }
+
+            if (NotificationActivityType != activityType)
+            {
+                return;
+            }
+
             if (intent == null)
             {
-                this.logger.LogDebug($"ProcessIntent: activity.Type={activityType.Name}, intent=null");
                 return;
             }
 
@@ -254,7 +264,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 FirebaseMessaging.Instance.AutoInitEnabled = false;
 
-                await Task.Run(async () => 
+                await Task.Run(async () =>
                 {
                     var tcs = new TaskCompletionSource<Java.Lang.Object>();
                     var taskCompleteListener = new TaskCompleteListener(tcs);
