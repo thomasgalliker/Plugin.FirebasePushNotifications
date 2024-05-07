@@ -29,6 +29,7 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand subscribeEventsCommand;
         private AsyncRelayCommand unsubscribeEventsCommand;
         private AsyncRelayCommand navigateToQueuesPageCommand;
+        private AsyncRelayCommand capturePhotoCommand;
         private AsyncRelayCommand shareTokenCommand;
         private AsyncRelayCommand subscribeToTopicCommand;
         private AsyncRelayCommand requestNotificationPermissionsCommand;
@@ -308,7 +309,7 @@ namespace MauiSampleApp.ViewModels
                 .ToArray();
 #endif
         }
-        
+
         public SubscribedTopicViewModel[] SubscribedTopics
         {
             get => this.subscribedTopics;
@@ -415,7 +416,7 @@ namespace MauiSampleApp.ViewModels
                 await this.dialogService.ShowDialogAsync("Error", "Reading notification categories failed with exception", "OK");
             }
         }
-        
+
         public ICommand RegisterNotificationCategoriesCommand => this.registerNotificationCategoriesCommand ??= new AsyncRelayCommand(this.RegisterNotificationCategoriesAsync);
 
         private async Task RegisterNotificationCategoriesAsync()
@@ -455,6 +456,17 @@ namespace MauiSampleApp.ViewModels
         private async Task NavigateToQueuesPageAsync()
         {
             await this.navigationService.PushAsync<QueuesPage>();
+        }
+
+        public ICommand CapturePhotoCommand => this.capturePhotoCommand ??= new AsyncRelayCommand(this.CapturePhotoAsync);
+
+        private async Task CapturePhotoAsync()
+        {
+            var result = await MediaPicker.Default.CapturePhotoAsync();
+            if (result != null)
+            {
+                await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Success", "OK");
+            }
         }
     }
 }

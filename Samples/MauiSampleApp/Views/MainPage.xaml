@@ -225,6 +225,17 @@
                 Text="Queues"
                 HorizontalOptions="Fill" />
 
+            <controls:DividerLine />
+
+            <Label
+                Style="{StaticResource Heading1LabelStyle}"
+                Text="Interaction Checks" />
+            <Label Text="MediaPicker uses a separate Activity on Android to take photos. This interacts with the ProcessIntent method of IFirebasePushNotification" />
+            <Button
+                Command="{Binding CapturePhotoCommand}"
+                Text="MediaPicker.CapturePhotoAsync"
+                HorizontalOptions="Fill" />
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
