@@ -9,7 +9,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldEnqueueItem()
         {
             // Arrange
-            var queue = new PersistentQueue<TestItem>();
+            var queue = new PersistentQueue<TestItem>("key");
             queue.Clear();
 
             // Act
@@ -23,7 +23,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldTryDequeueItem()
         {
             // Arrange
-            var queue = new PersistentQueue<TestItem>();
+            var queue = new PersistentQueue<TestItem>("key");
             queue.Clear();
 
             queue.Enqueue(new TestItem { Id = 1 });
@@ -44,7 +44,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             // Arrange
             var options = new PersistentQueueOptions();
 
-            var persistentQueue1 = new PersistentQueue<TestItem>(options);
+            var persistentQueue1 = new PersistentQueue<TestItem>("key", options);
             persistentQueue1.Clear();
 
             persistentQueue1.Enqueue(new TestItem { Id = 1 });
@@ -52,7 +52,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             persistentQueue1.Enqueue(new TestItem { Id = 3 });
 
             // Act
-            var persistentQueue2 = new PersistentQueue<TestItem>(options);
+            var persistentQueue2 = new PersistentQueue<TestItem>("key", options);
             var success1 = persistentQueue2.TryDequeue(out var dequeued1);
             var success2 = persistentQueue2.TryDequeue(out var dequeued2);
 
@@ -63,7 +63,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             success2.Should().BeTrue();
             dequeued2.Id.Should().Be(2);
 
-            var persistentQueue3 = new PersistentQueue<TestItem>(options);
+            var persistentQueue3 = new PersistentQueue<TestItem>("key", options);
             persistentQueue3.Count.Should().Be(1);
         }
 
@@ -73,7 +73,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             // Arrange
             var options = new PersistentQueueOptions();
 
-            var persistentQueue1 = new PersistentQueue<TestItem>(options);
+            var persistentQueue1 = new PersistentQueue<TestItem>("key", options);
             persistentQueue1.Clear();
 
             persistentQueue1.Enqueue(new TestItem { Id = 1 });
@@ -81,7 +81,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             persistentQueue1.Enqueue(new TestItem { Id = 3 });
 
             // Act
-            var persistentQueue2 = new PersistentQueue<TestItem>(options);
+            var persistentQueue2 = new PersistentQueue<TestItem>("key", options);
             var dequeuedSuccess1 = persistentQueue2.TryDequeue(out var dequeuedItem1);
             var dequeuedSuccess2 = persistentQueue2.TryDequeue(out var dequeuedItem2);
 
@@ -94,7 +94,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             dequeuedItem2.Should().NotBeNull();
             dequeuedItem2.Id.Should().Be(2);
 
-            var persistentQueue3 = new PersistentQueue<TestItem>(options);
+            var persistentQueue3 = new PersistentQueue<TestItem>("key", options);
             persistentQueue3.Count.Should().Be(1);
         }
 
@@ -102,7 +102,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldPeekItem()
         {
             // Arrange
-            var queue = new PersistentQueue<TestItem>();
+            var queue = new PersistentQueue<TestItem>("key");
             queue.Clear();
 
             queue.Enqueue(new TestItem { Id = 1 });
@@ -120,7 +120,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldTryPeekItem()
         {
             // Arrange
-            var queue = new PersistentQueue<TestItem>();
+            var queue = new PersistentQueue<TestItem>("key");
             queue.Clear();
 
             queue.Enqueue(new TestItem { Id = 1 });

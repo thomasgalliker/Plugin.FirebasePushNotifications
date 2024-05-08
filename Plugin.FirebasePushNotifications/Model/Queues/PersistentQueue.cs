@@ -26,7 +26,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         /// <summary>
         /// Creates a new instance of <see cref="PersistentQueue{T}"/> with options.
         /// </summary>
-        internal PersistentQueue(string key)
+        public PersistentQueue(string key)
             : this(key, PersistentQueueOptions.Default)
         {
         }
@@ -35,7 +35,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         /// Creates a new instance of <see cref="PersistentQueue{T}"/> with options.
         /// </summary>
         /// <param name="options">The options.</param>
-        internal PersistentQueue(string key, PersistentQueueOptions options)
+        public PersistentQueue(string key, PersistentQueueOptions options)
             : this(FileInfoFactory.Current, DirectoryInfoFactory.Current, key, options)
         {
         }

@@ -19,7 +19,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             optionsMock.Setup(o => o.BaseDirectory)
                 .Returns(".\\BaseDirectory");
             optionsMock.Setup(o => o.FileNameSelector)
-                .Returns(t => $"{t.Name}.json");
+                .Returns(t => $"{t.Key}.json");
 
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
             fileInfoMock.Setup(f => f.Directory)
@@ -57,7 +57,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldArgumentNullException_IfOptionsIsNull()
         {
             // Act
-            var action = () => new PersistentQueue<TestItem>(null);
+            var action = () => new PersistentQueue<TestItem>(null, null);
 
             // Assert
             action.Should().Throw<ArgumentNullException>();
@@ -67,11 +67,13 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldCreateQueueWithDefaultOptions()
         {
             // Arrange
+            var directoryInfoFactoryMock = this.autoMocker.GetMock<IDirectoryInfoFactory>();
             var directoryInfoMock = this.autoMocker.GetMock<IDirectoryInfo>();
+            var fileInfoFactoryMock = this.autoMocker.GetMock<IFileInfoFactory>();
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
 
             // Act
-            var queue = this.autoMocker.CreateInstance<PersistentQueue<TestItem>>(enablePrivate: true);
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, directoryInfoFactoryMock.Object, "key", PersistentQueueOptions.Default);
 
             // Assert
             queue.Should().NotBeNull();
@@ -82,6 +84,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             directoryInfoMock.VerifyNoOtherCalls();
 
             fileInfoMock.Verify(d => d.Exists, Times.Once);
+            fileInfoMock.Verify(d => d.FullName, Times.Once);
             fileInfoMock.VerifyNoOtherCalls();
         }
 
@@ -90,8 +93,9 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldReadQueueFileContent_ValidContent(string content, int expectedItemsCount)
         {
             // Arrange
+            var directoryInfoFactoryMock = this.autoMocker.GetMock<IDirectoryInfoFactory>();
             var directoryInfoMock = this.autoMocker.GetMock<IDirectoryInfo>();
-
+            var fileInfoFactoryMock = this.autoMocker.GetMock<IFileInfoFactory>();
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
             fileInfoMock.SetupGet(f => f.Exists)
                 .Returns(true);
@@ -99,11 +103,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
                 .Returns(() => GetStreamReaderFromString(content));
 
             // Act
-            var queue = this.autoMocker.CreateInstance<PersistentQueue<TestItem>>(enablePrivate: true);
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, directoryInfoFactoryMock.Object, "key", PersistentQueueOptions.Default);
 
             // Assert
             queue.Count.Should().Be(expectedItemsCount);
 
+            fileInfoMock.Verify(f => f.FullName, Times.Once);
             fileInfoMock.Verify(f => f.Exists, Times.Once);
             fileInfoMock.Verify(f => f.OpenText(), Times.Once);
             fileInfoMock.VerifyNoOtherCalls();
@@ -123,6 +128,8 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldReadQueueFileContent_InvalidContent(string content)
         {
             // Arrange
+            var directoryInfoFactoryMock = this.autoMocker.GetMock<IDirectoryInfoFactory>();
+            var fileInfoFactoryMock = this.autoMocker.GetMock<IFileInfoFactory>();
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
             fileInfoMock.SetupGet(f => f.Exists)
                 .Returns(true);
@@ -130,11 +137,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
                 .Returns(() => GetStreamReaderFromString(content));
 
             // Act
-            var queue = this.autoMocker.CreateInstance<PersistentQueue<TestItem>>(enablePrivate: true);
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, directoryInfoFactoryMock.Object, "key", PersistentQueueOptions.Default);
 
             // Assert
             queue.Count.Should().Be(0);
 
+            fileInfoMock.Verify(f => f.FullName, Times.Once);
             fileInfoMock.Verify(f => f.Exists, Times.Once);
             fileInfoMock.Verify(f => f.OpenText(), Times.Once);
             fileInfoMock.VerifyNoOtherCalls();
@@ -155,10 +163,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldEnqueueItem()
         {
             // Arrange
+            var directoryInfoFactoryMock = this.autoMocker.GetMock<IDirectoryInfoFactory>();
+            var fileInfoFactoryMock = this.autoMocker.GetMock<IFileInfoFactory>();
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
             var createTextMemoryStreams = SetupCreateText(fileInfoMock);
 
-            var queue = this.autoMocker.CreateInstance<PersistentQueue<TestItem>>(enablePrivate: true);
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, directoryInfoFactoryMock.Object, "key", PersistentQueueOptions.Default);
 
             // Act
             queue.Enqueue(new TestItem { Id = 1 });
@@ -177,10 +187,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldDequeueItem()
         {
             // Arrange
+            var directoryInfoFactoryMock = this.autoMocker.GetMock<IDirectoryInfoFactory>();
+            var fileInfoFactoryMock = this.autoMocker.GetMock<IFileInfoFactory>();
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
             var createTextMemoryStreams = SetupCreateText(fileInfoMock);
 
-            var queue = this.autoMocker.CreateInstance<PersistentQueue<TestItem>>(enablePrivate: true);
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, directoryInfoFactoryMock.Object, "key", PersistentQueueOptions.Default);
             queue.Enqueue(new TestItem { Id = 1 });
 
             // Act
@@ -203,10 +215,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldTryDequeueItem()
         {
             // Arrange
+            var directoryInfoFactoryMock = this.autoMocker.GetMock<IDirectoryInfoFactory>();
+            var fileInfoFactoryMock = this.autoMocker.GetMock<IFileInfoFactory>();
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
             var createTextMemoryStreams = SetupCreateText(fileInfoMock);
 
-            var queue = this.autoMocker.CreateInstance<PersistentQueue<TestItem>>(enablePrivate: true);
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, directoryInfoFactoryMock.Object, "key", PersistentQueueOptions.Default);
             queue.Enqueue(new TestItem { Id = 1 });
 
             // Act
@@ -230,10 +244,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldPeekItem()
         {
             // Arrange
+            var directoryInfoFactoryMock = this.autoMocker.GetMock<IDirectoryInfoFactory>();
+            var fileInfoFactoryMock = this.autoMocker.GetMock<IFileInfoFactory>();
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
             var createTextMemoryStreams = SetupCreateText(fileInfoMock);
 
-            var queue = this.autoMocker.CreateInstance<PersistentQueue<TestItem>>(enablePrivate: true);
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, directoryInfoFactoryMock.Object, "key", PersistentQueueOptions.Default);
             queue.Enqueue(new TestItem { Id = 1 });
 
             // Act
@@ -255,10 +271,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldTryPeekItem()
         {
             // Arrange
+            var directoryInfoFactoryMock = this.autoMocker.GetMock<IDirectoryInfoFactory>();
+            var fileInfoFactoryMock = this.autoMocker.GetMock<IFileInfoFactory>();
             var fileInfoMock = this.autoMocker.GetMock<IFileInfo>();
             var createTextMemoryStreams = SetupCreateText(fileInfoMock);
 
-            var queue = this.autoMocker.CreateInstance<PersistentQueue<TestItem>>(enablePrivate: true);
+            var queue = new PersistentQueue<TestItem>(fileInfoFactoryMock.Object, directoryInfoFactoryMock.Object, "key", PersistentQueueOptions.Default);
             queue.Enqueue(new TestItem { Id = 1 });
 
             // Act
