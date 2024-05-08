@@ -118,15 +118,24 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     AutoSize="TextChanges"
-                    IsReadOnly="True"
                     Text="{Binding Token}" />
-                <Button
+                <Grid
                     Grid.Row="1"
                     Grid.Column="1"
-                    Command="{Binding ShareTokenCommand}"
-                    Text="Share"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Center" />
+                    RowDefinitions="Auto,Auto"
+                    RowSpacing="8">
+                    <Button
+                        Grid.Row="0"
+                        Command="{Binding GetTokenCommand}"
+                        Text="Get"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Center" />
+                    <Button
+                        Grid.Row="1"
+                        Command="{Binding ShareTokenCommand}"
+                        Text="Share"
+                        HorizontalOptions="Fill" />
+                </Grid>
             </Grid>
 
             <VerticalStackLayout Spacing="8">

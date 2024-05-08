@@ -31,6 +31,7 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand navigateToQueuesPageCommand;
         private AsyncRelayCommand capturePhotoCommand;
         private AsyncRelayCommand shareTokenCommand;
+        private AsyncRelayCommand getTokenCommand;
         private AsyncRelayCommand subscribeToTopicCommand;
         private AsyncRelayCommand requestNotificationPermissionsCommand;
         private AuthorizationStatus authorizationStatus;
@@ -278,6 +279,22 @@ namespace MauiSampleApp.ViewModels
         {
             var shareRequest = new ShareTextRequest(this.Token);
             await this.share.RequestAsync(shareRequest);
+        }
+        
+        public ICommand GetTokenCommand => this.getTokenCommand ??= new AsyncRelayCommand(this.GetTokenAsync);
+
+        private async Task GetTokenAsync()
+        {
+            try
+            {
+                this.Token = null;
+                this.Token = this.firebasePushNotification.Token;
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "GetTokenAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Failed to get the token", "OK");
+            }
         }
 
         public string[] Channels
