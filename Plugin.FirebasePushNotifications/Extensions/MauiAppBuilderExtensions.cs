@@ -80,7 +80,7 @@ namespace Plugin.FirebasePushNotifications
                 }));
                 events.AddAndroid(android => android.OnCreate((activity, intent) =>
                 {
-                    Firebase.FirebaseApp.InitializeApp(activity);
+                    //Firebase.FirebaseApp.InitializeApp(activity);
 
                     var firebasePushNotification = CrossFirebasePushNotification.Current;
                     firebasePushNotification.ProcessIntent(activity, activity.Intent);

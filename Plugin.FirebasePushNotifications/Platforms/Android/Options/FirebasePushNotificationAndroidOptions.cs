@@ -1,4 +1,5 @@
 ﻿#if ANDROID
+using Android.App;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 
 namespace Plugin.FirebasePushNotifications.Platforms
@@ -6,12 +7,25 @@ namespace Plugin.FirebasePushNotifications.Platforms
     public class FirebasePushNotificationAndroidOptions
     {
         private NotificationChannelRequest[] notificationChannels = Array.Empty<NotificationChannelRequest>();
+        private Type notificationActivityType;
 
         /// <summary>
-        /// The activity which handles incoming push notifications.
+        /// The Activity which handles incoming push notifications.
         /// Typically, this is <c>typeof(MainActivity)</c>.
         /// </summary>
-        public virtual Type NotificationActivityType { get; set; }
+        public virtual Type NotificationActivityType
+        {
+            get => this.notificationActivityType;
+            set
+            {
+                if (!typeof(Activity).IsAssignableFrom(value))
+                {
+                    throw new ArgumentException($"{nameof(this.NotificationActivityType)} must be of type {typeof(Activity).FullName}");
+                }
+
+                this.notificationActivityType = value;
+            }
+        }
 
         public virtual NotificationChannelRequest[] NotificationChannels
         {

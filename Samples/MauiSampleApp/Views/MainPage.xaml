@@ -118,15 +118,24 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     AutoSize="TextChanges"
-                    IsReadOnly="True"
                     Text="{Binding Token}" />
-                <Button
+                <Grid
                     Grid.Row="1"
                     Grid.Column="1"
-                    Command="{Binding ShareTokenCommand}"
-                    Text="Share"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Center" />
+                    RowDefinitions="Auto,Auto"
+                    RowSpacing="8">
+                    <Button
+                        Grid.Row="0"
+                        Command="{Binding GetTokenCommand}"
+                        Text="Get"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Center" />
+                    <Button
+                        Grid.Row="1"
+                        Command="{Binding ShareTokenCommand}"
+                        Text="Share"
+                        HorizontalOptions="Fill" />
+                </Grid>
             </Grid>
 
             <VerticalStackLayout Spacing="8">
@@ -223,6 +232,17 @@
             <Button
                 Command="{Binding NavigateToQueuesPageCommand}"
                 Text="Queues"
+                HorizontalOptions="Fill" />
+
+            <controls:DividerLine />
+
+            <Label
+                Style="{StaticResource Heading1LabelStyle}"
+                Text="Interaction Checks" />
+            <Label Text="MediaPicker uses a separate Activity on Android to take photos. This interacts with the ProcessIntent method of IFirebasePushNotification" />
+            <Button
+                Command="{Binding CapturePhotoCommand}"
+                Text="MediaPicker.CapturePhotoAsync"
                 HorizontalOptions="Fill" />
 
         </VerticalStackLayout>

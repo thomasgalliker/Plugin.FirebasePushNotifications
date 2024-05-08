@@ -29,7 +29,9 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand subscribeEventsCommand;
         private AsyncRelayCommand unsubscribeEventsCommand;
         private AsyncRelayCommand navigateToQueuesPageCommand;
+        private AsyncRelayCommand capturePhotoCommand;
         private AsyncRelayCommand shareTokenCommand;
+        private AsyncRelayCommand getTokenCommand;
         private AsyncRelayCommand subscribeToTopicCommand;
         private AsyncRelayCommand requestNotificationPermissionsCommand;
         private AuthorizationStatus authorizationStatus;
@@ -278,6 +280,22 @@ namespace MauiSampleApp.ViewModels
             var shareRequest = new ShareTextRequest(this.Token);
             await this.share.RequestAsync(shareRequest);
         }
+        
+        public ICommand GetTokenCommand => this.getTokenCommand ??= new AsyncRelayCommand(this.GetTokenAsync);
+
+        private async Task GetTokenAsync()
+        {
+            try
+            {
+                this.Token = null;
+                this.Token = this.firebasePushNotification.Token;
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "GetTokenAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Failed to get the token", "OK");
+            }
+        }
 
         public string[] Channels
         {
@@ -308,7 +326,7 @@ namespace MauiSampleApp.ViewModels
                 .ToArray();
 #endif
         }
-        
+
         public SubscribedTopicViewModel[] SubscribedTopics
         {
             get => this.subscribedTopics;
@@ -415,7 +433,7 @@ namespace MauiSampleApp.ViewModels
                 await this.dialogService.ShowDialogAsync("Error", "Reading notification categories failed with exception", "OK");
             }
         }
-        
+
         public ICommand RegisterNotificationCategoriesCommand => this.registerNotificationCategoriesCommand ??= new AsyncRelayCommand(this.RegisterNotificationCategoriesAsync);
 
         private async Task RegisterNotificationCategoriesAsync()
@@ -455,6 +473,17 @@ namespace MauiSampleApp.ViewModels
         private async Task NavigateToQueuesPageAsync()
         {
             await this.navigationService.PushAsync<QueuesPage>();
+        }
+
+        public ICommand CapturePhotoCommand => this.capturePhotoCommand ??= new AsyncRelayCommand(this.CapturePhotoAsync);
+
+        private async Task CapturePhotoAsync()
+        {
+            var result = await MediaPicker.Default.CapturePhotoAsync();
+            if (result != null)
+            {
+                await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Success", "OK");
+            }
         }
     }
 }
