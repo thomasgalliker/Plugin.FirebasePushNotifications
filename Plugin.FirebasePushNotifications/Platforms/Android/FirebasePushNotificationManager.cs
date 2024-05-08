@@ -425,7 +425,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        public void ClearAllNotifications()
+        protected override void ClearAllNotificationsPlatform()
         {
             var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
             manager.CancelAll();

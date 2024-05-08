@@ -480,6 +480,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /// <inheritdoc />
+        public void ClearAllNotifications()
+        {
+            this.ClearQueues();
+            this.ClearAllNotificationsPlatform();
+        }
+
+        protected virtual void ClearAllNotificationsPlatform() // TODO: Needs to become abstract
+        {
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!this.disposed)
