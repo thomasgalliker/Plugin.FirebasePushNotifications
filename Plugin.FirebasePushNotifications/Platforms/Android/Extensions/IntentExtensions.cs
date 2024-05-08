@@ -1,4 +1,5 @@
-﻿using Android.Content;
+﻿using System.Diagnostics;
+using Android.Content;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -39,7 +40,38 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public static IDictionary<string, object> GetExtrasDict(this Intent intent)
         {
-            return intent.GetExtras().ToDictionary(x => x.Key, x => x.Value);
+            var extras = intent.GetExtras().ToArray();
+            return ConvertValues(extras).ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        private static IEnumerable<(string Key, object Value)> ConvertValues(IEnumerable<(string Key, object Value)> values)
+        {
+            foreach (var (Key, Value) in values)
+            {
+                if (Value.GetType().Namespace == "Java.Lang")
+                {
+                    if (Value is Java.Lang.String stringValue)
+                    {
+                        yield return (Key, (string)stringValue);
+                    }
+                    else if (Value is Java.Lang.Long longValue)
+                    {
+                        yield return (Key, (long)longValue);
+                    }
+                    else if (Value is Java.Lang.Integer integerValue)
+                    {
+                        yield return (Key, (int)integerValue);
+                    }
+                    else if (Value is Java.Lang.Boolean booleanValue)
+                    {
+                        yield return (Key, (bool)booleanValue);
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Value of type {Value?.GetType().Name} is currently not supported (Key: {Key})");
+                    }
+                }
+            }
         }
     }
 }

@@ -1,46 +1,84 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Plugin.FirebasePushNotifications.Model.Queues
 {
     /// <summary>
-    /// Thread-safe in-memory queue.
+    /// Thread-safe implementation of an in-memory queue
+    /// that implements <see cref="IQueue{T}"/>.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [DebuggerDisplay("InMemoryQueue<{typeof(T).Name,nq}> Count={this.Count}")]
     internal class InMemoryQueue<T> : IQueue<T>
     {
-        private readonly ConcurrentQueue<T> queue = new ConcurrentQueue<T>();
+        private readonly object lockObj = new object();
+        private readonly Queue<T> queue;
 
-        public int Count => this.queue.Count;
+        public InMemoryQueue()
+        {
+            this.queue = new Queue<T>();
+        }
+
+        public int Count
+        {
+            get
+            {
+                lock (this.lockObj)
+                {
+                    return this.queue.Count;
+                }
+            }
+        }
 
         public void Clear()
         {
-            this.queue.Clear();
+            lock (this.lockObj)
+            {
+                this.queue.Clear();
+            }
         }
 
         public bool TryDequeue(out T item)
         {
-            return this.queue.TryDequeue(out item);
+            lock (this.lockObj)
+            {
+                return this.queue.TryDequeue(out item);
+            }
         }
 
         public IEnumerable<T> TryDequeueAll()
         {
-            while (this.queue.TryDequeue(out var item))
+            lock (this.lockObj)
             {
-                yield return item;
+                while (this.queue.TryDequeue(out var item))
+                {
+                    yield return item;
+                }
             }
         }
 
         public void Enqueue(T item)
         {
-            this.queue.Enqueue(item);
+            lock (this.lockObj)
+            {
+                this.queue.Enqueue(item);
+            }
         }
 
         public bool TryPeek([MaybeNullWhen(false)] out T result)
         {
-            return this.queue.TryPeek(out result);
+            lock (this.lockObj)
+            {
+                return this.queue.TryPeek(out result);
+            }
+        }
+
+        public T[] ToArray()
+        {
+            lock (this.lockObj)
+            {
+                return this.queue.ToArray();
+            }
         }
     }
 }

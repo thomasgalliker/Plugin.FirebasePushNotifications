@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
+    x:Class="MauiSampleApp.Views.LogPage"
+    Title="LogPage"
+    x:DataType="vm:LogViewModel">
+    <Grid>
+        <ScrollView>
+            <Label
+                FontSize="Micro"
+                Text="{Binding LogContent}" />
+        </ScrollView>
+    </Grid>
+</ContentPage>

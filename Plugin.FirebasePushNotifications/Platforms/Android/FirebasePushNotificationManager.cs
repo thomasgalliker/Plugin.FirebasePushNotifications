@@ -42,7 +42,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             notificationChannels.CreateChannels(options.Android.NotificationChannels);
 
             // TODO: Remove this code asap!!
-            this.NotificationHandler = new DefaultPushNotificationHandler();
+            //this.NotificationHandler = new DefaultPushNotificationHandler();
         }
 
         public void ProcessIntent(Activity activity, Intent intent)

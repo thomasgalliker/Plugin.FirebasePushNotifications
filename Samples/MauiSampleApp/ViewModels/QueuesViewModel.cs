@@ -8,7 +8,7 @@ namespace MauiSampleApp.ViewModels
 {
     public class QueuesViewModel
     {
-        private readonly IQueue<FirebasePushNotificationDataEventArgs> queue;
+        private readonly IQueue<FirebasePushNotificationDataEventArgs> testQueue;
         private readonly IDialogService dialogService;
 
         private ICommand enqueueCommand;
@@ -18,7 +18,7 @@ namespace MauiSampleApp.ViewModels
         {
             this.dialogService = dialogService;
 
-            this.queue = new PersistentQueue<FirebasePushNotificationDataEventArgs>();
+            this.testQueue = new PersistentQueue<FirebasePushNotificationDataEventArgs>("testQueue");
         }
 
         public ICommand EnqueueCommand => this.enqueueCommand ??= new RelayCommand(this.Enqueue);
@@ -31,16 +31,16 @@ namespace MauiSampleApp.ViewModels
                 { "body", "Body" },
                 { "date", DateTime.Now.ToString("G") },
             };
-            this.queue.Enqueue(new FirebasePushNotificationDataEventArgs(dict));
+            this.testQueue.Enqueue(new FirebasePushNotificationDataEventArgs(dict));
         }
 
         public ICommand TryDequeueAllCommand => this.tryDequeueAllCommand ??= new RelayCommand(this.TryDequeueAll);
 
         private void TryDequeueAll()
         {
-            var count = this.queue.Count;
+            var count = this.testQueue.Count;
 
-            var items = this.queue.TryDequeueAll();
+            var items = this.testQueue.TryDequeueAll();
             var itemsString = 
                 $"queue.Count={count}{Environment.NewLine}{Environment.NewLine}" +
                 string.Join(Environment.NewLine, items.Select(i => $"{i.GetType().Name}:{Environment.NewLine}" +

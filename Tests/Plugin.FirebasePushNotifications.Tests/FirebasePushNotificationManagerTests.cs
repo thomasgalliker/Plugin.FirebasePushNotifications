@@ -317,7 +317,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             var firebasePushNotificationPreferences = this.autoMocker.GetMock<IFirebasePushNotificationPreferences>();
 
             var queueFactoryMock = new Mock<IQueueFactory>();
-            queueFactoryMock.Setup(q => q.Create<FirebasePushNotificationDataEventArgs>())
+            queueFactoryMock.Setup(q => q.Create<FirebasePushNotificationDataEventArgs>(It.IsAny<string>()))
                 .Returns((IQueue<FirebasePushNotificationDataEventArgs>)null);
 
             this.autoMocker.Use(new FirebasePushNotificationOptions

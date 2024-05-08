@@ -10,22 +10,24 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
     /// </summary>
     /// <typeparam name="T">Generic element type.</typeparam>
     /// <remarks>
-    /// Internally is uses <see cref="Queue{T}"/>, so Enqueue can be O(n). Dequeue is O(1).
+    /// Internally is uses <see cref="System.Collections.Generic.Queue{T}"/>, so Enqueue can be O(n). Dequeue is O(1).
     /// </remarks>
     [DebuggerDisplay("PersistentQueue<{typeof(T).Name,nq}> Count={this.Count}")]
-    public class PersistentQueue<T> : IQueue<T> //TODO: Mark internal
+    internal class PersistentQueue<T> : IQueue<T> //TODO: Mark internal
     {
-        private readonly Queue<T> queue;
+        private readonly object lockObj = new object();
+        private readonly IQueue<T> internalQueue;
         private readonly IFileInfo fileInfo;
         private readonly IFileInfoFactory fileInfoFactory;
         private readonly IDirectoryInfoFactory directoryInfoFactory;
         private readonly PersistentQueueOptions options;
+        private readonly JsonSerializerSettings jsonSerializerSettings;
 
         /// <summary>
         /// Creates a new instance of <see cref="PersistentQueue{T}"/> with options.
         /// </summary>
-        public PersistentQueue()
-            : this(PersistentQueueOptions.Default)
+        internal PersistentQueue(string key)
+            : this(key, PersistentQueueOptions.Default)
         {
         }
 
@@ -33,23 +35,31 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         /// Creates a new instance of <see cref="PersistentQueue{T}"/> with options.
         /// </summary>
         /// <param name="options">The options.</param>
-        public PersistentQueue(PersistentQueueOptions options)
-            : this(FileInfoFactory.Current, DirectoryInfoFactory.Current, options)
+        internal PersistentQueue(string key, PersistentQueueOptions options)
+            : this(FileInfoFactory.Current, DirectoryInfoFactory.Current, key, options)
         {
         }
 
         internal PersistentQueue(
             IFileInfoFactory fileInfoFactory,
             IDirectoryInfoFactory directoryInfoFactory,
+            string key,
             PersistentQueueOptions options)
         {
             this.fileInfoFactory = fileInfoFactory ?? throw new ArgumentNullException(nameof(fileInfoFactory));
             this.directoryInfoFactory = directoryInfoFactory ?? throw new ArgumentNullException(nameof(directoryInfoFactory));
             this.options = options ?? throw new ArgumentNullException(nameof(options));
 
+            this.jsonSerializerSettings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            };
+
             var baseDirectoryInfo = this.CreateDirectoryIfNotExists(options.BaseDirectory);
-            this.fileInfo = fileInfoFactory.FromPath(Path.Combine(baseDirectoryInfo.FullName, this.options.FileNameSelector(typeof(T))));
-            this.queue = ReadQueueFile(this.fileInfo);
+            this.fileInfo = fileInfoFactory.FromPath(Path.Combine(baseDirectoryInfo.FullName, this.options.FileNameSelector((typeof(T), key))));
+            Debug.WriteLine($"XXXXXX - fileInfo: {this.fileInfo.FullName}");
+            this.internalQueue = this.ReadQueueFile(this.fileInfo);
         }
 
         private IDirectoryInfo CreateDirectoryIfNotExists(string path)
@@ -63,56 +73,45 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             return directoryInfo;
         }
 
-        /// <inheritdoc cref="Queue{T}.Count" />
+        /// <inheritdoc cref="System.Collections.Generic.Queue{T}.Count" />
         public int Count
         {
             get
             {
-                lock (this)
+                lock (this.lockObj)
                 {
-                    return this.queue.Count;
+                    return this.internalQueue.Count;
                 }
             }
         }
 
-        /// <inheritdoc cref="Queue{T}.Clear()"/>
+        /// <inheritdoc cref="System.Collections.Generic.Queue{T}.Clear()"/>
         public void Clear()
         {
-            lock (this)
+            lock (this.lockObj)
             {
                 this.fileInfo.Delete();
-                this.queue.Clear();
+                this.internalQueue.Clear();
             }
         }
 
-        /// <inheritdoc cref="Queue{T}.Enqueue(T)"/>
+        /// <inheritdoc cref="System.Collections.Generic.Queue{T}.Enqueue(T)"/>
         public void Enqueue(T item)
         {
-            lock (this)
+            lock (this.lockObj)
             {
-                this.queue.Enqueue(item);
-                this.WriteQueueFile(this.fileInfo, this.queue);
+                this.internalQueue.Enqueue(item);
+                this.WriteQueueFile(this.fileInfo, this.internalQueue);
             }
         }
 
-        /// <inheritdoc cref="Queue{T}.Dequeue()"/>
-        public T Dequeue()
-        {
-            lock (this)
-            {
-                var item = this.queue.Dequeue();
-                this.WriteQueueFile(this.fileInfo, this.queue);
-                return item;
-            }
-        }
-
-        /// <inheritdoc cref="Queue{T}.TryDequeue(out T)"/>
+        /// <inheritdoc cref="System.Collections.Generic.Queue{T}.TryDequeue(out T)"/>
         public bool TryDequeue([MaybeNullWhen(false)] out T result)
         {
-            lock (this)
+            lock (this.lockObj)
             {
-                var success = this.queue.TryDequeue(out result);
-                this.WriteQueueFile(this.fileInfo, this.queue);
+                var success = this.internalQueue.TryDequeue(out result);
+                this.WriteQueueFile(this.fileInfo, this.internalQueue);
                 return success;
             }
         }
@@ -120,42 +119,44 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         /// <inheritdoc />
         public IEnumerable<T> TryDequeueAll()
         {
-            lock (this)
+            lock (this.lockObj)
             {
                 var items = this.TryDequeueAllInternal().ToArray();
-                this.WriteQueueFile(this.fileInfo, this.queue);
+                this.WriteQueueFile(this.fileInfo, this.internalQueue);
                 return items;
             }
         }
 
         private IEnumerable<T> TryDequeueAllInternal()
         {
-            while (this.queue.TryDequeue(out var item))
+            while (this.internalQueue.TryDequeue(out var item))
             {
                 yield return item;
             }
         }
 
-        /// <inheritdoc cref="Queue{T}.Peek()"/>
-        public T Peek()
-        {
-            lock (this)
-            {
-                return this.queue.Peek();
-            }
-        }
-
-        /// <inheritdoc cref="Queue{T}.TryPeek(out T)"/>
+        /// <inheritdoc cref="System.Collections.Generic.Queue{T}.TryPeek(out T)"/>
         public bool TryPeek([MaybeNullWhen(false)] out T result)
         {
-            lock (this)
+            lock (this.lockObj)
             {
-                return this.queue.TryPeek(out result);
+                return this.internalQueue.TryPeek(out result);
             }
         }
 
-        private static Queue<T> ReadQueueFile(IFileInfo fileInfo)
+        /// <inheritdoc cref="System.Collections.Generic.Queue{T}.ToArray()"/>
+        public T[] ToArray()
         {
+            lock (this.lockObj)
+            {
+                return this.internalQueue.ToArray();
+            }
+        }
+
+        private IQueue<T> ReadQueueFile(IFileInfo fileInfo)
+        {
+            IEnumerable<T> items = null;
+
             if (fileInfo.Exists)
             {
                 try
@@ -165,11 +166,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
                         var json = streamReader.ReadToEnd();
                         if (!string.IsNullOrEmpty(json))
                         {
-                            var items = JsonConvert.DeserializeObject<List<T>>(json);
-                            if (items != null)
-                            {
-                                return new Queue<T>(items);
-                            }
+                            items = JsonConvert.DeserializeObject<List<T>>(json, this.jsonSerializerSettings);
                         }
                     }
                 }
@@ -177,39 +174,25 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
                 {
                     Debug.WriteLine($"ReadQueueFile failed with exception: {ex}");
                 }
+            }
 
-                return new Queue<T>();
-            }
-            else
-            {
-                return new Queue<T>();
-            }
+            return items == null
+                ? new Queue<T>()
+                : new Queue<T>(items);
         }
 
-        private void WriteQueueFile(IFileInfo fileInfo, Queue<T> queue)
+        private void WriteQueueFile(IFileInfo fileInfo, IQueue<T> queue)
         {
-            if (fileInfo.Exists)
+            var targetDirectory = fileInfo.Directory;
+            if (!targetDirectory.Exists)
             {
-                fileInfo.Delete();
-            }
-
-            var currentDirectory = fileInfo.Directory;
-            if (!currentDirectory.Exists)
-            {
-                // Make sure there is no file with the same location
-                // where we want to create a directory to store the queue files.
-                var conflictingFile = this.fileInfoFactory.FromPath(currentDirectory.FullName);
-                if (conflictingFile.Exists)
-                {
-                    throw new IOException($"Failed to create directory at path \"{currentDirectory.FullName}\". File with same name already exists.");
-                }
-
-                currentDirectory.Create();
+                targetDirectory.Create();
             }
 
             using (var writer = fileInfo.CreateText())
             {
-                var json = JsonConvert.SerializeObject(queue);
+                var array = queue.ToArray();
+                var json = JsonConvert.SerializeObject(array, this.jsonSerializerSettings);
                 writer.Write(json);
             }
         }

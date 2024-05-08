@@ -184,10 +184,11 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             queue.Enqueue(new TestItem { Id = 1 });
 
             // Act
-            var dequeueItem = queue.Dequeue();
+            var success = queue.TryDequeue(out var dequeueItem);
 
             // Assert
             queue.Count.Should().Be(0);
+            success.Should().BeTrue();
             dequeueItem.Id.Should().Be(1);
 
             var texts = GetTextFromMemoryStreams(createTextMemoryStreams);
@@ -236,10 +237,11 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             queue.Enqueue(new TestItem { Id = 1 });
 
             // Act
-            var peekItem = queue.Peek();
+            var success = queue.TryPeek(out var peekItem);
 
             // Assert
             queue.Count.Should().Be(1);
+            success.Should().BeTrue();
             peekItem.Id.Should().Be(1);
 
             var texts = GetTextFromMemoryStreams(createTextMemoryStreams);

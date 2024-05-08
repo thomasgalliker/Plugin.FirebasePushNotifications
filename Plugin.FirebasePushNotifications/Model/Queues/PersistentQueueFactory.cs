@@ -14,9 +14,9 @@
             this.options = options;
         }
 
-        public IQueue<T> Create<T>()
+        public IQueue<T> Create<T>(string key)
         {
-            return new PersistentQueue<T>(this.options);
+            return new PersistentQueue<T>(key, this.options);
         }
     }
 }

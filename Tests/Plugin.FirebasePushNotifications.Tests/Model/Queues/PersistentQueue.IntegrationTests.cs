@@ -20,23 +20,6 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         }
 
         [Fact]
-        public void ShouldDequeueItem()
-        {
-            // Arrange
-            var queue = new PersistentQueue<TestItem>();
-            queue.Clear();
-
-            queue.Enqueue(new TestItem { Id = 1 });
-
-            // Act
-            var dequeueItem = queue.Dequeue();
-
-            // Assert
-            queue.Count.Should().Be(0);
-            dequeueItem.Id.Should().Be(1);
-        }
-
-        [Fact]
         public void ShouldTryDequeueItem()
         {
             // Arrange
@@ -70,11 +53,14 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
 
             // Act
             var persistentQueue2 = new PersistentQueue<TestItem>(options);
-            var dequeued1 = persistentQueue2.Dequeue();
-            var dequeued2 = persistentQueue2.Dequeue();
+            var success1 = persistentQueue2.TryDequeue(out var dequeued1);
+            var success2 = persistentQueue2.TryDequeue(out var dequeued2);
 
             // Assert
+            success1.Should().BeTrue();
             dequeued1.Id.Should().Be(1);
+
+            success2.Should().BeTrue();
             dequeued2.Id.Should().Be(2);
 
             var persistentQueue3 = new PersistentQueue<TestItem>(options);
@@ -122,10 +108,11 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             queue.Enqueue(new TestItem { Id = 1 });
 
             // Act
-            var peekItem = queue.Peek();
+            var success = queue.TryPeek(out var peekItem);
 
             // Assert
             queue.Count.Should().Be(1);
+            success.Should().BeTrue();
             peekItem.Id.Should().Be(1);
         }
 

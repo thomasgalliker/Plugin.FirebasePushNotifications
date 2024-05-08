@@ -33,6 +33,6 @@
         /// <summary>
         /// Selects the file name from a given generic type T in <see cref="PersistentQueue{T}"/>.
         /// </summary>
-        public virtual Func<Type, string> FileNameSelector { get; set; } = (t) => $"{t.Name}.json";
+        public virtual Func<(Type Type, string Key), string> FileNameSelector { get; set; } = q => $"{q.Key}.json";
     }
 }
