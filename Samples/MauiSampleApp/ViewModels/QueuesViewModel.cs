@@ -18,7 +18,8 @@ namespace MauiSampleApp.ViewModels
         {
             this.dialogService = dialogService;
 
-            this.testQueue = new PersistentQueue<FirebasePushNotificationDataEventArgs>("testQueue");
+            var persistentQueueFactory = new PersistentQueueFactory();
+            this.testQueue = persistentQueueFactory.Create<FirebasePushNotificationDataEventArgs>("testQueue");
         }
 
         public ICommand EnqueueCommand => this.enqueueCommand ??= new RelayCommand(this.Enqueue);

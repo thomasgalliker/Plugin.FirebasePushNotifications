@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Plugin.FirebasePushNotifications.Internals;
 
@@ -13,42 +15,20 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
     /// Internally is uses <see cref="System.Collections.Generic.Queue{T}"/>, so Enqueue can be O(n). Dequeue is O(1).
     /// </remarks>
     [DebuggerDisplay("PersistentQueue<{typeof(T).Name,nq}> Count={this.Count}")]
-    internal class PersistentQueue<T> : IQueue<T> //TODO: Mark internal
+    internal class PersistentQueue<T> : IQueue<T>
     {
-        private readonly object lockObj = new object();
+        private readonly ILogger logger;
         private readonly IQueue<T> internalQueue;
         private readonly IFileInfo fileInfo;
-        private readonly IFileInfoFactory fileInfoFactory;
-        private readonly IDirectoryInfoFactory directoryInfoFactory;
-        private readonly PersistentQueueOptions options;
         private readonly JsonSerializerSettings jsonSerializerSettings;
-
-        /// <summary>
-        /// Creates a new instance of <see cref="PersistentQueue{T}"/> with options.
-        /// </summary>
-        public PersistentQueue(string key)
-            : this(key, PersistentQueueOptions.Default)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="PersistentQueue{T}"/> with options.
-        /// </summary>
-        /// <param name="options">The options.</param>
-        public PersistentQueue(string key, PersistentQueueOptions options)
-            : this(FileInfoFactory.Current, DirectoryInfoFactory.Current, key, options)
-        {
-        }
+        private readonly object lockObj = new object();
 
         internal PersistentQueue(
-            IFileInfoFactory fileInfoFactory,
-            IDirectoryInfoFactory directoryInfoFactory,
-            string key,
-            PersistentQueueOptions options)
+            ILogger<PersistentQueue<T>> logger,
+            IFileInfo fileInfo)
         {
-            this.fileInfoFactory = fileInfoFactory ?? throw new ArgumentNullException(nameof(fileInfoFactory));
-            this.directoryInfoFactory = directoryInfoFactory ?? throw new ArgumentNullException(nameof(directoryInfoFactory));
-            this.options = options ?? throw new ArgumentNullException(nameof(options));
+            this.logger = logger ?? new NullLogger<PersistentQueue<T>>();
+            this.fileInfo = fileInfo ?? throw new ArgumentNullException(nameof(fileInfo));
 
             this.jsonSerializerSettings = new JsonSerializerSettings
             {
@@ -56,21 +36,8 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             };
 
-            var baseDirectoryInfo = this.CreateDirectoryIfNotExists(options.BaseDirectory);
-            this.fileInfo = fileInfoFactory.FromPath(Path.Combine(baseDirectoryInfo.FullName, this.options.FileNameSelector((typeof(T), key))));
-            Debug.WriteLine($"XXXXXX - fileInfo: {this.fileInfo.FullName}");
             this.internalQueue = this.ReadQueueFile(this.fileInfo);
-        }
-
-        private IDirectoryInfo CreateDirectoryIfNotExists(string path)
-        {
-            var directoryInfo = this.directoryInfoFactory.FromPath(path);
-            if (!directoryInfo.Exists)
-            {
-                directoryInfo.Create();
-            }
-
-            return directoryInfo;
+            this.logger = logger;
         }
 
         /// <inheritdoc cref="System.Collections.Generic.Queue{T}.Count" />
@@ -161,6 +128,8 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             {
                 try
                 {
+                    this.logger.LogDebug($"ReadQueueFile: fileInfo={fileInfo.FullName}");
+
                     using (var streamReader = fileInfo.OpenText())
                     {
                         var json = streamReader.ReadToEnd();
@@ -172,7 +141,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"ReadQueueFile failed with exception: {ex}");
+                    this.logger.LogError(ex, $"ReadQueueFile failed with exception: {ex}");
                 }
             }
 
@@ -188,6 +157,8 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             {
                 targetDirectory.Create();
             }
+
+            this.logger.LogDebug($"WriteQueueFile: fileInfo={fileInfo.FullName}");
 
             using (var writer = fileInfo.CreateText())
             {
