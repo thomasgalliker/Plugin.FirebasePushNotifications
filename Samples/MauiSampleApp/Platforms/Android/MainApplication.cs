@@ -16,6 +16,8 @@ namespace MauiSampleApp
             AppDomain.CurrentDomain.UnhandledException += this.CurrentDomain_UnhandledException;
         }
 
+        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+
         private void AndroidEnvironment_UnhandledExceptionRaiser(object sender, RaiseThrowableEventArgs e)
         {
             var logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<MainApplication>>();
@@ -26,7 +28,6 @@ namespace MauiSampleApp
         {
             var logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<MainApplication>>();
             logger.LogError(e.Exception, "TaskScheduler_UnobservedTaskException");
-
         }
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -36,7 +37,5 @@ namespace MauiSampleApp
 
             NLog.LogManager.Shutdown();
         }
-
-        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
     }
 }
