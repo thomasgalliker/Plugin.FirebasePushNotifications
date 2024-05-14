@@ -3,4 +3,5 @@
     <color name="colorPrimary">#FDA612</color>
     <color name="colorPrimaryDark">#F6820C</color>
     <color name="colorAccent">#F6820C</color>
+    <color name="ic_default_notification_color">#F6820C</color>
 </resources>
