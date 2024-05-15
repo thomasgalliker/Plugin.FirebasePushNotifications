@@ -55,12 +55,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (queueFactory != null)
             {
                 // Create new queues
-                this.tokenRefreshQueue = queueFactory.Create<FirebasePushNotificationTokenEventArgs>();
-                this.notificationReceivedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>();
-                this.notificationDeletedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>();
-                this.notificationOpenedQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>();
-                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>();
-                this.notificationErrorQueue = queueFactory.Create<FirebasePushNotificationErrorEventArgs>();
+                this.tokenRefreshQueue = queueFactory.Create<FirebasePushNotificationTokenEventArgs>("tokenRefreshQueue");
+                this.notificationReceivedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationReceivedQueue");
+                this.notificationDeletedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationDeletedQueue");
+                this.notificationOpenedQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationOpenedQueue");
+                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationActionQueue");
+                this.notificationErrorQueue = queueFactory.Create<FirebasePushNotificationErrorEventArgs>("notificationErrorQueue");
             }
             else
             {
@@ -226,7 +226,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             add
             {
-                this.DequeueAndSubscribe(value, ref this.tokenRefreshEventHandler, this.tokenRefreshQueue);
+                this.DequeueAndSubscribe(
+                    value,
+                    ref this.tokenRefreshEventHandler,
+                    this.tokenRefreshQueue);
             }
             remove => this.tokenRefreshEventHandler -= value;
         }
@@ -254,7 +257,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             add
             {
-                this.DequeueAndSubscribe(value, ref this.notificationReceivedEventHandler, this.notificationReceivedQueue);
+                this.DequeueAndSubscribe(
+                    value,
+                    ref this.notificationReceivedEventHandler,
+                    this.notificationReceivedQueue);
             }
             remove => this.notificationReceivedEventHandler -= value;
         }
@@ -283,7 +289,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             add
             {
-                this.DequeueAndSubscribe(value, ref this.notificationDeletedEventHandler, this.notificationDeletedQueue);
+                this.DequeueAndSubscribe(
+                    value,
+                    ref this.notificationDeletedEventHandler,
+                    this.notificationDeletedQueue);
             }
             remove => this.notificationDeletedEventHandler -= value;
         }
@@ -306,7 +315,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             add
             {
-                this.DequeueAndSubscribe(value, ref this.notificationErrorEventHandler, this.notificationErrorQueue);
+                this.DequeueAndSubscribe(
+                    value,
+                    ref this.notificationErrorEventHandler,
+                    this.notificationErrorQueue);
             }
             remove
             {
@@ -346,7 +358,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             add
             {
-                this.DequeueAndSubscribe(value, ref this.notificationOpenedEventHandler, this.notificationOpenedQueue);
+                this.DequeueAndSubscribe(
+                    value,
+                    ref this.notificationOpenedEventHandler,
+                    this.notificationOpenedQueue);
             }
             remove
             {
@@ -380,7 +395,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             add
             {
-                this.DequeueAndSubscribe(value, ref this.notificationActionEventHandler, this.notificationActionQueue);
+                this.DequeueAndSubscribe(
+                    value,
+                    ref this.notificationActionEventHandler,
+                    this.notificationActionQueue);
             }
             remove
             {
@@ -416,7 +434,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     // If no subscribers are present, queue the event args
                     this.logger.LogDebug(
-                     $"{callerName ?? nameof(RaiseOrQueueEvent)} queues event \"{eventName}\" into {queue.GetType().GetFormattedName()} for deferred delivery");
+                        $"{callerName ?? nameof(RaiseOrQueueEvent)} queues event \"{eventName}\" into {queue.GetType().GetFormattedName()} for deferred delivery");
 
                     var args = getEventArgs();
                     queue.Enqueue(args);
@@ -437,7 +455,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private void DequeueAndSubscribe<TEventArgs>(
             EventHandler<TEventArgs> value,
             ref EventHandler<TEventArgs> eventHandler,
-            IQueue<TEventArgs> queue) where TEventArgs : EventArgs
+            IQueue<TEventArgs> queue,
+            [CallerMemberName] string eventName = null) where TEventArgs : EventArgs
         {
             if (queue != null)
             {
@@ -446,6 +465,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 if (previousSubscriptions == null && eventHandler != null)
                 {
+                    this.logger.LogDebug(
+                        $"{nameof(DequeueAndSubscribe)} dequeues {queue.Count} event{(queue.Count == 1 ? "" : "s")} \"{eventName}\" from {queue.GetType().GetFormattedName()} for deferred delivery");
+
                     foreach (var args in queue.TryDequeueAll())
                     {
                         eventHandler.Invoke(this, args);
@@ -456,6 +478,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 eventHandler += value;
             }
+        }
+
+        /// <inheritdoc />
+        public void ClearAllNotifications()
+        {
+            this.ClearQueues();
+            this.ClearAllNotificationsPlatform();
+        }
+
+        protected virtual void ClearAllNotificationsPlatform() // TODO: Needs to become abstract
+        {
         }
 
         protected virtual void Dispose(bool disposing)

@@ -29,6 +29,7 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand subscribeEventsCommand;
         private AsyncRelayCommand unsubscribeEventsCommand;
         private AsyncRelayCommand navigateToQueuesPageCommand;
+        private AsyncRelayCommand navigateToLogPageCommand;
         private AsyncRelayCommand capturePhotoCommand;
         private AsyncRelayCommand shareTokenCommand;
         private AsyncRelayCommand getTokenCommand;
@@ -41,6 +42,7 @@ namespace MauiSampleApp.ViewModels
         private SubscribedTopicViewModel[] subscribedTopics;
         private AsyncRelayCommand getSubscribedTopicsCommand;
         private bool subscribeEventsAtStartup;
+        private bool isSubscribedToEvents;
         private AsyncRelayCommand appearingCommand;
         private bool isInitialized;
         private AsyncRelayCommand registerNotificationCategoriesCommand;
@@ -178,7 +180,22 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public ICommand SubscribeEventsCommand => this.subscribeEventsCommand ??= new AsyncRelayCommand(this.SubscribeEventsAsync);
+        public bool IsSubscribedToEvents
+        {
+            get => this.isSubscribedToEvents;
+            set
+            {
+                if (this.SetProperty(ref this.isSubscribedToEvents, value))
+                {
+                    this.SubscribeEventsCommand.NotifyCanExecuteChanged();
+                    this.UnsubscribeEventsCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
+
+        public IAsyncRelayCommand SubscribeEventsCommand => this.subscribeEventsCommand ??= new AsyncRelayCommand(
+            execute: this.SubscribeEventsAsync,
+            canExecute: () => !this.IsSubscribedToEvents);
 
         private async Task SubscribeEventsAsync()
         {
@@ -191,6 +208,7 @@ namespace MauiSampleApp.ViewModels
                 this.firebasePushNotification.NotificationDeleted += this.OnNotificationDeleted;
                 this.firebasePushNotification.NotificationError += this.OnNotificationError;
 
+                this.IsSubscribedToEvents = true;
             }
             catch (Exception ex)
             {
@@ -199,7 +217,9 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public ICommand UnsubscribeEventsCommand => this.unsubscribeEventsCommand ??= new AsyncRelayCommand(this.UnsubscribeEventsAsync);
+        public IAsyncRelayCommand UnsubscribeEventsCommand => this.unsubscribeEventsCommand ??= new AsyncRelayCommand(
+            execute: this.UnsubscribeEventsAsync,
+            canExecute: () => this.IsSubscribedToEvents);
 
         private async Task UnsubscribeEventsAsync()
         {
@@ -212,6 +232,7 @@ namespace MauiSampleApp.ViewModels
                 this.firebasePushNotification.NotificationDeleted -= this.OnNotificationDeleted;
                 this.firebasePushNotification.NotificationError -= this.OnNotificationError;
 
+                this.IsSubscribedToEvents = false;
             }
             catch (Exception ex)
             {
@@ -280,7 +301,7 @@ namespace MauiSampleApp.ViewModels
             var shareRequest = new ShareTextRequest(this.Token);
             await this.share.RequestAsync(shareRequest);
         }
-        
+
         public ICommand GetTokenCommand => this.getTokenCommand ??= new AsyncRelayCommand(this.GetTokenAsync);
 
         private async Task GetTokenAsync()
@@ -475,14 +496,28 @@ namespace MauiSampleApp.ViewModels
             await this.navigationService.PushAsync<QueuesPage>();
         }
 
+        public ICommand NavigateToLogPageCommand => this.navigateToLogPageCommand ??= new AsyncRelayCommand(this.NavigateToLogPageAsync);
+
+        private async Task NavigateToLogPageAsync()
+        {
+            await this.navigationService.PushAsync<LogPage>();
+        }
+
         public ICommand CapturePhotoCommand => this.capturePhotoCommand ??= new AsyncRelayCommand(this.CapturePhotoAsync);
 
         private async Task CapturePhotoAsync()
         {
-            var result = await MediaPicker.Default.CapturePhotoAsync();
-            if (result != null)
+            try
             {
-                await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Success", "OK");
+                var result = await MediaPicker.Default.CapturePhotoAsync();
+                if (result != null)
+                {
+                    await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Success", "OK");
+                }
+            }
+            catch (Exception)
+            {
+                await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Cancelled", "OK");
             }
         }
     }

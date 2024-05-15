@@ -12,6 +12,7 @@ using UserNotifications;
 
 using Microsoft.Maui.LifecycleEvents;
 using Plugin.FirebasePushNotifications.Internals;
+using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -40,6 +41,11 @@ namespace Plugin.FirebasePushNotifications
                     }
 
                     var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
+                    if (defaultOptions?.QueueFactory is IQueueFactory queueFactory)
+                    {
+                        queueFactory.LoggerFactory = loggerFactory;
+                    }
+
                     var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
 
                     if (launchOptions != null)
@@ -68,8 +74,14 @@ namespace Plugin.FirebasePushNotifications
 #elif ANDROID
                 events.AddAndroid(android => android.OnApplicationCreate(d =>
                 {
+                   var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
+                    if (defaultOptions?.QueueFactory is IQueueFactory queueFactory)
+                    {
+                        queueFactory.LoggerFactory = loggerFactory;
+                    }
+
                     var firebasePushNotification = CrossFirebasePushNotification.Current;
-                    firebasePushNotification.Logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
+                    firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
                     firebasePushNotification.Configure(defaultOptions);
 
                     if (defaultOptions.AutoInitEnabled)

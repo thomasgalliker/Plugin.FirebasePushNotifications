@@ -5,6 +5,8 @@ using MauiSampleApp.Views;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Model.Queues;
+using MauiSampleApp.Services.Logging;
+using NLog.Extensions.Logging;
 
 #if ANDROID
 using MauiSampleApp.Platforms.Notifications;
@@ -40,18 +42,29 @@ namespace MauiSampleApp
                 b.ClearProviders();
                 b.SetMinimumLevel(LogLevel.Trace);
                 b.AddDebug();
+                b.AddNLog();
             });
 
-            builder.Services.AddSingleton<MainPage>();
-            builder.Services.AddSingleton<MainViewModel>();
+            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<MainViewModel>();
 
-            builder.Services.AddSingleton<QueuesPage>();
-            builder.Services.AddSingleton<QueuesViewModel>();
+            builder.Services.AddTransient<QueuesPage>();
+            builder.Services.AddTransient<QueuesViewModel>();
+
+            builder.Services.AddTransient<LogPage>();
+            builder.Services.AddTransient<LogViewModel>();
 
             builder.Services.AddSingleton<INavigationService, MauiNavigationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
             builder.Services.AddSingleton(_ => Share.Default);
             builder.Services.AddSingleton(_ => Preferences.Default);
+            builder.Services.AddSingleton(_ => Email.Default);
+            builder.Services.AddSingleton(_ => AppInfo.Current);
+            builder.Services.AddSingleton(_ => DeviceInfo.Current);
+            builder.Services.AddSingleton(_ => FileSystem.Current);
+
+            var logFileReader = new NLogFileReader(NLogLoggerConfiguration.LogFilePath);
+            builder.Services.AddSingleton<ILogFileReader>(logFileReader);
 
             return builder.Build();
         }

@@ -1,4 +1,5 @@
 ﻿using Foundation;
+using Microsoft.Extensions.Logging;
 using ObjCRuntime;
 using Plugin.FirebasePushNotifications;
 using UIKit;
@@ -15,6 +16,9 @@ namespace MauiSampleApp
 
         public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
+            TaskScheduler.UnobservedTaskException += this.TaskScheduler_UnobservedTaskException;
+            AppDomain.CurrentDomain.UnhandledException += this.CurrentDomain_UnhandledException;
+
             return base.FinishedLaunching(application, launchOptions);
         }
 
@@ -37,6 +41,20 @@ namespace MauiSampleApp
         {
             CrossFirebasePushNotification.Current.DidReceiveRemoteNotification(userInfo);
             completionHandler(UIBackgroundFetchResult.NewData);
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            var logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<AppDelegate>>();
+            logger.LogError(e.Exception, "TaskScheduler_UnobservedTaskException");
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<AppDelegate>>();
+            logger.LogError(e.ExceptionObject as Exception, "CurrentDomain_UnhandledException");
+
+            NLog.LogManager.Shutdown();
         }
     }
 }

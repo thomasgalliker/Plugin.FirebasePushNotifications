@@ -118,7 +118,7 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     AutoSize="TextChanges"
-                    Text="{Binding Token}" />
+                    Text="{Binding Token, Mode=OneWay}" />
                 <Grid
                     Grid.Row="1"
                     Grid.Column="1"
@@ -233,11 +233,13 @@
                 Command="{Binding NavigateToQueuesPageCommand}"
                 Text="Queues"
                 HorizontalOptions="Fill" />
-
-            <controls:DividerLine />
+            <Button
+                Command="{Binding NavigateToLogPageCommand}"
+                Text="Logs"
+                HorizontalOptions="Fill" />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
+                Style="{StaticResource Heading2LabelStyle}"
                 Text="Interaction Checks" />
             <Label Text="MediaPicker uses a separate Activity on Android to take photos. This interacts with the ProcessIntent method of IFirebasePushNotification" />
             <Button

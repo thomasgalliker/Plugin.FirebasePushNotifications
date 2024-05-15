@@ -42,7 +42,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             notificationChannels.CreateChannels(options.Android.NotificationChannels);
 
             // TODO: Remove this code asap!!
-            this.NotificationHandler = new DefaultPushNotificationHandler();
+            //this.NotificationHandler = new DefaultPushNotificationHandler();
         }
 
         public void ProcessIntent(Activity activity, Intent intent)
@@ -425,7 +425,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        public void ClearAllNotifications()
+        protected override void ClearAllNotificationsPlatform()
         {
             var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
             manager.CancelAll();

@@ -39,7 +39,7 @@
 
         public static bool TryGetInt(this IDictionary<string, object> items, string key, out int value)
         {
-            if (items.TryGetValue(key, out var item) && int.TryParse($"{item}", out var integerValue))
+            if (items.TryGetValue(key, out var item) && (item is int integerValue || int.TryParse($"{item}", out integerValue)))
             {
                 value = integerValue;
                 return true;

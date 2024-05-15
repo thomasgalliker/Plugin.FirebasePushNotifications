@@ -1,8 +1,12 @@
-﻿namespace Plugin.FirebasePushNotifications.Model.Queues
+﻿using Microsoft.Extensions.Logging;
+
+namespace Plugin.FirebasePushNotifications.Model.Queues
 {
     public class InMemoryQueueFactory : IQueueFactory
     {
-        public IQueue<T> Create<T>()
+        public ILoggerFactory LoggerFactory { get; set; }
+
+        public IQueue<T> Create<T>(string key)
         {
             return new InMemoryQueue<T>();
         }

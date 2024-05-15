@@ -1,67 +1,76 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Internals;
 using Plugin.FirebasePushNotifications.Model.Queues;
+using Plugin.FirebasePushNotifications.Tests.Logging;
+using Xunit.Abstractions;
 
 namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
 {
+    [Collection("DisableParallelization")]
     public class PersistentQueueIntegrationTests
     {
+        private readonly ILogger<PersistentQueue<TestItem>> logger;
+        private readonly IFileInfo fileInfo1;
+        private readonly IFileInfo fileInfo2;
+        private readonly IFileInfo fileInfo3;
+
+        public PersistentQueueIntegrationTests(ITestOutputHelper testOutputHelper)
+        {
+            this.logger = new TestOutputHelperLogger<PersistentQueue<TestItem>>(testOutputHelper);
+
+            this.fileInfo1 = new FileInfoWrapper(new FileInfo(Path.Combine(".", "file1.json")));
+            this.fileInfo2 = new FileInfoWrapper(new FileInfo(Path.Combine(".", "file2.json")));
+            this.fileInfo3 = new FileInfoWrapper(new FileInfo(Path.Combine(".", "file3.json")));
+
+            this.DeleteTestFiles();
+        }
+
+        private void DeleteTestFiles()
+        {
+            this.fileInfo1.Delete();
+            this.fileInfo2.Delete();
+            this.fileInfo3.Delete();
+        }
+
         [Fact]
         public void ShouldEnqueueItem()
         {
             // Arrange
-            var queue = new PersistentQueue<TestItem>();
-            queue.Clear();
+            var persistentQueue = new PersistentQueue<TestItem>(this.logger, this.fileInfo1);
+            persistentQueue.Clear();
 
             // Act
-            queue.Enqueue(new TestItem { Id = 1 });
+            persistentQueue.Enqueue(new TestItem { Id = 1 });
 
             // Assert
-            queue.Count.Should().Be(1);
-        }
-
-        [Fact]
-        public void ShouldDequeueItem()
-        {
-            // Arrange
-            var queue = new PersistentQueue<TestItem>();
-            queue.Clear();
-
-            queue.Enqueue(new TestItem { Id = 1 });
-
-            // Act
-            var dequeueItem = queue.Dequeue();
-
-            // Assert
-            queue.Count.Should().Be(0);
-            dequeueItem.Id.Should().Be(1);
+            persistentQueue.Count.Should().Be(1);
         }
 
         [Fact]
         public void ShouldTryDequeueItem()
         {
             // Arrange
-            var queue = new PersistentQueue<TestItem>();
-            queue.Clear();
+            var persistentQueue = new PersistentQueue<TestItem>(this.logger, this.fileInfo1);
+            persistentQueue.Clear();
 
-            queue.Enqueue(new TestItem { Id = 1 });
+            persistentQueue.Enqueue(new TestItem { Id = 1 });
 
             // Act
-            var success = queue.TryDequeue(out var dequeueItem);
+            var success = persistentQueue.TryDequeue(out var dequeueItem);
 
             // Assert
-            queue.Count.Should().Be(0);
+            persistentQueue.Count.Should().Be(0);
             success.Should().BeTrue();
             dequeueItem.Should().NotBeNull();
             dequeueItem.Id.Should().Be(1);
         }
 
         [Fact]
-        public void ShouldEnqueueAndDequeueItems_WithMultipleQueues()
+        public void ShouldEnqueueAndDequeueItems_WithMultipleQueues_SameFile()
         {
             // Arrange
-            var options = new PersistentQueueOptions();
-
-            var persistentQueue1 = new PersistentQueue<TestItem>(options);
+            var persistentQueue1 = new PersistentQueue<TestItem>(this.logger, this.fileInfo1);
             persistentQueue1.Clear();
 
             persistentQueue1.Enqueue(new TestItem { Id = 1 });
@@ -69,25 +78,26 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             persistentQueue1.Enqueue(new TestItem { Id = 3 });
 
             // Act
-            var persistentQueue2 = new PersistentQueue<TestItem>(options);
-            var dequeued1 = persistentQueue2.Dequeue();
-            var dequeued2 = persistentQueue2.Dequeue();
+            var persistentQueue2 = new PersistentQueue<TestItem>(this.logger, this.fileInfo1);
+            var success1 = persistentQueue2.TryDequeue(out var dequeued1);
+            var success2 = persistentQueue2.TryDequeue(out var dequeued2);
 
             // Assert
+            success1.Should().BeTrue();
             dequeued1.Id.Should().Be(1);
+
+            success2.Should().BeTrue();
             dequeued2.Id.Should().Be(2);
 
-            var persistentQueue3 = new PersistentQueue<TestItem>(options);
+            var persistentQueue3 = new PersistentQueue<TestItem>(this.logger, this.fileInfo1);
             persistentQueue3.Count.Should().Be(1);
         }
 
         [Fact]
-        public void ShouldEnqueueAndTryDequeueItems_WithMultipleQueues()
+        public void ShouldEnqueueAndDequeueItems_WithMultipleQueues_DifferentFiles()
         {
             // Arrange
-            var options = new PersistentQueueOptions();
-
-            var persistentQueue1 = new PersistentQueue<TestItem>(options);
+            var persistentQueue1 = new PersistentQueue<TestItem>(this.logger, this.fileInfo1);
             persistentQueue1.Clear();
 
             persistentQueue1.Enqueue(new TestItem { Id = 1 });
@@ -95,37 +105,36 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             persistentQueue1.Enqueue(new TestItem { Id = 3 });
 
             // Act
-            var persistentQueue2 = new PersistentQueue<TestItem>(options);
-            var dequeuedSuccess1 = persistentQueue2.TryDequeue(out var dequeuedItem1);
-            var dequeuedSuccess2 = persistentQueue2.TryDequeue(out var dequeuedItem2);
+            var persistentQueue2 = new PersistentQueue<TestItem>(this.logger, this.fileInfo2);
+            var success1 = persistentQueue2.TryDequeue(out var dequeued1);
+            var success2 = persistentQueue2.TryDequeue(out var dequeued2);
 
             // Assert
-            dequeuedSuccess1.Should().BeTrue();
-            dequeuedItem1.Should().NotBeNull();
-            dequeuedItem1.Id.Should().Be(1);
+            success1.Should().BeFalse();
+            dequeued1.Should().BeNull();
 
-            dequeuedSuccess2.Should().BeTrue();
-            dequeuedItem2.Should().NotBeNull();
-            dequeuedItem2.Id.Should().Be(2);
+            success2.Should().BeFalse();
+            dequeued2.Should().BeNull();
 
-            var persistentQueue3 = new PersistentQueue<TestItem>(options);
-            persistentQueue3.Count.Should().Be(1);
+            var persistentQueue3 = new PersistentQueue<TestItem>(this.logger, this.fileInfo3);
+            persistentQueue3.Count.Should().Be(0);
         }
 
         [Fact]
         public void ShouldPeekItem()
         {
             // Arrange
-            var queue = new PersistentQueue<TestItem>();
-            queue.Clear();
+            var persistentQueue = new PersistentQueue<TestItem>(this.logger, this.fileInfo1);
+            persistentQueue.Clear();
 
-            queue.Enqueue(new TestItem { Id = 1 });
+            persistentQueue.Enqueue(new TestItem { Id = 1 });
 
             // Act
-            var peekItem = queue.Peek();
+            var success = persistentQueue.TryPeek(out var peekItem);
 
             // Assert
-            queue.Count.Should().Be(1);
+            persistentQueue.Count.Should().Be(1);
+            success.Should().BeTrue();
             peekItem.Id.Should().Be(1);
         }
 
@@ -133,19 +142,24 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldTryPeekItem()
         {
             // Arrange
-            var queue = new PersistentQueue<TestItem>();
-            queue.Clear();
+            var persistentQueue = new PersistentQueue<TestItem>(this.logger, this.fileInfo1);
+            persistentQueue.Clear();
 
-            queue.Enqueue(new TestItem { Id = 1 });
+            persistentQueue.Enqueue(new TestItem { Id = 1 });
 
             // Act
-            var success = queue.TryPeek(out var peekItem);
+            var success = persistentQueue.TryPeek(out var peekItem);
 
             // Assert
-            queue.Count.Should().Be(1);
+            persistentQueue.Count.Should().Be(1);
             success.Should().BeTrue();
             peekItem.Should().NotBeNull();
             peekItem.Id.Should().Be(1);
         }
+    }
+
+    [CollectionDefinition("DisableParallelization", DisableParallelization = true)]
+    public class DisableParallelization
+    {
     }
 }

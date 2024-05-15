@@ -362,6 +362,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return parameters;
         }
 
+        /// <inheritdoc />
         public void SubscribeTopics(string[] topics)
         {
             foreach (var t in topics)
@@ -370,6 +371,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /// <inheritdoc />
         public void SubscribeTopic(string topic)
         {
             if (topic == null)
@@ -405,6 +407,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /// <inheritdoc />
         public void UnsubscribeAllTopics()
         {
             foreach (var topic in this.SubscribedTopics)
@@ -415,6 +418,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.SubscribedTopics = null;
         }
 
+        /// <inheritdoc />
         public void UnsubscribeTopics(string[] topics)
         {
             if (topics == null)
@@ -429,6 +433,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /// <inheritdoc />
         public void UnsubscribeTopic(string topic)
         {
             if (topic == null)
@@ -550,23 +555,20 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public void ClearAllNotifications()
+        /// <inheritdoc />
+        protected override void ClearAllNotificationsPlatform()
         {
-            if (UIDevice.CurrentDevice.CheckSystemVersion(10, 0))
-            {
-                UNUserNotificationCenter.Current.RemoveAllDeliveredNotifications(); // To remove all delivered notifications
-            }
-            else
-            {
-                throw new NotSupportedException();
-            }
+            // Remove all delivered notifications
+            UNUserNotificationCenter.Current.RemoveAllDeliveredNotifications();
         }
 
+        /// <inheritdoc />
         public void RemoveNotification(string tag, int id)
         {
             this.RemoveNotification(id);
         }
 
+        /// <inheritdoc />
         public async void RemoveNotification(int id)
         {
             var NotificationIdKey = "id";
@@ -586,6 +588,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
             if (!this.disposed)

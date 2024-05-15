@@ -4,15 +4,15 @@ using Xunit.Abstractions;
 
 namespace Plugin.FirebasePushNotifications.Tests.Logging
 {
-    public class TestOutputHelperLogger<T> : ILogger<T>
+    public class TestOutputHelperLogger : ILogger
     {
         private const string EndOfLine = "[EOL]";
         private readonly ITestOutputHelper testOutputHelper;
         private readonly string targetName;
 
-        public TestOutputHelperLogger(ITestOutputHelper testOutputHelper)
+        public TestOutputHelperLogger(ITestOutputHelper testOutputHelper, string targetName)
         {
-            this.targetName = typeof(T).Name;
+            this.targetName = targetName;
             this.testOutputHelper = testOutputHelper;
         }
 
@@ -42,6 +42,14 @@ namespace Plugin.FirebasePushNotifications.Tests.Logging
         private class NonDisposable : IDisposable
         {
             public void Dispose() { }
+        }
+    }
+
+    public class TestOutputHelperLogger<T> : TestOutputHelperLogger, ILogger<T>
+    {
+        public TestOutputHelperLogger(ITestOutputHelper testOutputHelper)
+             : base(testOutputHelper, typeof(T).Name)
+        {
         }
     }
 }
