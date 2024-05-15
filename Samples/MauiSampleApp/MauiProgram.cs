@@ -58,6 +58,10 @@ namespace MauiSampleApp
             builder.Services.AddSingleton<IDialogService, DialogService>();
             builder.Services.AddSingleton(_ => Share.Default);
             builder.Services.AddSingleton(_ => Preferences.Default);
+            builder.Services.AddSingleton(_ => Email.Default);
+            builder.Services.AddSingleton(_ => AppInfo.Current);
+            builder.Services.AddSingleton(_ => DeviceInfo.Current);
+            builder.Services.AddSingleton(_ => FileSystem.Current);
 
             var logFileReader = new NLogFileReader(NLogLoggerConfiguration.LogFilePath);
             builder.Services.AddSingleton<ILogFileReader>(logFileReader);

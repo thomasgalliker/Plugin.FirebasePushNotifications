@@ -4,8 +4,12 @@ namespace MauiSampleApp.Services.Logging
     {
         string FilePath { get; }
 
-        Task<string> ReadLogFileAsync();
+        string ReadLogFile(string filePath);
 
-        Task FlushLogFileAsync();
+        Task<string> ReadLogFileAsync(long numberOfLines);
+
+        IEnumerable<string> EnumerateLogFiles();
+
+        int DeleteLogFiles();
     }
 }

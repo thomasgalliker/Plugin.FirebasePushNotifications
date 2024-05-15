@@ -1,16 +1,76 @@
 <?xml version="1.0" encoding="utf-8" ?>
+
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
     xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
     x:Class="MauiSampleApp.Views.LogPage"
-    Title="LogPage"
+    Title="Log"
+    ios:Page.UseSafeArea="True"
     x:DataType="vm:LogViewModel">
     <Grid>
-        <ScrollView>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
             <Label
-                FontSize="Micro"
-                Text="{Binding LogContent}" />
-        </ScrollView>
+                Grid.Row="0"
+                Text="{Binding LogFileInfo}"
+                HorizontalTextAlignment="Center"
+                VerticalTextAlignment="Center" />
+
+            <ScrollView Grid.Row="1">
+                <Label
+                    FontSize="Micro"
+                    Text="{Binding LogContent}" />
+            </ScrollView>
+
+            <Grid
+                Grid.Row="2"
+                Padding="8"
+                ColumnSpacing="8"
+                RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Command="{Binding DeleteLogFilesCommand}"
+                    Text="Delete" />
+                <Button
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Command="{Binding ReloadLogCommand}"
+                    Text="Reload" />
+                <Button
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Command="{Binding SendLogCommand}"
+                    Text="Send Mail" />
+                <Button
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Command="{Binding ShareLogCommand}"
+                    Text="Share" />
+            </Grid>
+        </Grid>
     </Grid>
 </ContentPage>
