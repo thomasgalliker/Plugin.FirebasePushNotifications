@@ -18,16 +18,18 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         }
 
         public PersistentQueueFactory(PersistentQueueOptions options)
-            : this(options, FileInfoFactory.Current, DirectoryInfoFactory.Current)
+            : this(options, NullLoggerFactory.Instance, FileInfoFactory.Current, DirectoryInfoFactory.Current)
         {
         }
 
         internal PersistentQueueFactory(
             PersistentQueueOptions options,
+            ILoggerFactory loggerFactory,
             IFileInfoFactory fileInfoFactory,
             IDirectoryInfoFactory directoryInfoFactory)
         {
             this.options = options;
+            this.LoggerFactory = loggerFactory;
             this.fileInfoFactory = fileInfoFactory;
             this.directoryInfoFactory = directoryInfoFactory;
 
@@ -37,7 +39,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         public ILoggerFactory LoggerFactory
         {
             get => this.loggerFactory;
-            set => this.loggerFactory = value ?? new NullLoggerFactory();
+            set => this.loggerFactory = value ?? NullLoggerFactory.Instance;
         }
 
         private IDirectoryInfo CreateDirectoryIfNotExists(string path)

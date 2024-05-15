@@ -152,19 +152,27 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
 
         private void WriteQueueFile(IFileInfo fileInfo, IQueue<T> queue)
         {
-            var targetDirectory = fileInfo.Directory;
-            if (!targetDirectory.Exists)
+            try
             {
-                targetDirectory.Create();
+                var targetDirectory = fileInfo.Directory;
+                if (!targetDirectory.Exists)
+                {
+                    this.logger.LogDebug($"WriteQueueFile: Creating target directory {targetDirectory.FullName}");
+                    targetDirectory.Create();
+                }
+
+                this.logger.LogDebug($"WriteQueueFile: fileInfo={fileInfo.FullName}");
+
+                using (var writer = fileInfo.CreateText())
+                {
+                    var array = queue.ToArray();
+                    var json = JsonConvert.SerializeObject(array, this.jsonSerializerSettings);
+                    writer.Write(json);
+                }
             }
-
-            this.logger.LogDebug($"WriteQueueFile: fileInfo={fileInfo.FullName}");
-
-            using (var writer = fileInfo.CreateText())
+            catch (Exception ex)
             {
-                var array = queue.ToArray();
-                var json = JsonConvert.SerializeObject(array, this.jsonSerializerSettings);
-                writer.Write(json);
+                this.logger.LogError(ex, $"WriteQueueFile failed with exception: {ex}");
             }
         }
     }
