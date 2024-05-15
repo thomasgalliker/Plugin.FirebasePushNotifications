@@ -1,7 +1,11 @@
-﻿namespace Plugin.FirebasePushNotifications.Model.Queues
+﻿using Microsoft.Extensions.Logging;
+
+namespace Plugin.FirebasePushNotifications.Model.Queues
 {
     public interface IQueueFactory
     {
+        public ILoggerFactory LoggerFactory { get; set; }
+
         /// <summary>
         /// Creates a new queue instance.
         /// </summary>
