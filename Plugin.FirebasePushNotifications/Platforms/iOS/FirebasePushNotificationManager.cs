@@ -183,11 +183,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
             if (error != null)
             {
-                this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, error.Description);
+                var exception = new Exception("RegisterForPushNotificationsAsync failed with exception", new NSErrorException(error));
+                this.logger.LogError(exception, exception.Message);
+                throw exception;
             }
             else if (!granted)
             {
-                this.HandleNotificationError(FirebasePushNotificationErrorType.PermissionDenied, "Push notification permission not granted");
+                this.logger.LogWarning("RegisterForPushNotificationsAsync: Push notification permission denied by user");
             }
             else
             {
@@ -232,8 +234,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public void FailedToRegisterForRemoteNotifications(NSError error)
         {
             this.logger.LogError(new NSErrorException(error), "FailedToRegisterForRemoteNotifications");
-
-            this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, error.Description);
         }
 
         /// <inheritdoc />
