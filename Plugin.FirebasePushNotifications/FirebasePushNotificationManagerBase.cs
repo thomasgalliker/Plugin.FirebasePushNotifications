@@ -22,13 +22,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private IQueue<FirebasePushNotificationDataEventArgs> notificationDeletedQueue;
         private IQueue<FirebasePushNotificationResponseEventArgs> notificationOpenedQueue;
         private IQueue<FirebasePushNotificationResponseEventArgs> notificationActionQueue;
-        private IQueue<FirebasePushNotificationErrorEventArgs> notificationErrorQueue;
 
         private EventHandler<FirebasePushNotificationTokenEventArgs> tokenRefreshEventHandler;
         private EventHandler<FirebasePushNotificationResponseEventArgs> notificationActionEventHandler;
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationReceivedEventHandler;
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationDeletedEventHandler;
-        private EventHandler<FirebasePushNotificationErrorEventArgs> notificationErrorEventHandler;
         private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
 
         protected FirebasePushNotificationManagerBase()
@@ -60,7 +58,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.notificationDeletedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationDeletedQueue");
                 this.notificationOpenedQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationOpenedQueue");
                 this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationActionQueue");
-                this.notificationErrorQueue = queueFactory.Create<FirebasePushNotificationErrorEventArgs>("notificationErrorQueue");
             }
             else
             {
@@ -70,7 +67,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.notificationDeletedQueue = null;
                 this.notificationOpenedQueue = null;
                 this.notificationActionQueue = null;
-                this.notificationErrorQueue = null;
             }
         }
 
@@ -88,7 +84,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.notificationDeletedQueue?.Clear();
             this.notificationOpenedQueue?.Clear();
             this.notificationActionQueue?.Clear();
-            this.notificationErrorQueue?.Clear();
         }
 
         /// <summary>
@@ -295,35 +290,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     this.notificationDeletedQueue);
             }
             remove => this.notificationDeletedEventHandler -= value;
-        }
-
-        public void HandleNotificationError(FirebasePushNotificationErrorType type, string message)
-        {
-            this.logger.LogDebug("HandleNotificationError");
-
-            this.RaiseOrQueueEvent(
-                this.notificationErrorEventHandler,
-                () => new FirebasePushNotificationErrorEventArgs(type, message),
-                this.notificationErrorQueue,
-                nameof(NotificationError));
-
-            // TODO: Extend interface
-            this.NotificationHandler?.OnError(/*type,*/ message);
-        }
-
-        public event EventHandler<FirebasePushNotificationErrorEventArgs> NotificationError
-        {
-            add
-            {
-                this.DequeueAndSubscribe(
-                    value,
-                    ref this.notificationErrorEventHandler,
-                    this.notificationErrorQueue);
-            }
-            remove
-            {
-                this.notificationErrorEventHandler -= value;
-            }
         }
 
         public void HandleNotificationOpened(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType)

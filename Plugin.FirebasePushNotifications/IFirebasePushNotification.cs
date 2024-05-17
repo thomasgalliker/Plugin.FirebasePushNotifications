@@ -161,11 +161,6 @@ namespace Plugin.FirebasePushNotifications
         event EventHandler<FirebasePushNotificationDataEventArgs> NotificationDeleted;
 
         /// <summary>
-        /// Event triggered when an error has occurred.
-        /// </summary>
-        event EventHandler<FirebasePushNotificationErrorEventArgs> NotificationError;
-
-        /// <summary>
         /// The push notification token.
         /// </summary>
         string Token { get; }

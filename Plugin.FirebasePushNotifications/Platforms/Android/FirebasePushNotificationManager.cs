@@ -228,7 +228,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
-                this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, ex.ToString());
+                throw;
             }
         }
 
@@ -251,7 +251,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "GetTokenAsync failed with exception");
-                this.HandleNotificationError(FirebasePushNotificationErrorType.RegistrationFailed, $"{ex}");
+                throw;
             }
         }
 
@@ -277,7 +277,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "UnregisterForPushNotificationsAsync failed with exception");
-                this.HandleNotificationError(FirebasePushNotificationErrorType.UnregistrationFailed, ex.ToString());
+                throw;
             }
             finally
             {

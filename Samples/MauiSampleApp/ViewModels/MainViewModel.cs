@@ -206,7 +206,6 @@ namespace MauiSampleApp.ViewModels
                 this.firebasePushNotification.NotificationOpened += this.OnNotificationOpened;
                 this.firebasePushNotification.NotificationAction += this.OnNotificationAction;
                 this.firebasePushNotification.NotificationDeleted += this.OnNotificationDeleted;
-                this.firebasePushNotification.NotificationError += this.OnNotificationError;
 
                 this.IsSubscribedToEvents = true;
             }
@@ -230,7 +229,6 @@ namespace MauiSampleApp.ViewModels
                 this.firebasePushNotification.NotificationOpened -= this.OnNotificationOpened;
                 this.firebasePushNotification.NotificationAction -= this.OnNotificationAction;
                 this.firebasePushNotification.NotificationDeleted -= this.OnNotificationDeleted;
-                this.firebasePushNotification.NotificationError -= this.OnNotificationError;
 
                 this.IsSubscribedToEvents = false;
             }
@@ -269,11 +267,6 @@ namespace MauiSampleApp.ViewModels
         {
             await WaitAsync();
             await this.dialogService.ShowDialogAsync("OnNotificationDeleted", e.ToString(), "OK");
-        }
-
-        private async void OnNotificationError(object sender, FirebasePushNotificationErrorEventArgs e)
-        {
-            await this.dialogService.ShowDialogAsync("OnNotificationError", e.ToString(), "OK");
         }
 
         private static async Task WaitAsync()
