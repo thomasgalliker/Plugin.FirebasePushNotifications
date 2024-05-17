@@ -609,6 +609,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     {
                         UNUserNotificationCenter.Current.Delegate = null;
                     }
+
+                    if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
+                    {
+                        Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = null;
+                    }
                 }
 
                 // TODO: set large fields to null
