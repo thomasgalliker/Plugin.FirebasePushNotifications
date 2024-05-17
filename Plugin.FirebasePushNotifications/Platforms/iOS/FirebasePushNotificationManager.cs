@@ -147,15 +147,25 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return notificationActionType;
         }
 
+        /// <inheritdoc />
         protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
-            if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate != null)
+            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
+
+            if (firebaseMessaging == null)
+            {
+                var sharedInstanceNullErrorMessage = "Firebase.CloudMessaging.Messaging.SharedInstance is null";
+                this.logger.LogError(sharedInstanceNullErrorMessage);
+                throw new NullReferenceException(sharedInstanceNullErrorMessage);
+            }
+
+            if (firebaseMessaging.Delegate != null)
             {
                 this.logger.LogWarning("Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is already set");
             }
             else
             {
-                Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
+                firebaseMessaging.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
             }
 
             if (UNUserNotificationCenter.Current.Delegate != null)
@@ -169,7 +179,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     this.WillPresentNotification);
             }
 
-            Messaging.SharedInstance.AutoInitEnabled = options.AutoInitEnabled;
+            firebaseMessaging.AutoInitEnabled = options.AutoInitEnabled;
         }
 
         /// <inheritdoc />
