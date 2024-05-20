@@ -125,95 +125,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        /*
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Initialize(Context context, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
-        {
-            this.NotificationHandler ??= new DefaultPushNotificationHandler();
-            FirebaseMessaging.Instance.AutoInitEnabled = autoRegistration;
-            if (autoRegistration)
-            {
-                ThreadPool.QueueUserWorkItem(state =>
-                {
-
-                    var packageInfo = Application.Context.PackageManager.GetPackageInfo(Application.Context.PackageName, PackageInfoFlags.MetaData);
-                    var packageName = packageInfo.PackageName;
-                    var versionCode = packageInfo.VersionCode;
-                    var versionName = packageInfo.VersionName;
-                    var prefs = Android.App.Application.Context.GetSharedPreferences(Constants.Preferences.KeyGroupName, FileCreationMode.Private);
-
-                    try
-                    {
-                        var storedVersionName = prefs.GetString(AppVersionNameKey, string.Empty);
-                        var storedVersionCode = prefs.GetString(AppVersionCodeKey, string.Empty);
-                        var storedPackageName = prefs.GetString(AppVersionPackageNameKey, string.Empty);
-
-                        if (resetToken || (!string.IsNullOrEmpty(storedPackageName) && (!storedPackageName.Equals(packageName, StringComparison.CurrentCultureIgnoreCase) || !storedVersionName.Equals(versionName, StringComparison.CurrentCultureIgnoreCase) || !storedVersionCode.Equals($"{versionCode}", StringComparison.CurrentCultureIgnoreCase))))
-                        {
-                            this.CleanUp(false);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        this.logger.LogError(ex, "Initialize failed with exception");
-                        this.HandleNotificationError(FirebasePushNotificationErrorType.Unknown, ex.ToString());
-                    }
-                    finally
-                    {
-                        var editor = prefs.Edit();
-                        editor.PutString(AppVersionNameKey, $"{versionName}");
-                        editor.PutString(AppVersionCodeKey, $"{versionCode}");
-                        editor.PutString(AppVersionPackageNameKey, $"{packageName}");
-                        editor.Commit();
-                    }
-
-                    _ = CrossFirebasePushNotification.Current.RegisterForPushNotificationsAsync();
-                });
-            }
-
-#if ANDROID26_0_OR_GREATER
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.O && createDefaultNotificationChannel)
-            {
-                // Create channel to show notifications.
-                var channelId = DefaultNotificationChannelId;
-                var channelName = DefaultNotificationChannelName;
-                var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
-
-                var defaultSoundUri = SoundUri ?? RingtoneManager.GetDefaultUri(RingtoneType.Notification);
-                var attributes = new AudioAttributes.Builder()
-                    .SetUsage(AudioUsageKind.Notification)
-                    .SetContentType(AudioContentType.Sonification)
-                    .SetLegacyStreamType(Android.Media.Stream.Notification)
-                    .Build();
-
-                var notificationChannel = new NotificationChannel(channelId, channelName, DefaultNotificationChannelImportance);
-                notificationChannel.EnableLights(true);
-                notificationChannel.SetSound(defaultSoundUri, attributes);
-
-                notificationManager.CreateNotificationChannel(notificationChannel);
-            }
-#endif
-        }
-
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Initialize(Context context, NotificationUserCategory[] notificationCategories, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
-        {
-            this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
-            this.RegisterUserNotificationCategories(notificationCategories);
-        }
-        
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Initialize(Context context, IPushNotificationHandler pushNotificationHandler, bool resetToken, bool createDefaultNotificationChannel = true, bool autoRegistration = true)
-        {
-            this.NotificationHandler = pushNotificationHandler;
-            this.Initialize(context, resetToken, createDefaultNotificationChannel, autoRegistration);
-        }
-
-         */
-
         /// <inheritdoc />
         public async Task RegisterForPushNotificationsAsync()
         {
@@ -297,15 +208,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             //}
         }
-
-        //public void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive)
-        //{
-        //    var message = new RemoteMessage.Builder(groupKey);
-        //    message.SetData(parameters);
-        //    message.SetMessageId(messageId);
-        //    message.SetTtl(timeOfLive);
-        //    FirebaseMessaging.Instance.Send(message.Build());
-        //}
 
         /// <inheritdoc />
         public void SubscribeTopics(string[] topics)

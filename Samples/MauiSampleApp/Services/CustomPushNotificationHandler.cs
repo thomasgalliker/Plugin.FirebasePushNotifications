@@ -4,10 +4,6 @@ namespace MauiSampleApp.Services
 {
     public class CustomPushNotificationHandler : IPushNotificationHandler
     {
-        public void OnError(string error)
-        {
-        }
-
         public void OnOpened(IDictionary<string, object> parameters, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
         {
         }

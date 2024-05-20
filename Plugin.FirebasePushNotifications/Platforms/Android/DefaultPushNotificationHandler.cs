@@ -515,11 +515,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public virtual void OnError(string error)
-        {
-            Debug.WriteLine($"{Tag} - OnError - {error}");
-        }
-
         /// <summary>
         /// Override to provide customization of the notification to build.
         /// </summary>
