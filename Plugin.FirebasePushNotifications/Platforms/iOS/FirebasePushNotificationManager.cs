@@ -1,6 +1,4 @@
-﻿using System.Runtime.Versioning;
-using Firebase.CloudMessaging;
-using Foundation;
+﻿using Foundation;
 using Microsoft.Extensions.Logging;
 using UIKit;
 using UserNotifications;
@@ -22,11 +20,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
+        /// <inheritdoc />
         public string Token
         {
             get
             {
-                var fcmToken = Messaging.SharedInstance.FcmToken;
+                var fcmToken = Firebase.CloudMessaging.Messaging.SharedInstance?.FcmToken;
                 if (!string.IsNullOrEmpty(fcmToken))
                 {
                     return fcmToken;
@@ -37,51 +36,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
         }
-
-        //[Obsolete]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public void Initialize(NSDictionary options, bool autoRegistration = true)
-        //{
-        //    if (App.DefaultInstance == null)
-        //    {
-        //        App.Configure();
-        //    }
-
-        //    this.NotificationHandler ??= new DefaultPushNotificationHandler();
-        //    Messaging.SharedInstance.AutoInitEnabled = autoRegistration;
-
-        //    if (options?.ContainsKey(UIApplication.LaunchOptionsRemoteNotificationKey) ?? false)
-        //    {
-        //        if (options[UIApplication.LaunchOptionsRemoteNotificationKey] is NSDictionary pushPayload)
-        //        {
-        //            var parameters = GetParameters(pushPayload);
-        //            // TODO: Pass single object instead of 3 parameters
-        //            this.HandleNotificationOpened(parameters, null, NotificationCategoryType.Default);
-        //        }
-        //    }
-
-        //    if (autoRegistration)
-        //    {
-        //        _ = this.RegisterForPushNotificationsAsync();
-        //    }
-        //}
-
-        //[Obsolete]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public void Initialize(NSDictionary options, IPushNotificationHandler pushNotificationHandler, bool autoRegistration = true)
-        //{
-        //    this.NotificationHandler = pushNotificationHandler;
-        //    this.Initialize(options, autoRegistration);
-        //}
-
-        //[Obsolete]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public void Initialize(NSDictionary options, NotificationUserCategory[] notificationUserCategories, bool autoRegistration = true)
-        //{
-        //    this.Initialize(options, autoRegistration);
-
-        //    this.RegisterUserNotificationCategories(notificationUserCategories);
-        //}
 
         /// <inheritdoc />
         protected override void RegisterNotificationCategoriesPlatform(NotificationCategory[] notificationCategories)
@@ -147,15 +101,25 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return notificationActionType;
         }
 
+        /// <inheritdoc />
         protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
-            if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate != null)
+            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
+
+            if (firebaseMessaging == null)
+            {
+                var sharedInstanceNullErrorMessage = "Firebase.CloudMessaging.Messaging.SharedInstance is null";
+                this.logger.LogError(sharedInstanceNullErrorMessage);
+                throw new NullReferenceException(sharedInstanceNullErrorMessage);
+            }
+
+            if (firebaseMessaging.Delegate != null)
             {
                 this.logger.LogWarning("Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is already set");
             }
             else
             {
-                Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
+                firebaseMessaging.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
             }
 
             if (UNUserNotificationCenter.Current.Delegate != null)
@@ -169,7 +133,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     this.WillPresentNotification);
             }
 
-            Messaging.SharedInstance.AutoInitEnabled = options.AutoInitEnabled;
+            firebaseMessaging.AutoInitEnabled = options.AutoInitEnabled;
         }
 
         /// <inheritdoc />
@@ -177,7 +141,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("RegisterForPushNotificationsAsync");
 
-            Messaging.SharedInstance.AutoInitEnabled = true;
+            Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = true;
 
             var authOptions = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
             var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
@@ -208,11 +172,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.hasToken = false;
             }
 
-            Messaging.SharedInstance.AutoInitEnabled = false;
+            Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = false;
 
-            //if (Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
+            //if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
             //{
-            //    Messaging.SharedInstance.Delegate = null;
+            //    Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = null;
             //}
 
             UIApplication.SharedApplication.UnregisterForRemoteNotifications();
@@ -227,7 +191,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("RegisteredForRemoteNotifications");
 
-            Messaging.SharedInstance.ApnsToken = deviceToken;
+            Firebase.CloudMessaging.Messaging.SharedInstance.ApnsToken = deviceToken;
         }
 
         /// <inheritdoc />
@@ -262,7 +226,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void DidReceiveRemoteNotificationInternal(NSDictionary userInfo)
         {
-            Messaging.SharedInstance.AppDidReceiveMessage(userInfo);
+            Firebase.CloudMessaging.Messaging.SharedInstance.AppDidReceiveMessage(userInfo);
             var data = GetParameters(userInfo);
             this.HandleNotificationReceived(data);
         }
@@ -395,7 +359,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
 
-                Messaging.SharedInstance.Subscribe(topic);
+                Firebase.CloudMessaging.Messaging.SharedInstance.Subscribe(topic);
                 subscribedTopics.Add(topic);
 
                 // TODO: Improve write performance here; don't loop all topics one by one
@@ -412,7 +376,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             foreach (var topic in this.SubscribedTopics)
             {
-                Messaging.SharedInstance.Unsubscribe(topic);
+                Firebase.CloudMessaging.Messaging.SharedInstance.Unsubscribe(topic);
             }
 
             this.SubscribedTopics = null;
@@ -457,7 +421,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
 
-                Messaging.SharedInstance.Unsubscribe(topic);
+                Firebase.CloudMessaging.Messaging.SharedInstance.Unsubscribe(topic);
                 subscribedTopics.Remove(topic);
 
                 // TODO: Improve write performance here; don't loop all topics one by one
@@ -468,23 +432,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.logger.LogInformation($"Unsubscribe: skipping topic \"{topic}\"; topic is not subscribed");
             }
         }
-
-        //public void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive)
-        //{
-        //    if (hasToken)
-        //    {
-        //        using (var message = new NSMutableDictionary())
-        //        {
-        //            foreach (var p in parameters)
-        //            {
-        //                message.Add(new NSString(p.Key), new NSString(p.Value));
-        //            }
-
-        //            Messaging.SharedInstance.SendMessage(message, groupKey, messageId, timeOfLive);
-        //        }
-
-        //    }
-        //}
 
         private void DidReceiveNotificationResponse(UNUserNotificationCenter center, UNNotificationResponse response, Action completionHandler)
         {
@@ -525,7 +472,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             completionHandler();
         }
 
-        private void DidReceiveRegistrationToken(Messaging messaging, string fcmToken)
+        private void DidReceiveRegistrationToken(Firebase.CloudMessaging.Messaging messaging, string fcmToken)
         {
             this.logger.LogDebug("DidReceiveRegistrationToken");
 
@@ -599,9 +546,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     {
                         UNUserNotificationCenter.Current.Delegate = null;
                     }
+
+                    if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
+                    {
+                        Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = null;
+                    }
                 }
 
-                // TODO: set large fields to null
                 this.disposed = true;
             }
         }
