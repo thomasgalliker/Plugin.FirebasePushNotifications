@@ -166,11 +166,6 @@ namespace Plugin.FirebasePushNotifications
         string Token { get; }
 
         /// <summary>
-        /// Send device group message
-        /// </summary>
-        //void SendDeviceGroupMessage(IDictionary<string, string> parameters, string groupKey, string messageId, int timeOfLive);
-
-        /// <summary>
         /// Clear all notifications.
         /// </summary>
         void ClearAllNotifications();
