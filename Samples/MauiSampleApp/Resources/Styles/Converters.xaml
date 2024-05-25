@@ -6,5 +6,8 @@
     xmlns:c="clr-namespace:ValueConverters;assembly=ValueConverters">
 
     <c:BoolInverter x:Key="BoolInverter" />
+    <c:NullToBoolConverter
+        x:Key="IsNullToFalseConverter"
+        IsInverted="True" />
 
 </ResourceDictionary>

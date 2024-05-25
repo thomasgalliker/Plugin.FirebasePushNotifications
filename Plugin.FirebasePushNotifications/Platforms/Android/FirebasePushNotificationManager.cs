@@ -327,7 +327,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        protected override void ClearAllNotificationsPlatform()
+        protected override void ClearAllNotificationsPlatform() // TODO: REMOVE
         {
             var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
             manager.CancelAll();
@@ -352,6 +352,43 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 var manager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
                 manager.Cancel(tag, id);
             }
+        }
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<string>> GetDeliveredNotificationIdsAsync()
+        {
+            this.logger.LogDebug("GetDeliveredNotificationIdsAsync");
+
+            var notificationManager = NotificationManager.FromContext(Application.Context);
+            var activeNotifications = notificationManager.GetActiveNotifications();
+            var deliveredNotificationIds = activeNotifications.Select(n => $"{n.Id}").ToArray();
+
+            return Task.FromResult<IReadOnlyCollection<string>>(deliveredNotificationIds);
+        }
+
+        /// <inheritdoc />
+        public Task CancelDeliveredNotificationsAsync(params string[] notificationIds)
+        {
+            this.logger.LogDebug($"CancelDeliveredNotificationsAsync: notificationIds=[{string.Join(", ", notificationIds)}]");
+
+            if (notificationIds.Any())
+            {
+                var notificationManager = NotificationManager.FromContext(Application.Context);
+                foreach (var notificationId in notificationIds.Select(int.Parse))
+                {
+                    notificationManager.Cancel(notificationId);
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        protected override Task CancelAllDeliveredNotificationsPlatformAsync()
+        {
+            var notificationManager = NotificationManager.FromContext(Application.Context);
+            notificationManager.CancelAll();
+
+            return Task.CompletedTask;
         }
     }
 }

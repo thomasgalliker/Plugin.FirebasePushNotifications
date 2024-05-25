@@ -51,6 +51,8 @@ namespace MauiSampleApp.ViewModels
         private NotificationCategoryViewModel[] notificationCategories;
         private AsyncRelayCommand getNotificationChannelsCommand;
         private string[] channels;
+        private AsyncRelayCommand getDeliveredNotificationsCommand;
+        private string[] deliveredNotificationIds;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
@@ -479,6 +481,28 @@ namespace MauiSampleApp.ViewModels
             {
                 this.logger.LogError(ex, "ClearNotificationCategoriesAsync failed with exception");
                 await this.dialogService.ShowDialogAsync("Error", "Clearing notification categories failed with exception", "OK");
+            }
+        }
+
+        public string[] DeliveredNotificationIds
+        {
+            get => this.deliveredNotificationIds;
+            private set => this.SetProperty(ref this.deliveredNotificationIds, value);
+        }
+
+        public ICommand GetDeliveredNotificationsCommand => this.getDeliveredNotificationsCommand ??= new AsyncRelayCommand(this.GetDeliveredNotificationsAsync);
+
+        private async Task GetDeliveredNotificationsAsync()
+        {
+            try
+            {
+                var deliveredNotificationIds = await this.firebasePushNotification.GetDeliveredNotificationIdsAsync();
+                this.DeliveredNotificationIds = deliveredNotificationIds.ToArray();
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "GetDeliveredNotificationsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "GetDeliveredNotificationsAsync failed with exception", "OK");
             }
         }
 

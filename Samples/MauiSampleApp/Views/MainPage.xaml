@@ -221,6 +221,23 @@
                     VerticalOptions="Start" />
             </VerticalStackLayout>
 
+            <VerticalStackLayout Spacing="8">
+                <Label
+                    Style="{StaticResource Heading2LabelStyle}"
+                    Text="Delivered Notifications" />
+                <Button
+                    Command="{Binding GetDeliveredNotificationsCommand}"
+                    Text="Get delivered notifications"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Label
+                    IsVisible="{Binding DeliveredNotificationIds, Converter={StaticResource IsNullToFalseConverter}}"
+                    Text="{Binding DeliveredNotificationIds.Length, StringFormat='Count={0}'}" />
+                <ListView
+                    HasUnevenRows="True"
+                    ItemsSource="{Binding DeliveredNotificationIds}" />
+            </VerticalStackLayout>
+
             <controls:DividerLine />
 
             <Label

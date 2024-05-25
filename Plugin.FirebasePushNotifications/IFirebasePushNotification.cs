@@ -179,5 +179,21 @@ namespace Plugin.FirebasePushNotifications
         /// Remove specific id and tag notification.
         /// </summary>
         void RemoveNotification(string tag, int id);
+
+        /// <summary>
+        /// Returns the list of NotificationIds of all delivered local notifications.
+        /// </summary>
+        Task<IReadOnlyCollection<string>> GetDeliveredNotificationIdsAsync();
+
+        /// <summary>
+        /// Removes all delivered notifications which have matching notificationIds in <paramref name="notificationIds"/>.
+        /// </summary>
+        /// <param name="notificationIds">The notification identifiers to remove.</param>
+        Task CancelDeliveredNotificationsAsync(params string[] notificationIds);
+
+        /// <summary>
+        /// Cancels all delivered notifications.
+        /// </summary>
+        Task CancelAllDeliveredNotificationsAsync(); //TODO: REname to RemoveAllDeliveredNotificationsAsync?
     }
 }

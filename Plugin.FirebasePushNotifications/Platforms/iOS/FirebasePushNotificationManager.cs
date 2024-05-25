@@ -1,5 +1,7 @@
-﻿using Foundation;
+﻿using System.Globalization;
+using Foundation;
 using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Extensions;
 using UIKit;
 using UserNotifications;
 
@@ -503,7 +505,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        protected override void ClearAllNotificationsPlatform()
+        protected override void ClearAllNotificationsPlatform() // TODO: REMOVE
         {
             // Remove all delivered notifications
             UNUserNotificationCenter.Current.RemoveAllDeliveredNotifications();
@@ -533,6 +535,62 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 throw new NotSupportedException();
             }
+        }
+
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<string>> GetDeliveredNotificationIdsAsync()
+        {
+            this.logger.LogDebug("GetDeliveredNotificationIdsAsync");
+
+            var deliveredNotifications = await GetDeliveredNotificationsAsync();
+            var deliveredLocalNotificationIds = ConvertToNotificationIds(deliveredNotifications.Select(n => n.Request)).ToArray();
+            return deliveredLocalNotificationIds;
+        }
+
+        private static Task<UNNotification[]> GetDeliveredNotificationsAsync()
+        {
+            return UIApplication.SharedApplication.InvokeOnMainThreadAsync(() =>
+            {
+                return UNUserNotificationCenter.Current.GetDeliveredNotificationsAsync();
+            });
+        }
+
+        private static IEnumerable<string> ConvertToNotificationIds(IEnumerable<UNNotificationRequest> notificationRequests)
+        {
+            return notificationRequests
+                .Select(n => n.Identifier)
+                .ToArray();
+        }
+
+        /// <inheritdoc />
+        public Task CancelDeliveredNotificationsAsync(params string[] notificationIds)
+        {
+            this.logger.LogDebug($"CancelDeliveredNotificationsAsync: notificationIds=[{string.Join(", ", notificationIds)}]");
+
+            if (notificationIds.Any())
+            {
+                var identifiers = notificationIds.Select(i => i.ToString(CultureInfo.InvariantCulture)).ToArray();
+
+                UIApplication.SharedApplication.InvokeOnMainThread(() =>
+                {
+                    UNUserNotificationCenter.Current.RemoveDeliveredNotifications(identifiers);
+                });
+            }
+
+            return Task.CompletedTask;
+        }
+
+        protected override Task CancelAllDeliveredNotificationsPlatformAsync()
+        {
+            this.logger.LogDebug("CancelAllDeliveredNotificationsAsync");
+
+            UIApplication.SharedApplication.InvokeOnMainThread(() =>
+            {
+                UNUserNotificationCenter.Current.RemoveAllDeliveredNotifications();
+            });
+
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />

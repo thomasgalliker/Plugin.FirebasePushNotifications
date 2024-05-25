@@ -451,10 +451,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.ClearQueues();
             this.ClearAllNotificationsPlatform();
+            this.CancelAllDeliveredNotificationsPlatformAsync();
         }
 
         protected virtual void ClearAllNotificationsPlatform() // TODO: Needs to become abstract
         {
+        }
+
+        /// <inheritdoc />
+        public Task CancelAllDeliveredNotificationsAsync()
+        {
+            this.logger.LogDebug("CancelAllDeliveredNotificationsAsync");
+
+            return this.CancelAllDeliveredNotificationsPlatformAsync();
+        }
+
+        protected virtual Task CancelAllDeliveredNotificationsPlatformAsync() // TODO: Needs to become abstract
+        {
+            return Task.CompletedTask;
         }
 
         protected virtual void Dispose(bool disposing)
