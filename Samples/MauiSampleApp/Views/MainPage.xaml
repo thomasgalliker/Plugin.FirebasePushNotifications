@@ -165,7 +165,6 @@
                     HorizontalOptions="Fill" />
             </VerticalStackLayout>
 
-
             <VerticalStackLayout Spacing="8">
                 <Label
                     Style="{StaticResource Heading2LabelStyle}"
@@ -220,7 +219,6 @@
                     Text="Clear"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
-
             </VerticalStackLayout>
 
             <controls:DividerLine />
