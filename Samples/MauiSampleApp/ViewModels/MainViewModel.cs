@@ -22,6 +22,7 @@ namespace MauiSampleApp.ViewModels
         private readonly INotificationChannels notificationChannels;
         private readonly INotificationPermissions notificationPermissions;
         private readonly IShare share;
+        private readonly IClipboard clipboard;
         private readonly IPreferences preferences;
 
         private AsyncRelayCommand registerForPushNotificationsCommand;
@@ -51,6 +52,7 @@ namespace MauiSampleApp.ViewModels
         private NotificationCategoryViewModel[] notificationCategories;
         private AsyncRelayCommand getNotificationChannelsCommand;
         private string[] channels;
+        private AsyncRelayCommand copyTokenCommand;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
@@ -60,6 +62,7 @@ namespace MauiSampleApp.ViewModels
             INotificationChannels notificationChannels,
             INotificationPermissions notificationPermissions,
             IShare share,
+            IClipboard clipboard,
             IPreferences preferences)
         {
             this.logger = logger;
@@ -69,6 +72,7 @@ namespace MauiSampleApp.ViewModels
             this.notificationChannels = notificationChannels;
             this.notificationPermissions = notificationPermissions;
             this.share = share;
+            this.clipboard = clipboard;
             this.preferences = preferences;
         }
 
@@ -137,7 +141,7 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public ICommand RegisterForPushNotificationsCommand => this.registerForPushNotificationsCommand ??= new AsyncRelayCommand(this.RegisterForPushNotificationsAsync);
+        public IAsyncRelayCommand RegisterForPushNotificationsCommand => this.registerForPushNotificationsCommand ??= new AsyncRelayCommand(this.RegisterForPushNotificationsAsync);
 
         private async Task RegisterForPushNotificationsAsync()
         {
@@ -150,21 +154,28 @@ namespace MauiSampleApp.ViewModels
                 this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
                 await this.dialogService.ShowDialogAsync("Error", "Register for push notifications failed with exception", "OK");
             }
+            finally
+            {
+                this.UpdateToken();
+            }
         }
 
-        public ICommand UnregisterForPushNotificationsCommand => this.unregisterForPushNotificationsCommand ??= new AsyncRelayCommand(this.UnregisterForPushNotificationsAsync);
+        public IAsyncRelayCommand UnregisterForPushNotificationsCommand => this.unregisterForPushNotificationsCommand ??= new AsyncRelayCommand(this.UnregisterForPushNotificationsAsync);
 
         private async Task UnregisterForPushNotificationsAsync()
         {
             try
             {
                 await this.firebasePushNotification.UnregisterForPushNotificationsAsync();
-                this.UpdateToken();
             }
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "UnregisterForPushNotificationsAsync failed with exception");
                 await this.dialogService.ShowDialogAsync("Error", "Unregister from push notifications failed with exception", "OK");
+            }
+            finally
+            {
+                this.UpdateToken();
             }
         }
 
@@ -308,6 +319,21 @@ namespace MauiSampleApp.ViewModels
             {
                 this.logger.LogError(ex, "GetTokenAsync failed with exception");
                 await this.dialogService.ShowDialogAsync("Error", "Failed to get the token", "OK");
+            }
+        }
+
+        public ICommand CopyTokenCommand => this.copyTokenCommand ??= new AsyncRelayCommand(this.CopyTokenAsync);
+
+        private async Task CopyTokenAsync()
+        {
+            try
+            {
+                await this.clipboard.SetTextAsync(this.Token);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "SetTextAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Failed to copy the token", "OK");
             }
         }
 
