@@ -41,8 +41,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var notificationChannels = NotificationChannels.Current;
             notificationChannels.CreateChannels(options.Android.NotificationChannels);
 
-            // TODO: Remove this code asap!!
-            //this.NotificationHandler = new DefaultPushNotificationHandler();
+            // TODO: Migrate this code into Android-specific FirebasePushNotificationManager class.
+            this.NotificationHandler = new DefaultPushNotificationHandler();
         }
 
         public void ProcessIntent(Activity activity, Intent intent)
