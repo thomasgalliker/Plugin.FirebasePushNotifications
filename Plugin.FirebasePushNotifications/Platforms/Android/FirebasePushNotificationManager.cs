@@ -14,9 +14,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// </summary>
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        public static string NotificationContentTitleKey { get; set; }
-        public static string NotificationContentTextKey { get; set; }
-        public static string NotificationContentDataKey { get; set; }
         public static int IconResource { get; set; }
         public static int LargeIconResource { get; set; }
         public static bool ShouldShowWhen { get; set; } = true;
@@ -42,7 +39,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             notificationChannels.CreateChannels(options.Android.NotificationChannels);
 
             // TODO: Migrate this code into Android-specific FirebasePushNotificationManager class.
-            this.NotificationHandler = new DefaultPushNotificationHandler();
+            this.NotificationHandler = new DefaultPushNotificationHandler(options);
         }
 
         public void ProcessIntent(Activity activity, Intent intent)

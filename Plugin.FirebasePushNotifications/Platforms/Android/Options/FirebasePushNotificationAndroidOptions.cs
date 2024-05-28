@@ -77,6 +77,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     paramName);
             }
         }
+
+        public string NotificationContentTitleKey { get; set; }
+
+        public string NotificationContentTextKey { get; set; }
     }
 }
 #endif

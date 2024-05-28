@@ -20,9 +20,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
     internal class DefaultPushNotificationHandler : IPushNotificationHandler
     {
         private const string Tag = nameof(DefaultPushNotificationHandler);
+        private readonly FirebasePushNotificationOptions options;
 
-        public DefaultPushNotificationHandler()
+        public DefaultPushNotificationHandler(FirebasePushNotificationOptions options)
         {
+            this.options = options;
         }
 
         public virtual void OnOpened(IDictionary<string, object> parameters, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
@@ -65,8 +67,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var smallIconResource = FirebasePushNotificationManager.IconResource;
             var notificationColor = FirebasePushNotificationManager.Color;
 
-            if (!string.IsNullOrEmpty(FirebasePushNotificationManager.NotificationContentTextKey) &&
-                data.TryGetString(FirebasePushNotificationManager.NotificationContentTextKey, out var notificationContentText))
+            if (!string.IsNullOrEmpty(this.options.Android.NotificationContentTextKey) &&
+                data.TryGetString(this.options.Android.NotificationContentTextKey, out var notificationContentText))
             {
                 contentText = notificationContentText;
             }
@@ -92,8 +94,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             string contentTitle;
-            if (!string.IsNullOrEmpty(FirebasePushNotificationManager.NotificationContentTitleKey) &&
-                data.TryGetString(FirebasePushNotificationManager.NotificationContentTitleKey, out var notificationContentTitle))
+            if (!string.IsNullOrEmpty(this.options.Android.NotificationContentTitleKey) &&
+                data.TryGetString(this.options.Android.NotificationContentTitleKey, out var notificationContentTitle))
             {
                 contentTitle = notificationContentTitle;
             }
