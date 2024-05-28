@@ -9,7 +9,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// Implementation of <see cref="IFirebasePushNotification"/>
     /// for iOS.
     /// </summary>
-    public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
+    public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
         private readonly Queue<Tuple<string, bool>> pendingTopics = new Queue<Tuple<string, bool>>();
         private bool hasToken = false;

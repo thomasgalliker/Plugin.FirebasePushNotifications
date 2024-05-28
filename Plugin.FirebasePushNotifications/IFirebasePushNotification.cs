@@ -10,7 +10,6 @@ using UIKit;
 #endif
 
 using Microsoft.Extensions.Logging;
-using Plugin.FirebasePushNotifications.Platforms;
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -40,7 +39,7 @@ namespace Plugin.FirebasePushNotifications
         /// This is helpful since <see cref="CrossFirebasePushNotification.Current"/> is a singleton instance 
         /// and does therefore not allow to inject any logger via constructor injection.
         /// </remarks>
-        ILogger<FirebasePushNotificationManager> Logger { set; }
+        ILogger<IFirebasePushNotification> Logger { set; }
 
         void HandleNotificationReceived(IDictionary<string, object> data);
 

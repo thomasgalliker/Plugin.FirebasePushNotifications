@@ -12,7 +12,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// Implementation of <see cref="IFirebasePushNotification"/>
     /// for Android.
     /// </summary>
-    public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
+    public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
         public static string NotificationContentTitleKey { get; set; }
         public static string NotificationContentTextKey { get; set; }

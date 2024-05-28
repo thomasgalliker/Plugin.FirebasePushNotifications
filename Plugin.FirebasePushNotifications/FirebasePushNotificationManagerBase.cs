@@ -13,7 +13,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private string[] subscribedTopics;
         private NotificationCategory[] notificationCategories = null;
 
-        protected ILogger<FirebasePushNotificationManager> logger;
+        protected ILogger<IFirebasePushNotification> logger;
         protected IFirebasePushNotificationPreferences preferences;
         private bool disposed;
 
@@ -89,12 +89,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// <summary>
         /// Platform-specific additions to <see cref="Configure(FirebasePushNotificationOptions)"/>.
         /// </summary>
-        protected virtual void ConfigurePlatform(FirebasePushNotificationOptions options)
-        {
-        }
+        protected abstract void ConfigurePlatform(FirebasePushNotificationOptions options);
 
         /// <inheritdoc/>
-        public ILogger<FirebasePushNotificationManager> Logger
+        public ILogger<IFirebasePushNotification> Logger
         {
             set => this.logger = value;
         }

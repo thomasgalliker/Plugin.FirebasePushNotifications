@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
 using Plugin.FirebasePushNotifications.Model.Queues;
-using Plugin.FirebasePushNotifications.Platforms;
 using Plugin.FirebasePushNotifications.Tests.Logging;
 using Xunit.Abstractions;
 
@@ -19,8 +18,8 @@ namespace Plugin.FirebasePushNotifications.Tests
             this.testOutputHelper = testOutputHelper;
             this.autoMocker = new AutoMocker();
 
-            this.autoMocker.Use<ILogger<FirebasePushNotificationManager>>(
-                new TestOutputHelperLogger<FirebasePushNotificationManager>(this.testOutputHelper));
+            this.autoMocker.Use<ILogger<IFirebasePushNotification>>(
+                new TestOutputHelperLogger<IFirebasePushNotification>(this.testOutputHelper));
 
             this.autoMocker.Use(new FirebasePushNotificationOptions
             {
@@ -326,7 +325,7 @@ namespace Plugin.FirebasePushNotifications.Tests
                 Preferences = firebasePushNotificationPreferences.Object,
             });
 
-            var loggerMock = new Mock<ILogger<FirebasePushNotificationManager>>();
+            var loggerMock = new Mock<ILogger<IFirebasePushNotification>>();
             this.autoMocker.Use(loggerMock.Object);
 
             var listOfEventArgs = new List<EventArgs>();
@@ -348,7 +347,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             listOfEventArgs.Should().HaveCount(0);
 
             queueFactoryMock.VerifyNoOtherCalls();
-            
+
             loggerMock.Verify(l => l.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
