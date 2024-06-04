@@ -16,13 +16,6 @@ namespace Plugin.FirebasePushNotifications
     public interface IFirebasePushNotification
     {
         /// <summary>
-        /// Configures this instance of <see cref="IFirebasePushNotification"/>
-        /// with <paramref name="options"/>.
-        /// </summary>
-        /// <param name="options">The firebase push notification options.</param>
-        void Configure(FirebasePushNotificationOptions options);
-
-        /// <summary>
         /// Clears all queues (if any exist).
         /// </summary>
         /// <remarks>

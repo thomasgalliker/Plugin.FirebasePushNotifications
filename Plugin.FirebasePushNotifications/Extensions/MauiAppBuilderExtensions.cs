@@ -66,7 +66,7 @@ namespace Plugin.FirebasePushNotifications
                         logger.LogDebug($"FinishedLaunching");
                     }
 
-                    var firebasePushNotification = CrossFirebasePushNotification.Current;
+                    var firebasePushNotification = CrossFirebasePushNotification.Current as FirebasePushNotificationManager;
                     firebasePushNotification.Logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
                     firebasePushNotification.Configure(defaultOptions);
                     return true;
@@ -80,7 +80,7 @@ namespace Plugin.FirebasePushNotifications
                         queueFactory.LoggerFactory = loggerFactory;
                     }
 
-                    var firebasePushNotification = CrossFirebasePushNotification.Current;
+                    var firebasePushNotification = CrossFirebasePushNotification.Current as FirebasePushNotificationManager;
                     firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
                     firebasePushNotification.Configure(defaultOptions);
 

@@ -34,7 +34,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        public void Configure(FirebasePushNotificationOptions options)
+        internal void Configure(FirebasePushNotificationOptions options)
         {
             this.logger.LogDebug("Configure");
 
