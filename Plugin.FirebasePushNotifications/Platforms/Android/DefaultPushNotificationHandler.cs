@@ -16,8 +16,8 @@ using Debug = System.Diagnostics.Debug;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
-    [Obsolete("All logic inside this class will be moved to FirebasePushNotificationManager")]
-    internal class DefaultPushNotificationHandler : IPushNotificationHandler
+    [Obsolete("All logic inside this class will be moved to NotificationBuilder class")]
+    public class DefaultPushNotificationHandler : IPushNotificationHandler
     {
         private const string Tag = nameof(DefaultPushNotificationHandler);
         private readonly FirebasePushNotificationOptions options;
