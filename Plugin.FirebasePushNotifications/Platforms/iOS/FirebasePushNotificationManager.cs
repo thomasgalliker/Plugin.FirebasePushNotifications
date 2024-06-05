@@ -15,7 +15,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private bool hasToken = false;
         private bool disposed;
 
-        public FirebasePushNotificationManager()
+        internal FirebasePushNotificationManager()
             : base()
         {
         }
