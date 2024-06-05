@@ -97,6 +97,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             set => this.logger = value;
         }
 
+        /// <inheritdoc />
         public IPushNotificationHandler NotificationHandler { get; set; }
 
         /// <inheritdoc />

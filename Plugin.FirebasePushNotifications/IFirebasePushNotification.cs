@@ -1,7 +1,7 @@
 ﻿#if ANDROID
 using Android.App;
 using Android.Content;
-using Plugin.FirebasePushNotifications.Platforms.Channels;
+using Plugin.FirebasePushNotifications.Platforms;
 #endif
 
 #if IOS
@@ -51,6 +51,12 @@ namespace Plugin.FirebasePushNotifications
         /// to your MauiProgram startup.
         /// </summary>
         void ProcessIntent(Activity activity, Intent intent);
+
+        /// <summary>
+        /// The notification builder receives notification data, modifies notification messages,
+        /// customizes notification feedback and provides user actions.
+        /// </summary>
+        public INotificationBuilder NotificationBuilder { get; set; }
 #endif
 
 #if IOS
@@ -123,7 +129,7 @@ namespace Plugin.FirebasePushNotifications
         Task UnregisterForPushNotificationsAsync(); // TODO: Clear all preferences when unregistering from push notification!
 
         /// <summary>
-        /// Notification handler to receive, customize notification feedback and provide user actions
+        /// The notification handler is an extension point where notification messages are sent to.
         /// </summary>
         IPushNotificationHandler NotificationHandler { get; set; }
 

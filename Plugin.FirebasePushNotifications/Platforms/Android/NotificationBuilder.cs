@@ -1,13 +1,12 @@
-using System;
 using Android.App;
 using Android.Content;
 using Android.Content.Res;
 using Android.Graphics;
 using Android.Media;
 using Android.OS;
-using Android.Util;
 using AndroidX.Core.App;
 using Java.Util;
+using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 using static Android.App.ActivityManager;
@@ -16,25 +15,22 @@ using Debug = System.Diagnostics.Debug;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
-    [Obsolete("All logic inside this class will be moved to NotificationBuilder class")]
-    public class DefaultPushNotificationHandler : IPushNotificationHandler
+    public class NotificationBuilder : INotificationBuilder
     {
-        private const string Tag = nameof(DefaultPushNotificationHandler);
+        private readonly ILogger<NotificationBuilder> logger;
         private readonly FirebasePushNotificationOptions options;
 
-        public DefaultPushNotificationHandler(FirebasePushNotificationOptions options)
+        public NotificationBuilder(
+            ILogger<NotificationBuilder> logger,
+            FirebasePushNotificationOptions options)
         {
+            this.logger = logger;
             this.options = options;
         }
 
-        public virtual void OnOpened(IDictionary<string, object> parameters, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
+        public virtual void OnNotificationReceived(IDictionary<string, object> data)
         {
-            Log.Debug(Tag, $"OnOpened");
-        }
-
-        public virtual void OnReceived(IDictionary<string, object> data)
-        {
-            Debug.WriteLine($"{Tag} - OnReceived");
+            this.logger.LogDebug("OnNotificationReceived");
 
             // TODO / WARNING:
             // This piece of code is full of errors and contradictions.
@@ -230,7 +226,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"{Tag} - Failed to parse color {ex}");
+                    this.logger.LogError(ex, "Failed to parse color");
                 }
             }
 
@@ -346,12 +342,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"{Tag} - Failed to set sound {ex}");
+                    this.logger.LogError(ex, "Failed to set sound");
                 }
             }
 
             // Try to resolve (and apply) localized parameters
-            ResolveLocalizedParameters(notificationBuilder, data);
+            this.ResolveLocalizedParameters(notificationBuilder, data);
 
             if (notificationColor != null)
             {
@@ -469,14 +465,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// </summary>
         /// <param name="notificationBuilder">Notification builder.</param>
         /// <param name="parameters">Parameters.</param>
-        private static void ResolveLocalizedParameters(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters)
+        private void ResolveLocalizedParameters(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters)
         {
             // Resolve title localization
             if (parameters.TryGetString("title_loc_key", out var titleKey))
             {
                 parameters.TryGetValue("title_loc_args", out var titleArgs);
 
-                var localizedTitle = GetLocalizedString(titleKey, titleArgs as string[], notificationBuilder);
+                var localizedTitle = this.GetLocalizedString(titleKey, titleArgs as string[], notificationBuilder);
                 if (localizedTitle != null)
                 {
                     notificationBuilder.SetContentTitle(localizedTitle);
@@ -488,7 +484,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 parameters.TryGetValue("body_loc_args", out var bodyArgs);
 
-                var localizedBody = GetLocalizedString(bodyKey, bodyArgs as string[], notificationBuilder);
+                var localizedBody = this.GetLocalizedString(bodyKey, bodyArgs as string[], notificationBuilder);
                 if (localizedBody != null)
                 {
                     notificationBuilder.SetContentText(localizedBody);
@@ -496,7 +492,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private static string GetLocalizedString(string name, string[] arguments, NotificationCompat.Builder notificationBuilder)
+        private string GetLocalizedString(string name, string[] arguments, NotificationCompat.Builder notificationBuilder)
         {
             try
             {
@@ -512,7 +508,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             catch (UnknownFormatConversionException ex)
             {
-                Debug.WriteLine($"{Tag}.ResolveLocalizedParameters - Incorrect string arguments {ex}");
+                this.logger.LogError(ex, "GetLocalizedString - Incorrect string arguments");
                 return null;
             }
         }

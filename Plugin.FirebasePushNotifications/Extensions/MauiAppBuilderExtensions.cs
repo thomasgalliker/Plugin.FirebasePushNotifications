@@ -3,6 +3,7 @@
 #if ANDROID || IOS
 using Plugin.FirebasePushNotifications.Platforms;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
+using Plugin.FirebasePushNotifications.Model.Queues;
 #endif
 
 #if IOS
@@ -11,8 +12,6 @@ using UserNotifications;
 #endif
 
 using Microsoft.Maui.LifecycleEvents;
-using Plugin.FirebasePushNotifications.Internals;
-using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -67,14 +66,20 @@ namespace Plugin.FirebasePushNotifications
                     }
 
                     var firebasePushNotification = CrossFirebasePushNotification.Current as FirebasePushNotificationManager;
-                    firebasePushNotification.Logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
+                    firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
+                    
+                    if (firebasePushNotification.NotificationHandler == null)
+                    {
+                        firebasePushNotification.NotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                    }
+
                     firebasePushNotification.Configure(defaultOptions);
                     return true;
                 }));
 #elif ANDROID
                 events.AddAndroid(android => android.OnApplicationCreate(d =>
                 {
-                   var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
+                    var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
                     if (defaultOptions?.QueueFactory is IQueueFactory queueFactory)
                     {
                         queueFactory.LoggerFactory = loggerFactory;
@@ -82,6 +87,19 @@ namespace Plugin.FirebasePushNotifications
 
                     var firebasePushNotification = CrossFirebasePushNotification.Current as FirebasePushNotificationManager;
                     firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
+
+                    if (firebasePushNotification.NotificationBuilder == null)
+                    {
+                        // Resolve INotificationBuilder (if not already set)
+                        firebasePushNotification.NotificationBuilder = IPlatformApplication.Current.Services.GetService<INotificationBuilder>();
+                    }
+                    
+                    if (firebasePushNotification.NotificationHandler == null)
+                    {
+                        // Resolve IPushNotificationHandler (if not already set)
+                        firebasePushNotification.NotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                    }
+
                     firebasePushNotification.Configure(defaultOptions);
 
                     if (defaultOptions.AutoInitEnabled)
@@ -109,10 +127,12 @@ namespace Plugin.FirebasePushNotifications
 #if ANDROID || IOS
             builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
             builder.Services.AddSingleton<INotificationPermissions, NotificationPermissions>();
+            builder.Services.AddSingleton(defaultOptions);
 #endif
 
 #if ANDROID
             builder.Services.AddSingleton(c => NotificationChannels.Current);
+            builder.Services.AddSingleton<INotificationBuilder, NotificationBuilder>();
 #elif IOS
             builder.Services.AddSingleton<INotificationChannels, NotificationChannels>();
 #endif

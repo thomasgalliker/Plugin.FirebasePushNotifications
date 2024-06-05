@@ -8,6 +8,7 @@ using Plugin.FirebasePushNotifications.Model.Queues;
 using MauiSampleApp.Services.Logging;
 using NLog.Extensions.Logging;
 
+
 #if ANDROID
 using MauiSampleApp.Platforms.Notifications;
 #endif
@@ -53,6 +54,17 @@ namespace MauiSampleApp
 
             builder.Services.AddTransient<LogPage>();
             builder.Services.AddTransient<LogViewModel>();
+
+
+#if ANDROID
+            // Demo: Register an INotificationBuilder instance or assign it to property NotificationBuilder
+            //       in order to use a custom notification builder logic.
+            //builder.Services.AddSingleton<Plugin.FirebasePushNotifications.Platforms.INotificationBuilder, CustomNotificationBuilder>();
+            //CrossFirebasePushNotification.Current.NotificationBuilder = new CustomNotificationBuilder();
+#endif
+            // Demo: Register an IPushNotificationHandler instance or assign it to property NotificationHandler
+            //       in order to use a custom notification handler logic.
+            //CrossFirebasePushNotification.Current.NotificationHandler = new CustomPushNotificationHandler();
 
             builder.Services.AddSingleton<INavigationService, MauiNavigationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();

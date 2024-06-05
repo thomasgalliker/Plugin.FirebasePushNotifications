@@ -37,9 +37,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var notificationChannels = NotificationChannels.Current;
             notificationChannels.CreateChannels(options.Android.NotificationChannels);
+        }
 
-            // TODO: Migrate this code into Android-specific FirebasePushNotificationManager class.
-            this.NotificationHandler = new DefaultPushNotificationHandler(options);
+        protected override void OnNotificationReceived(IDictionary<string, object> data)
+        {
+            this.NotificationBuilder?.OnNotificationReceived(data);
         }
 
         public void ProcessIntent(Activity activity, Intent intent)
@@ -205,6 +207,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             //}
         }
+
+        public INotificationBuilder NotificationBuilder { get; set; }
 
         /// <inheritdoc />
         public void SubscribeTopics(string[] topics)
