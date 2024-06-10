@@ -72,7 +72,13 @@ namespace Plugin.FirebasePushNotifications
                     {
                         firebasePushNotification.NotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
                     }
-
+                    
+                    if (defaultOptions.Preferences == null)
+                    {
+                        // Resolve IFirebasePushNotificationPreferences (if not already set)
+                        defaultOptions.Preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
+                    }
+                    
                     firebasePushNotification.Configure(defaultOptions);
                     return true;
                 }));
@@ -99,7 +105,13 @@ namespace Plugin.FirebasePushNotifications
                         // Resolve IPushNotificationHandler (if not already set)
                         firebasePushNotification.NotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
                     }
-
+                    
+                    if (defaultOptions.Preferences == null)
+                    {
+                        // Resolve IFirebasePushNotificationPreferences (if not already set)
+                        defaultOptions.Preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
+                    }
+                    
                     firebasePushNotification.Configure(defaultOptions);
 
                     if (defaultOptions.AutoInitEnabled)
@@ -127,6 +139,8 @@ namespace Plugin.FirebasePushNotifications
 #if ANDROID || IOS
             builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
             builder.Services.AddSingleton<INotificationPermissions, NotificationPermissions>();
+            builder.Services.AddSingleton<IFirebasePushNotificationPreferences, FirebasePushNotificationPreferences>();
+            builder.Services.AddSingleton<IPreferences>(_ => Preferences.Default);
             builder.Services.AddSingleton(defaultOptions);
 #endif
 

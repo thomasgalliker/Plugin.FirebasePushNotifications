@@ -26,8 +26,9 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// The preferences handler which is used to read and write
         /// temporary data during the lifetime of the application that uses this plugin.
+        /// Default: <see cref="FirebasePushNotificationPreferences"/>.
         /// </summary>
-        public virtual IFirebasePushNotificationPreferences Preferences { get; set; } = new FirebasePushNotificationPreferences(Microsoft.Maui.Storage.Preferences.Default);
+        public virtual IFirebasePushNotificationPreferences Preferences { get; set; }
 
 #if ANDROID
         public virtual FirebasePushNotificationAndroidOptions Android { get; set; } = new FirebasePushNotificationAndroidOptions();
