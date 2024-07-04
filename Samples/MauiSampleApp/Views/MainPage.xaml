@@ -51,7 +51,7 @@
             <controls:DividerLine />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
+                Style="{StaticResource Heading2LabelStyle}"
                 Text="INotificationPermissions" />
 
             <Button
@@ -72,7 +72,7 @@
             <controls:DividerLine />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
+                Style="{StaticResource Heading2LabelStyle}"
                 Text="INotificationChannels" />
             <VerticalStackLayout Spacing="8">
                 <Button
@@ -89,7 +89,7 @@
             <controls:DividerLine />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
+                Style="{StaticResource Heading2LabelStyle}"
                 Text="IFirebasePushNotification" />
             <VerticalStackLayout Spacing="8">
                 <Button
@@ -230,7 +230,7 @@
             <controls:DividerLine />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
+                Style="{StaticResource Heading2LabelStyle}"
                 Text="Internals" />
 
             <Button
