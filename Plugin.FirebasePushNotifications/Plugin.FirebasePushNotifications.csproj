@@ -28,7 +28,8 @@
 		<Authors>Thomas Galliker</Authors>
 		<PackageId>Plugin.FirebasePushNotifications</PackageId>
 		<PackageTags>firebase;push;notification;notifications</PackageTags>
-		<PackageIconUrl>https://raw.githubusercontent.com/thomasgalliker/Plugin.FirebasePushNotifications/develop/Images/logo.png</PackageIconUrl>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageProjectUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
@@ -39,14 +40,13 @@
 		</PackageReleaseNotes>
 		<Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-	</PropertyGroup> 
+	</PropertyGroup>
 
-	<ItemGroup>
-		<None Include="..\README.md">
-			<Pack>True</Pack>
-			<PackagePath>\</PackagePath>
-		</None>
-	</ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="True" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="True" PackagePath="\" />
+    <None Include="..\Images\logo.png" Pack="True" PackagePath="\" />
+  </ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="[13.0.3,)" />
