@@ -118,6 +118,7 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     AutoSize="TextChanges"
+                    FontFamily="{StaticResource FontFamilyMonospace}"
                     Text="{Binding Token, Mode=OneWay}" />
                 <Grid
                     Grid.Row="1"
