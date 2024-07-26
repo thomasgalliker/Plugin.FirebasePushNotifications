@@ -5,7 +5,6 @@ using MauiSampleApp.Services;
 using MauiSampleApp.Views;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications;
-using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Model;
 
 namespace MauiSampleApp.ViewModels
@@ -391,7 +390,7 @@ namespace MauiSampleApp.ViewModels
         private void UpdateSubscribedTopics()
         {
             this.SubscribedTopics = this.firebasePushNotification.SubscribedTopics
-                .Select(t => new SubscribedTopicViewModel(t, t => this.UnsubscribeFromTopicAsync(t)))
+                .Select(t => new SubscribedTopicViewModel(t, this.UnsubscribeFromTopicAsync))
                 .ToArray();
         }
 
@@ -528,7 +527,7 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                var result = await MediaPicker.Default.CapturePhotoAsync();
+                var result = await MediaPicker.Default.CapturePhotoAsync().ConfigureAwait(true);
                 if (result != null)
                 {
                     await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Success", "OK");

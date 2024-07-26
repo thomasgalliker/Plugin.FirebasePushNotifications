@@ -69,21 +69,23 @@
                 </Label.FormattedText>
             </Label>
 
-            <controls:DividerLine />
+            <controls:DividerLine IsVisible="{OnPlatform Android=True, Default=False}" />
 
             <Label
                 Style="{StaticResource Heading2LabelStyle}"
-                Text="INotificationChannels" />
-            <VerticalStackLayout Spacing="8">
+                Text="INotificationChannels"
+                IsVisible="{OnPlatform Android=True, Default=False}" />
+            <VerticalStackLayout 
+                Spacing="8"
+                IsVisible="{OnPlatform Android=True, Default=False}">
                 <Button
                     Command="{Binding GetNotificationChannelsCommand}"
                     Text="Get notification channels"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
-                <ListView
-                    HasUnevenRows="True"
-                    ItemTemplate="{StaticResource NotificationChannelItemTemplate}"
-                    ItemsSource="{Binding Channels}" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource NotificationChannelItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding Channels}" />
             </VerticalStackLayout>
 
             <controls:DividerLine />
@@ -102,6 +104,8 @@
                     Text="Unregister from push notifications"
                     HorizontalOptions="Fill" />
             </VerticalStackLayout>
+
+            <controls:DividerLine />
 
             <Grid
                 ColumnDefinitions="*, Auto"
@@ -145,6 +149,8 @@
                 </Grid>
             </Grid>
 
+            <controls:DividerLine />
+
             <VerticalStackLayout Spacing="8">
                 <Label
                     Style="{StaticResource Heading2LabelStyle}"
@@ -172,6 +178,8 @@
                     HorizontalOptions="Fill" />
             </VerticalStackLayout>
 
+            <controls:DividerLine />
+
             <VerticalStackLayout Spacing="8">
                 <Label
                     Style="{StaticResource Heading2LabelStyle}"
@@ -181,10 +189,9 @@
                     Text="Get subscribed topics"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
-                <ListView
-                    HasUnevenRows="True"
-                    ItemTemplate="{StaticResource SubscribedTopicItemTemplate}"
-                    ItemsSource="{Binding SubscribedTopics}" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource SubscribedTopicItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding SubscribedTopics}" />
 
                 <Entry
                     Placeholder="New topic name"
@@ -202,25 +209,25 @@
                     VerticalOptions="Start" />
             </VerticalStackLayout>
 
+            <controls:DividerLine />
+
             <VerticalStackLayout Spacing="8">
                 <Label
                     Style="{StaticResource Heading2LabelStyle}"
                     Text="Notification Categories" />
                 <Button
-                    Command="{Binding GetNotificationCategoriesCommand}"
-                    Text="Get notification categories"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Start" />
-                <ListView
-                    HasUnevenRows="True"
-                    ItemTemplate="{StaticResource NotificationCategoryItemTemplate}"
-                    ItemsSource="{Binding NotificationCategories}" />
-
-                <Button
                     Command="{Binding RegisterNotificationCategoriesCommand}"
                     Text="Register sample categories"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
+                <Button
+                    Command="{Binding GetNotificationCategoriesCommand}"
+                    Text="Get notification categories"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource NotificationCategoryItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding NotificationCategories}" />
                 <Button
                     Command="{Binding ClearNotificationCategoriesCommand}"
                     Text="Clear"
