@@ -15,7 +15,7 @@
 		<ApplicationTitle>Firebase Push Demo</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.helmedica.patientapp.dev</ApplicationId>
+    <ApplicationId>com.companyname.firebasepushnotifications</ApplicationId>
 		<ApplicationIdGuid>da8d1bd2-3ced-4171-b0da-3f1a7806e5af</ApplicationIdGuid>
 
 		<!-- Versions -->
