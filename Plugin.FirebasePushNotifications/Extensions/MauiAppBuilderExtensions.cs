@@ -40,7 +40,7 @@ namespace Plugin.FirebasePushNotifications
                     }
 
                     var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
-                    if (defaultOptions?.QueueFactory is IQueueFactory queueFactory)
+                    if (defaultOptions.QueueFactory is IQueueFactory queueFactory)
                     {
                         queueFactory.LoggerFactory = loggerFactory;
                     }
@@ -62,57 +62,68 @@ namespace Plugin.FirebasePushNotifications
                     }
                     else
                     {
-                        logger.LogDebug($"FinishedLaunching");
+                        logger.LogDebug("FinishedLaunching");
                     }
 
-                    var firebasePushNotification = CrossFirebasePushNotification.Current as FirebasePushNotificationManager;
-                    firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
-                    
-                    if (firebasePushNotification.NotificationHandler == null)
+                    if (CrossFirebasePushNotification.Current is FirebasePushNotificationManager firebasePushNotification)
                     {
-                        firebasePushNotification.NotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                        firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
+
+                        if (firebasePushNotification.NotificationHandler == null)
+                        {
+                            // Resolve IPushNotificationHandler (if not already set)
+                            var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                            firebasePushNotification.NotificationHandler = pushNotificationHandler;
+                        }
+
+                        if (defaultOptions.Preferences == null)
+                        {
+                            // Resolve IFirebasePushNotificationPreferences (if not already set)
+                            var preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
+                            defaultOptions.Preferences = preferences;
+                        }
+
+                        firebasePushNotification.Configure(defaultOptions);
                     }
-                    
-                    if (defaultOptions.Preferences == null)
-                    {
-                        // Resolve IFirebasePushNotificationPreferences (if not already set)
-                        defaultOptions.Preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
-                    }
-                    
-                    firebasePushNotification.Configure(defaultOptions);
+
                     return true;
                 }));
 #elif ANDROID
                 events.AddAndroid(android => android.OnApplicationCreate(d =>
                 {
                     var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
-                    if (defaultOptions?.QueueFactory is IQueueFactory queueFactory)
+                    if (defaultOptions.QueueFactory is IQueueFactory queueFactory)
                     {
                         queueFactory.LoggerFactory = loggerFactory;
                     }
 
-                    var firebasePushNotification = CrossFirebasePushNotification.Current as FirebasePushNotificationManager;
-                    firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
+                    if (CrossFirebasePushNotification.Current is FirebasePushNotificationManager firebasePushNotification)
+                    {
+                        firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
 
-                    if (firebasePushNotification.NotificationBuilder == null)
-                    {
-                        // Resolve INotificationBuilder (if not already set)
-                        firebasePushNotification.NotificationBuilder = IPlatformApplication.Current.Services.GetService<INotificationBuilder>();
+                        if (firebasePushNotification.NotificationBuilder == null)
+                        {
+                            // Resolve INotificationBuilder (if not already set)
+                            var notificationBuilder = IPlatformApplication.Current.Services.GetService<INotificationBuilder>();
+                            firebasePushNotification.NotificationBuilder = notificationBuilder;
+                        }
+
+                        if (firebasePushNotification.NotificationHandler == null)
+                        {
+                            // Resolve IPushNotificationHandler (if not already set)
+                            var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                            firebasePushNotification.NotificationHandler = pushNotificationHandler;
+                        }
+
+                        if (defaultOptions.Preferences == null)
+                        {
+                            // Resolve IFirebasePushNotificationPreferences (if not already set)
+                            var preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
+                            defaultOptions.Preferences = preferences;
+                        }
+
+                        firebasePushNotification.Configure(defaultOptions);
                     }
-                    
-                    if (firebasePushNotification.NotificationHandler == null)
-                    {
-                        // Resolve IPushNotificationHandler (if not already set)
-                        firebasePushNotification.NotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
-                    }
-                    
-                    if (defaultOptions.Preferences == null)
-                    {
-                        // Resolve IFirebasePushNotificationPreferences (if not already set)
-                        defaultOptions.Preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
-                    }
-                    
-                    firebasePushNotification.Configure(defaultOptions);
 
                     if (defaultOptions.AutoInitEnabled)
                     {
