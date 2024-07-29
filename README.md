@@ -181,3 +181,7 @@ If everything works fine, the mobile device with push notification token "d5xOmb
 
 ### Contribution
 Contributors welcome! If you find a bug or you want to propose a new feature, feel free to do so by opening a new issue on github.com.
+
+### Links
+- https://firebase.google.com/docs/cloud-messaging/ios/client
+- https://firebase.google.com/docs/cloud-messaging/android/client
