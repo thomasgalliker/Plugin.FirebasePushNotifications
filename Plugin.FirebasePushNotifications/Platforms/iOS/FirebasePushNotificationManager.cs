@@ -130,7 +130,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                firebaseMessaging.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
+                firebaseMessaging.Delegate = new MessagingDelegateImpl((_, fcmToken) => this.DidReceiveRegistrationToken(fcmToken));
             }
         }
 
@@ -200,7 +200,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             Firebase.CloudMessaging.Messaging.SharedInstance.ApnsToken = deviceToken;
 
-            this.DidReceiveRegistrationToken(Firebase.CloudMessaging.Messaging.SharedInstance, Firebase.CloudMessaging.Messaging.SharedInstance.FcmToken);
+            this.DidReceiveRegistrationToken(Firebase.CloudMessaging.Messaging.SharedInstance.FcmToken);
         }
 
         /// <inheritdoc />
@@ -481,7 +481,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             completionHandler();
         }
 
-        private void DidReceiveRegistrationToken(Firebase.CloudMessaging.Messaging messaging, string fcmToken)
+        private void DidReceiveRegistrationToken(string fcmToken)
         {
             this.logger.LogDebug("DidReceiveRegistrationToken");
 
