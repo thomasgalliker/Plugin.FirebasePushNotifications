@@ -133,23 +133,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 FirebaseMessaging.Instance.AutoInitEnabled = true;
 
-                await Task.Run(this.GetTokenAsync);
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
-                throw;
-            }
-        }
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.GetToken().AddOnCompleteListener(taskCompleteListener);
 
-        private async Task GetTokenAsync()
-        {
-            var tcs = new TaskCompletionSource<Java.Lang.Object>();
-            var taskCompleteListener = new TaskCompleteListener(tcs);
-            FirebaseMessaging.Instance.GetToken().AddOnCompleteListener(taskCompleteListener);
-
-            try
-            {
                 var taskResult = await tcs.Task;
                 var token = taskResult.ToString();
 
@@ -160,7 +147,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex, "GetTokenAsync failed with exception");
+                this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
                 throw;
             }
         }
@@ -174,15 +161,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 FirebaseMessaging.Instance.AutoInitEnabled = false;
 
-                await Task.Run(async () =>
-                {
-                    var tcs = new TaskCompletionSource<Java.Lang.Object>();
-                    var taskCompleteListener = new TaskCompleteListener(tcs);
-                    FirebaseMessaging.Instance.DeleteToken().AddOnCompleteListener(taskCompleteListener);
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.DeleteToken().AddOnCompleteListener(taskCompleteListener);
 
-                    await tcs.Task;
-                }
-                );
+                await tcs.Task;
             }
             catch (Exception ex)
             {
