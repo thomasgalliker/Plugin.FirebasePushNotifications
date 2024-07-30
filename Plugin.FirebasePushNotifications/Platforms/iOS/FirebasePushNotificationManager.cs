@@ -113,15 +113,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 throw new NullReferenceException(sharedInstanceNullErrorMessage);
             }
 
-            if (firebaseMessaging.Delegate != null)
-            {
-                this.logger.LogWarning("Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is already set");
-            }
-            else
-            {
-                firebaseMessaging.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
-            }
-
             if (UNUserNotificationCenter.Current.Delegate != null)
             {
                 this.logger.LogWarning("UNUserNotificationCenter.Current.Delegate is already set");
@@ -133,7 +124,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     this.WillPresentNotification);
             }
 
-            firebaseMessaging.AutoInitEnabled = options.AutoInitEnabled;
+            if (firebaseMessaging.Delegate != null)
+            {
+                this.logger.LogWarning("Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is already set");
+            }
+            else
+            {
+                firebaseMessaging.Delegate = new MessagingDelegateImpl(this.DidReceiveRegistrationToken);
+            }
         }
 
         /// <inheritdoc />
@@ -143,26 +141,35 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = true;
 
+
             var authOptions = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
             var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
+            if (granted)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    UIApplication.SharedApplication.RegisterForRemoteNotifications();
+                });
+
+                // this.DidReceiveRegistrationToken(
+                //     Firebase.CloudMessaging.Messaging.SharedInstance,
+                //     Firebase.CloudMessaging.Messaging.SharedInstance.FcmToken);
+            }
+            else
+            {
+                this.logger.LogWarning("RegisterForPushNotificationsAsync: Push notification permission denied by user");
+            }
+
             if (error != null)
             {
                 var exception = new Exception("RegisterForPushNotificationsAsync failed with exception", new NSErrorException(error));
                 this.logger.LogError(exception, exception.Message);
                 throw exception;
             }
-            else if (!granted)
-            {
-                this.logger.LogWarning("RegisterForPushNotificationsAsync: Push notification permission denied by user");
-            }
-            else
-            {
-                await MainThread.InvokeOnMainThreadAsync(UIApplication.SharedApplication.RegisterForRemoteNotifications);
-            }
         }
 
         /// <inheritdoc />
-        public Task UnregisterForPushNotificationsAsync()
+        public async Task UnregisterForPushNotificationsAsync()
         {
             this.logger.LogDebug("UnregisterForPushNotificationsAsync");
 
@@ -174,16 +181,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = false;
 
-            //if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
-            //{
-            //    Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = null;
-            //}
+            // if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
+            // {
+            //     Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = null;
+            // }
 
-            UIApplication.SharedApplication.UnregisterForRemoteNotifications();
+            await MainThread.InvokeOnMainThreadAsync(UIApplication.SharedApplication.UnregisterForRemoteNotifications);
+
+            Firebase.CloudMessaging.Messaging.SharedInstance.ApnsToken = null;
 
             this.preferences.Remove(Constants.Preferences.TokenKey);
-
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc />
@@ -192,6 +199,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.logger.LogDebug("RegisteredForRemoteNotifications");
 
             Firebase.CloudMessaging.Messaging.SharedInstance.ApnsToken = deviceToken;
+
+            this.DidReceiveRegistrationToken(Firebase.CloudMessaging.Messaging.SharedInstance, Firebase.CloudMessaging.Messaging.SharedInstance.FcmToken);
         }
 
         /// <inheritdoc />
@@ -216,7 +225,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // If you are receiving a notification message while your app is in the background,
             // this callback will not be fired 'till the user taps on the notification launching the application.
 
-            // If you disable method swizzling, you'll need to call this method. 
+            // If you disable method swizzling, you'll need to call this method.
             // This lets FCM track message delivery and analytics, which is performed
             // automatically with method swizzling enabled.
             this.DidReceiveRemoteNotificationInternal(userInfo);
@@ -479,24 +488,26 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // Note that this callback will be fired everytime a new token is generated,
             // including the first time a token is received.
 
-            if (!string.IsNullOrEmpty(fcmToken))
+            if (string.IsNullOrEmpty(fcmToken))
             {
-                this.HandleTokenRefresh(fcmToken);
+                return;
+            }
 
-                this.hasToken = true;
+            this.HandleTokenRefresh(fcmToken);
 
-                while (this.pendingTopics.TryDequeue(out var pendingTopic))
+            this.hasToken = true;
+
+            while (this.pendingTopics.TryDequeue(out var pendingTopic))
+            {
+                if (pendingTopic != null)
                 {
-                    if (pendingTopic != null)
+                    if (pendingTopic.Item2)
                     {
-                        if (pendingTopic.Item2)
-                        {
-                            this.SubscribeTopic(pendingTopic.Item1);
-                        }
-                        else
-                        {
-                            this.UnsubscribeTopic(pendingTopic.Item1);
-                        }
+                        this.SubscribeTopic(pendingTopic.Item1);
+                    }
+                    else
+                    {
+                        this.UnsubscribeTopic(pendingTopic.Item1);
                     }
                 }
             }
@@ -518,11 +529,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// <inheritdoc />
         public async void RemoveNotification(int id)
         {
-            var NotificationIdKey = "id";
+            const string notificationIdKey = "id";
             if (UIDevice.CurrentDevice.CheckSystemVersion(10, 0))
             {
                 var deliveredNotifications = await UNUserNotificationCenter.Current.GetDeliveredNotificationsAsync();
-                var deliveredNotificationsMatches = deliveredNotifications.Where(u => $"{u.Request.Content.UserInfo[NotificationIdKey]}".Equals($"{id}")).Select(s => s.Request.Identifier).ToArray();
+                var deliveredNotificationsMatches = deliveredNotifications.Where(u => $"{u.Request.Content.UserInfo[notificationIdKey]}".Equals($"{id}")).Select(s => s.Request.Identifier).ToArray();
                 if (deliveredNotificationsMatches.Length > 0)
                 {
                     UNUserNotificationCenter.Current.RemoveDeliveredNotifications(deliveredNotificationsMatches);

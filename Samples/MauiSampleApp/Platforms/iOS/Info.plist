@@ -34,5 +34,11 @@
 	<string>This app needs access to the photo gallery for picking photos and videos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to photos gallery for picking photos and videos.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+    <false/>
 </dict>
 </plist>

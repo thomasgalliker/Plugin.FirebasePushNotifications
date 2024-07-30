@@ -86,6 +86,8 @@ namespace Plugin.FirebasePushNotifications
                         firebasePushNotification.Configure(defaultOptions);
                     }
 
+                    Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
+
                     return true;
                 }));
 #elif ANDROID
@@ -128,8 +130,9 @@ namespace Plugin.FirebasePushNotifications
                     if (defaultOptions.AutoInitEnabled)
                     {
                         Firebase.FirebaseApp.InitializeApp(d.ApplicationContext);
-                        Firebase.Messaging.FirebaseMessaging.Instance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
                     }
+
+                    Firebase.Messaging.FirebaseMessaging.Instance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
                 }));
                 events.AddAndroid(android => android.OnCreate((activity, intent) =>
                 {
