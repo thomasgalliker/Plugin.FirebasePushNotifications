@@ -99,6 +99,8 @@ namespace Plugin.FirebasePushNotifications
                         queueFactory.LoggerFactory = loggerFactory;
                     }
 
+                    var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
+
                     if (CrossFirebasePushNotification.Current is FirebasePushNotificationManager firebasePushNotification)
                     {
                         firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
@@ -129,7 +131,16 @@ namespace Plugin.FirebasePushNotifications
 
                     if (defaultOptions.AutoInitEnabled)
                     {
-                        Firebase.FirebaseApp.InitializeApp(d.ApplicationContext);
+                        try
+                        {
+                            Firebase.FirebaseApp.InitializeApp(d.ApplicationContext);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, "FirebaseApp.InitializeApp failed with exception. " +
+                                                "Make sure the google-services.json file is present and marked as GoogleServicesJson.");
+                            throw;
+                        }
                     }
 
                     Firebase.Messaging.FirebaseMessaging.Instance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
