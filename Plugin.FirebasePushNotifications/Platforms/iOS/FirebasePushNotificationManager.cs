@@ -254,37 +254,40 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             var notificationPresentationOptions = UNNotificationPresentationOptions.None;
 
-            if (data.TryGetValue("priority", out var priority) && ($"{priority}".ToLower() is "high" or "max"))
+            if (data.TryGetValue("priority", out var p) && $"{p}".ToLower() is string priority)
             {
-                if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
+                if (priority is "high" or "max")
                 {
-                    if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner))
+                    if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        notificationPresentationOptions |= UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner))
+                        {
+                            notificationPresentationOptions |= UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                        }
+                    }
+                    else
+                    {
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                        {
+                            notificationPresentationOptions |= UNNotificationPresentationOptions.Alert;
+                        }
                     }
                 }
-                else
+                else if (priority is "default" or "low" or "min")
                 {
-                    if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                    if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        notificationPresentationOptions |= UNNotificationPresentationOptions.Alert;
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner))
+                        {
+                            notificationPresentationOptions &= UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                        }
                     }
-                }
-            }
-            else if ($"{priority}".ToLower() is "default" or "low" or "min")
-            {
-                if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
-                {
-                    if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner))
+                    else
                     {
-                        notificationPresentationOptions &= UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
-                    }
-                }
-                else
-                {
-                    if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
-                    {
-                        notificationPresentationOptions &= UNNotificationPresentationOptions.Alert;
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                        {
+                            notificationPresentationOptions &= UNNotificationPresentationOptions.Alert;
+                        }
                     }
                 }
             }
