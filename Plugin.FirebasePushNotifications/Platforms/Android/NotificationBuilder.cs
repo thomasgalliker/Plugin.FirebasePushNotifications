@@ -40,6 +40,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (data.TryGetBool(Constants.SilentKey, out var silentValue) && silentValue)
             {
+                // If the message contains the silent key,
+                // we don't display any notification.
                 return;
             }
 
@@ -56,10 +58,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return;
             }
 
+            var messageTitle = this.GetMessageTitle(data);
+            var messageBody = this.GetMessageBody(data);
+
+            if (messageTitle == null && messageBody == null)
+            {
+                // If title and body is not present, it is a data-only message.
+                // Nothing to do here.
+                return;
+            }
+
             var context = Application.Context;
 
             // TODO: Cleanup these variables. There is a lot of legacy code from the Xamarin plugin here.
-
             var notificationId = 0;
             var showWhenVisible = FirebasePushNotificationManager.ShouldShowWhen;
             var useBigTextStyle = FirebasePushNotificationManager.UseBigTextStyle;
@@ -238,13 +249,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                  .SetWhen(Java.Lang.JavaSystem.CurrentTimeMillis())
                  .SetContentIntent(pendingIntent);
 
-            var messageTitle = this.GetMessageTitle(data, context);
+            messageTitle ??= GetDefaultMessageTitle(context);
             if (!string.IsNullOrEmpty(messageTitle))
             {
                 notificationBuilder.SetContentTitle(messageTitle);
             }
 
-            var messageBody = this.GetMessageBody(data);
             if (!string.IsNullOrEmpty(messageBody))
             {
                 notificationBuilder.SetContentText(messageBody);
@@ -450,7 +460,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return messageBody;
         }
 
-        private string GetMessageTitle(IDictionary<string, object> data, Context context)
+        private static string GetDefaultMessageTitle(Context context)
+        {
+            return context.ApplicationInfo.LoadLabel(context.PackageManager);
+        }
+
+        private string GetMessageTitle(IDictionary<string, object> data)
         {
             string messageTitle;
 
@@ -465,7 +480,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                messageTitle = context.ApplicationInfo.LoadLabel(context.PackageManager);
+                messageTitle = null;
             }
 
             return messageTitle;
