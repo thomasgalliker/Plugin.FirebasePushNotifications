@@ -14,6 +14,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // are not forwarded to OnMessageReceived. Only data messages arrive in OnMessageReceived which makes it impossible to
             // send a notification message with click_action/category content.
 
+            // TODO: HandleIntent seems no longer used in firebase 11.8.0 and later.
+
             try
             {
                 if (intent.Extras != null)
