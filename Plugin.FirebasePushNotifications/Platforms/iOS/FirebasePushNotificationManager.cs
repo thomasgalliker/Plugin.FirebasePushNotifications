@@ -465,18 +465,18 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 notificationCategoryType = NotificationCategoryType.Default;
             }
 
-            var actionIdentifier = $"{response.ActionIdentifier}";
-            var identifier = actionIdentifier.Equals("com.apple.UNNotificationDefaultActionIdentifier", StringComparison.InvariantCultureIgnoreCase)
+            const string defaultActionIdentifier = "com.apple.UNNotificationDefaultActionIdentifier";
+            var actionIdentifier = string.Equals(response.ActionIdentifier, defaultActionIdentifier, StringComparison.InvariantCultureIgnoreCase)
                 ? null
-                : actionIdentifier;
+                : response.ActionIdentifier;
 
-            if (string.IsNullOrEmpty(identifier))
+            if (string.IsNullOrEmpty(actionIdentifier))
             {
-                this.HandleNotificationOpened(data, identifier, notificationCategoryType);
+                this.HandleNotificationOpened(data, actionIdentifier, notificationCategoryType);
             }
             else
             {
-                this.HandleNotificationAction(data, identifier, notificationCategoryType);
+                this.HandleNotificationAction(data, actionIdentifier, notificationCategoryType);
             }
 
             // Inform caller it has been handled
