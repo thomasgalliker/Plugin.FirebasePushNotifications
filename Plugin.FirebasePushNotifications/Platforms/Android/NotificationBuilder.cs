@@ -62,54 +62,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var context = Application.Context;
 
             var notificationId = 0;
-            var contentText = string.Empty;
             var showWhenVisible = FirebasePushNotificationManager.ShouldShowWhen;
             var useBigTextStyle = FirebasePushNotificationManager.UseBigTextStyle;
             var soundUri = FirebasePushNotificationManager.SoundUri;
             var largeIconResource = FirebasePushNotificationManager.LargeIconResource;
             var smallIconResource = FirebasePushNotificationManager.IconResource;
             var notificationColor = FirebasePushNotificationManager.Color;
-
-            if (!string.IsNullOrEmpty(this.options.Android.NotificationContentTextKey) &&
-                data.TryGetString(this.options.Android.NotificationContentTextKey, out var notificationContentText))
-            {
-                contentText = notificationContentText;
-            }
-            else if (data.TryGetString(Constants.AlertKey, out var alert))
-            {
-                contentText = alert;
-            }
-            else if (data.TryGetString(Constants.NotificationBodyKey, out var body))
-            {
-                contentText = body;
-            }
-            else if (data.TryGetString(Constants.MessageKey, out var messageContent))
-            {
-                contentText = messageContent;
-            }
-            else if (data.TryGetString(Constants.SubtitleKey, out var subtitle))
-            {
-                contentText = subtitle;
-            }
-            else if (data.TryGetString(Constants.TextKey, out var text))
-            {
-                contentText = text;
-            }
-
-            string contentTitle;
-            if (!string.IsNullOrEmpty(this.options.Android.NotificationContentTitleKey) &&
-                data.TryGetString(this.options.Android.NotificationContentTitleKey, out var notificationContentTitle))
-            {
-                contentTitle = notificationContentTitle;
-            }
-            else if (data.TryGetString(Constants.NotificationTitleKey, out var titleContent))
-            {
-                contentTitle = titleContent;
-            }
-            else
-            {
-                contentTitle = context.ApplicationInfo.LoadLabel(context.PackageManager);
-            }
 
             if (data.TryGetString(Constants.IdKey, out var id))
             {
@@ -281,21 +239,22 @@ namespace Plugin.FirebasePushNotifications.Platforms
                  .SetWhen(Java.Lang.JavaSystem.CurrentTimeMillis())
                  .SetContentIntent(pendingIntent);
 
-            if (!string.IsNullOrEmpty(contentTitle))
+            var messageTitle = this.GetMessageTitle(data, context);
+            if (!string.IsNullOrEmpty(messageTitle))
             {
-                notificationBuilder.SetContentTitle(contentTitle);
+                notificationBuilder.SetContentTitle(messageTitle);
             }
 
-            if (!string.IsNullOrEmpty(contentText))
+            var messageBody = this.GetMessageBody(data);
+            if (!string.IsNullOrEmpty(messageBody))
             {
-                notificationBuilder.SetContentText(contentText);
+                notificationBuilder.SetContentText(messageBody);
             }
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBeanMr1)
             {
                 notificationBuilder.SetShowWhen(showWhenVisible);
             }
-
 
             if (largeIconResource > 0)
             {
@@ -365,7 +324,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 // Using BigText notification style to support long message
                 var style = new NotificationCompat.BigTextStyle();
-                style.BigText(contentText);
+                style.BigText(messageBody);
                 notificationBuilder.SetStyle(style);
             }
 
@@ -453,6 +412,64 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 notificationManager.Notify(tag, notificationId, notification);
             }
+        }
+
+        private string GetMessageBody(IDictionary<string, object> data)
+        {
+            string messageBody;
+
+            if (this.options.Android.NotificationBodyKey is string notificationBodyKey &&
+                data.TryGetString(notificationBodyKey, out var notificationBodyValue))
+            {
+                messageBody = notificationBodyValue;
+            }
+            else if (data.TryGetString(Constants.AlertKey, out var alert))
+            {
+                messageBody = alert;
+            }
+            else if (data.TryGetString(Constants.NotificationBodyKey, out var body))
+            {
+                messageBody = body;
+            }
+            else if (data.TryGetString(Constants.MessageKey, out var messageContent))
+            {
+                messageBody = messageContent;
+            }
+            else if (data.TryGetString(Constants.SubtitleKey, out var subtitle))
+            {
+                messageBody = subtitle;
+            }
+            else if (data.TryGetString(Constants.TextKey, out var text))
+            {
+                messageBody = text;
+            }
+            else
+            {
+                messageBody = null;
+            }
+
+            return messageBody;
+        }
+
+        private string GetMessageTitle(IDictionary<string, object> data, Context context)
+        {
+            string messageTitle;
+
+            if (this.options.Android.NotificationTitleKey is string notificationTitleKey &&
+                data.TryGetString(notificationTitleKey, out var notificationTitleValue))
+            {
+                messageTitle = notificationTitleValue;
+            }
+            else if (data.TryGetString(Constants.NotificationTitleKey, out var titleContent))
+            {
+                messageTitle = titleContent;
+            }
+            else
+            {
+                messageTitle = context.ApplicationInfo.LoadLabel(context.PackageManager);
+            }
+
+            return messageTitle;
         }
 
         private static string GetCategoryValue(IDictionary<string, object> data)
