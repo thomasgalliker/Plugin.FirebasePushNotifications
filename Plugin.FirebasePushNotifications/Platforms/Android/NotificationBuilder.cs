@@ -55,9 +55,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 return;
             }
-            {
-                return;
-            }
 
             var context = Application.Context;
 
