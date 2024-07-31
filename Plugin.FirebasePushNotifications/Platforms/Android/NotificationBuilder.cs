@@ -38,7 +38,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // Long term goal: A developer can use IPushNotificationHandler to intercept all notifications and do some operations on them.
             // All the logic in here should move to the Android-specific implementation of FirebasePushNotificationManager.
 
-            var isSilent = data.TryGetBool(Constants.SilentKey, out var silentValue) && silentValue == true;
+            if (data.TryGetBool(Constants.SilentKey, out var silentValue) && silentValue)
+            {
+                return;
+            }
+
             var isForeground = IsInForeground();
             var hasChannelId = data.TryGetString(Constants.ChannelIdKey, out var channelId);
 
@@ -47,7 +51,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var isNotHighOrMax = FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.High && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.Max;
 
-            if (isSilent || (isForeground && (hasChannelId || priority != NotificationImportance.High && priority != NotificationImportance.Max && !isNotHighOrMax)))
+            if (isForeground && (hasChannelId || priority != NotificationImportance.High && priority != NotificationImportance.Max && !isNotHighOrMax))
+            {
+                return;
+            }
             {
                 return;
             }
