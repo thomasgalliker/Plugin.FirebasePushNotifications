@@ -11,14 +11,12 @@
 
         internal static class Preferences
         {
-            internal const string SharedName = "Plugin.FirebasePushNotifications";
-            internal static readonly string KeyPrefix = "Plugin.FirebasePushNotifications";
+            private const string KeyPrefix = "Plugin.FirebasePushNotifications";
+            internal const string TokenKey = $"{KeyPrefix}.Token";
+            internal const string SubscribedTopicsKey = $"{KeyPrefix}.SubscribedTopics";
+            internal const string NotificationCategoriesKey = $"{KeyPrefix}.NotificationCategories";
 
-            internal static readonly string TokenKey = $"{KeyPrefix}.Token";
-            internal static readonly string SubscribedTopicsKey = $"{KeyPrefix}.SubscribedTopics";
-            internal static readonly string NotificationCategoriesKey = $"{KeyPrefix}.NotificationCategories";
-
-            internal static readonly HashSet<string> AllKeys = new HashSet<string>
+            internal static readonly HashSet<string> AllKeys = new()
             {
                 TokenKey,
                 SubscribedTopicsKey,
