@@ -61,6 +61,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var context = Application.Context;
 
+            // TODO: Cleanup these variables. There is a lot of legacy code from the Xamarin plugin here.
+
             var notificationId = 0;
             var showWhenVisible = FirebasePushNotificationManager.ShouldShowWhen;
             var useBigTextStyle = FirebasePushNotificationManager.UseBigTextStyle;
@@ -104,9 +106,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     }
 
                     soundUri = new Android.Net.Uri.Builder()
-                                .Scheme(ContentResolver.SchemeAndroidResource)
-                                .Path($"{context.PackageName}/{soundResId}")
-                                .Build();
+                        .Scheme(ContentResolver.SchemeAndroidResource)
+                        .Path($"{context.PackageName}/{soundResId}")
+                        .Build();
                 }
             }
             catch (Resources.NotFoundException ex)
