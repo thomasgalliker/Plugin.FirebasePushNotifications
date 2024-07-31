@@ -310,11 +310,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     {
                         foreach (var apsVal in aps)
                         {
-                            if (apsVal.Value is NSDictionary)
+                            if (apsVal.Value is NSDictionary dictionaryValue)
                             {
                                 if (apsVal.Key.Equals(keyAlert))
                                 {
-                                    foreach (var alertVal in apsVal.Value as NSDictionary)
+                                    foreach (var alertVal in dictionaryValue)
                                     {
                                         parameters.Add($"aps.alert.{alertVal.Key}", $"{alertVal.Value}");
                                     }
