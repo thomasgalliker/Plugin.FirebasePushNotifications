@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -6,6 +7,7 @@ namespace Plugin.FirebasePushNotifications
     /// A notification category consolidates a list of <see cref="NotificationAction"/>.
     /// Each notification category is identifiable via its <see cref="CategoryId"/>.
     /// </summary>
+    [DebuggerDisplay("{CategoryId}")]
     public class NotificationCategory
     {
         public NotificationCategory(
