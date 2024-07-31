@@ -10,18 +10,19 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
         {
             // Act
             const string categoryId = "category1";
-            var actions = new NotificationAction[]
+            var notificationActions = new []
             {
-                new NotificationAction("action1", "title1", NotificationActionType.Default),
-                new NotificationAction("action2", "title2", NotificationActionType.Default),
+                new NotificationAction("action1", "title1", NotificationActionType.Foreground),
+                new NotificationAction("action2", "title2", NotificationActionType.Destructive),
             };
-            var notficationCategory = new NotificationCategory(categoryId, actions);
+            var notificationCategory = new NotificationCategory(categoryId, notificationActions);
 
-            var test = JsonConvert.SerializeObject(notficationCategory);
+            // TODO: Test serialization/deserialization
+            var test = JsonConvert.SerializeObject(notificationCategory);
 
             // Assert
-            notficationCategory.CategoryId.Should().Be(categoryId);
-            notficationCategory.Actions.Should().HaveCount(actions.Length);
+            notificationCategory.CategoryId.Should().Be(categoryId);
+            notificationCategory.Actions.Should().HaveCount(notificationActions.Length);
         }
 
         [Fact]
@@ -36,16 +37,16 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
                 "  ]," +
                 "\"type\":0}";
 
-            var notficationCategory = JsonConvert.DeserializeObject<NotificationCategory>(notificationCategoryJson);
+            var notificationCategory = JsonConvert.DeserializeObject<NotificationCategory>(notificationCategoryJson);
 
             // Assert
-            notficationCategory.CategoryId.Should().Be("category1");
-            notficationCategory.Actions.Should().HaveCount(2);
+            notificationCategory.CategoryId.Should().Be("category1");
+            notificationCategory.Actions.Should().HaveCount(2);
 
-            var action1 = notficationCategory.Actions.ElementAt(0);
+            var action1 = notificationCategory.Actions.ElementAt(0);
             action1.Should().BeEquivalentTo(new NotificationAction("action1", "title1", NotificationActionType.Default));
-            
-            var action2 = notficationCategory.Actions.ElementAt(1);
+
+            var action2 = notificationCategory.Actions.ElementAt(1);
             action2.Should().BeEquivalentTo(new NotificationAction("action2", "title2", NotificationActionType.Default));
         }
     }
