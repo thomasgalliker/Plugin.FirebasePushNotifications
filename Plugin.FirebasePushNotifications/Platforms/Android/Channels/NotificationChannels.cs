@@ -144,7 +144,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 
             FirebasePushNotificationAndroidOptions.EnsureNotificationChannelRequests(
                  notificationChannelsToKeep,
-                 $"{nameof(DeleteChannels)}",
+                 $"{nameof(this.DeleteChannels)}",
                  nameof(channelIds));
 
             this.DeleteChannelsInternals(notificationChannelsToDelete, notificationChannelsToKeep);
