@@ -16,7 +16,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private bool disposed;
 
         internal FirebasePushNotificationManager()
-            : base()
         {
         }
 

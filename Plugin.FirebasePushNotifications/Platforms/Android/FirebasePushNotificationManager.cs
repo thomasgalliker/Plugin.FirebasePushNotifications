@@ -27,7 +27,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
         internal FirebasePushNotificationManager()
-            : base()
         {
         }
 
