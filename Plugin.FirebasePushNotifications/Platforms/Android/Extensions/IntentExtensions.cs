@@ -46,9 +46,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private static IEnumerable<(string Key, object Value)> ConvertToCLRObjects(this IEnumerable<(string Key, Java.Lang.Object Value)> values)
         {
-            foreach (var (Key, Value) in values)
+            foreach (var (key, value) in values)
             {
-                yield return ConvertToCLRObject(Key, Value);
+                yield return ConvertToCLRObject(key, value);
             }
         }
 
@@ -77,7 +77,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 case Java.Lang.Double doubleValue:
                     return (key, (double)doubleValue);
-                 
+
                 case Java.Lang.Character characterValue:
                     return (key, (char)characterValue);
 

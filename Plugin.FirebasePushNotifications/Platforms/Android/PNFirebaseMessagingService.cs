@@ -8,6 +8,35 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [IntentFilter(new[] { "com.google.firebase.MESSAGING_EVENT" })]
     public class PNFirebaseMessagingService : FirebaseMessagingService
     {
+        public override void HandleIntent(Intent intent)
+        {
+            // HandleIntent calls OnMessageReceived because - for some reason - plain notification messages
+            // are not forwarded to OnMessageReceived. Only data messages arrive in OnMessageReceived which makes it impossible to
+            // send a notification message with click_action/category content.
+
+            try
+            {
+                if (intent.Extras != null)
+                {
+                    var builder = new RemoteMessage.Builder("FirebaseMessagingService");
+                    foreach (var (key, value) in intent.GetExtras())
+                    {
+                        builder.AddData(key, $"{value}");
+                    }
+
+                    this.OnMessageReceived(builder.Build());
+                }
+                else
+                {
+                    base.HandleIntent(intent);
+                }
+            }
+            catch (Exception)
+            {
+                base.HandleIntent(intent);
+            }
+        }
+
         public override void OnMessageReceived(RemoteMessage remoteMessage)
         {
             // OnMessageReceived will be fired if a notification is received
