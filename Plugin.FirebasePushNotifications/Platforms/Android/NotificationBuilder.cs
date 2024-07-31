@@ -362,37 +362,33 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 notificationBuilder.SetStyle(style);
             }
 
-            string category = null;
-
-            if (data.TryGetString(Constants.ClickActionKey, out var actionValue))
-            {
-                category = actionValue;
-            }
-            else if (data.TryGetString(Constants.CategoryKey, out var categoryValue))
-            {
-                category = categoryValue;
-            }
-
             // TODO: Move this logic to Android's FirebasePushNotificationManager
 
-            var notificationCategories = CrossFirebasePushNotification.Current.NotificationCategories;
-            if (notificationCategories != null && notificationCategories.Length > 0)
-            {
-                foreach (var notificationCategory in notificationCategories)
-                {
-                    foreach (var notificationAction in notificationCategory.Actions)
-                    {
-                        var aRequestCode = Guid.NewGuid().GetHashCode();
+            var category = GetCategoryValue(data);
 
-                        if (string.Equals(notificationCategory.CategoryId, category, StringComparison.CurrentCultureIgnoreCase))
+            if (!string.IsNullOrEmpty(category))
+            {
+                var allNotificationCategories = CrossFirebasePushNotification.Current.NotificationCategories;
+                if (allNotificationCategories is { Length: > 0 })
+                {
+                    var notificationCategory = allNotificationCategories
+                        .SingleOrDefault(c => string.Equals(c.CategoryId, category, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (notificationCategory != null)
+                    {
+                        foreach (var notificationAction in notificationCategory.Actions)
                         {
+                            var aRequestCode = Guid.NewGuid().GetHashCode();
+
                             Intent actionIntent;
                             PendingIntent pendingActionIntent;
                             if (notificationAction.Type == NotificationActionType.Foreground)
                             {
                                 actionIntent = typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType)
                                     ? new Intent(Application.Context, FirebasePushNotificationManager.NotificationActivityType)
-                                    : (FirebasePushNotificationManager.DefaultNotificationActivityType == null ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName) : new Intent(Application.Context, FirebasePushNotificationManager.DefaultNotificationActivityType));
+                                    : (FirebasePushNotificationManager.DefaultNotificationActivityType == null
+                                        ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName)
+                                        : new Intent(Application.Context, FirebasePushNotificationManager.DefaultNotificationActivityType));
 
                                 if (FirebasePushNotificationManager.NotificationActivityFlags != null)
                                 {
@@ -401,24 +397,39 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                                 extras.PutString(Constants.NotificationActionId, notificationAction.Id);
                                 actionIntent.PutExtras(extras);
-                                pendingActionIntent = PendingIntent.GetActivity(context, aRequestCode, actionIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+                                pendingActionIntent = PendingIntent.GetActivity(context, aRequestCode, actionIntent,
+                                    PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
                             }
                             else
                             {
                                 actionIntent = new Intent(context, typeof(PushNotificationActionReceiver));
                                 extras.PutString(Constants.NotificationActionId, notificationAction.Id);
                                 actionIntent.PutExtras(extras);
-                                pendingActionIntent = PendingIntent.GetBroadcast(context, aRequestCode, actionIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+                                pendingActionIntent = PendingIntent.GetBroadcast(context, aRequestCode, actionIntent,
+                                    PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
                             }
 
                             // TODO: Replace all calls to Application.Context with context variable!
 
-                            var icon = context.Resources.GetIdentifier(notificationAction.Icon ?? "", "drawable", Application.Context.PackageName);
+                            var icon = context.Resources.GetIdentifier(notificationAction.Icon ?? "", "drawable",
+                                Application.Context.PackageName);
                             var action = new NotificationCompat.Action.Builder(icon, notificationAction.Title, pendingActionIntent)
                                 .Build();
                             notificationBuilder.AddAction(action);
                         }
                     }
+                    else
+                    {
+                        this.logger.LogWarning(
+                            $"Category '{category}' not found in the list of registered notification categories " +
+                            $"(see {nameof(IFirebasePushNotification)}.{nameof(IFirebasePushNotification.NotificationCategories)})");
+                    }
+                }
+                else
+                {
+                    this.logger.LogWarning(
+                        $"Category '{category}' is present in notification data list of registered notification categories is empty " +
+                        $"(see {nameof(IFirebasePushNotification)}.{nameof(IFirebasePushNotification.NotificationCategories)})");
                 }
             }
 
@@ -435,6 +446,26 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 notificationManager.Notify(tag, notificationId, notification);
             }
+        }
+
+        private static string GetCategoryValue(IDictionary<string, object> data)
+        {
+            string category;
+
+            if (data.TryGetString(Constants.ClickActionKey, out var clickActionValue))
+            {
+                category = clickActionValue;
+            }
+            else if (data.TryGetString(Constants.CategoryKey, out var categoryValue))
+            {
+                category = categoryValue;
+            }
+            else
+            {
+                category = null;
+            }
+
+            return category;
         }
 
         private static NotificationImportance? GetNotificationImportance(string priorityValue)
