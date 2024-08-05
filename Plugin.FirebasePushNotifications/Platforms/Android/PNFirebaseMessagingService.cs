@@ -121,7 +121,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             //Fix localization arguments parsing
-            var localizationKeys = new string[] { "title_loc_args", "body_loc_args" };
+            var localizationKeys = new [] { "title_loc_args", "body_loc_args" };
             foreach (var locKey in localizationKeys)
             {
                 if (data.ContainsKey(locKey) && data[locKey] is string parameterValue)
@@ -139,7 +139,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            CrossFirebasePushNotification.Current.HandleNotificationReceived(data);
+            var firebasePushNotification = CrossFirebasePushNotification.Current;
+            firebasePushNotification.HandleNotificationReceived(data);
         }
 
         public override void OnNewToken(string refreshedToken)
