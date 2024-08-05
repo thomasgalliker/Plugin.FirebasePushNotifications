@@ -22,7 +22,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public static Android.Graphics.Color? Color { get; set; }
         public static Type NotificationActivityType { get; set; }
         public static ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
-        public static NotificationImportance DefaultNotificationChannelImportance { get; set; } = NotificationImportance.Default;
 
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
@@ -81,7 +80,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (extras.Any())
             {
-                // Don't process old/historic intents which are recycled for whatever reasons
+                // Don't process old/historic intents which are recycled for whatever reason
                 var intentAlreadyHandledKey = Constants.ExtraFirebaseProcessIntentHandled;
                 if (!intent.GetBooleanExtra(intentAlreadyHandledKey, false))
                 {

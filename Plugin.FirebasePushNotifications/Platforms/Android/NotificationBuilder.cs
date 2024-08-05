@@ -48,14 +48,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var isForeground = IsInForeground();
             var hasChannelId = data.TryGetString(Constants.ChannelIdKey, out var channelId);
 
-            data.TryGetString(Constants.PriorityKey, out var priorityValue);
-            var priority = GetNotificationImportance(priorityValue);
-
-            var isNotHighOrMax = FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.High && FirebasePushNotificationManager.DefaultNotificationChannelImportance != NotificationImportance.Max;
-
-            if (isForeground && (hasChannelId || priority != NotificationImportance.High && priority != NotificationImportance.Max && !isNotHighOrMax))
+            NotificationImportance notificationImportance;
+            if (data.TryGetString(Constants.PriorityKey, out var priorityValue))
             {
-                return;
+                notificationImportance = GetNotificationImportance(priorityValue);
+            }
+            else
+            {
+                notificationImportance = this.options.Android.DefaultNotificationChannelImportance;
+            }
+
+            if (isForeground)
+            {
+                if (hasChannelId)
+                {
+                    return;
+                }
+
+                if (notificationImportance < NotificationImportance.High)
+                {
+                    return;
+                }
             }
 
             var messageTitle = this.GetMessageTitle(data);
@@ -278,37 +291,30 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (Build.VERSION.SdkInt < Android.OS.BuildVersionCodes.O)
             {
-                if (priority != null)
+                switch (notificationImportance)
                 {
-                    switch (priority.Value)
-                    {
-                        case NotificationImportance.Max:
-                            notificationBuilder.SetPriority(NotificationCompat.PriorityMax);
-                            notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
-                            break;
-                        case NotificationImportance.High:
-                            notificationBuilder.SetPriority(NotificationCompat.PriorityHigh);
-                            notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
-                            break;
-                        case NotificationImportance.Default:
-                            notificationBuilder.SetPriority(NotificationCompat.PriorityDefault);
-                            notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
-                            break;
-                        case NotificationImportance.Low:
-                            notificationBuilder.SetPriority(NotificationCompat.PriorityLow);
-                            break;
-                        case NotificationImportance.Min:
-                            notificationBuilder.SetPriority(NotificationCompat.PriorityMin);
-                            break;
-                        default:
-                            notificationBuilder.SetPriority(NotificationCompat.PriorityDefault);
-                            notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
-                            break;
-                    }
-                }
-                else
-                {
-                    notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
+                    case NotificationImportance.Max:
+                        notificationBuilder.SetPriority(NotificationCompat.PriorityMax);
+                        notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
+                        break;
+                    case NotificationImportance.High:
+                        notificationBuilder.SetPriority(NotificationCompat.PriorityHigh);
+                        notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
+                        break;
+                    case NotificationImportance.Default:
+                        notificationBuilder.SetPriority(NotificationCompat.PriorityDefault);
+                        notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
+                        break;
+                    case NotificationImportance.Low:
+                        notificationBuilder.SetPriority(NotificationCompat.PriorityLow);
+                        break;
+                    case NotificationImportance.Min:
+                        notificationBuilder.SetPriority(NotificationCompat.PriorityMin);
+                        break;
+                    default:
+                        notificationBuilder.SetPriority(NotificationCompat.PriorityDefault);
+                        notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
+                        break;
                 }
 
                 try
@@ -506,7 +512,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return category;
         }
 
-        private static NotificationImportance? GetNotificationImportance(string priorityValue)
+        private static NotificationImportance GetNotificationImportance(string priorityValue)
         {
             switch (priorityValue?.ToLowerInvariant())
             {
@@ -525,7 +531,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 case "max":
                     return NotificationImportance.Max;
                 default:
-                    return null;
+                    return NotificationImportance.Default;
             }
         }
 

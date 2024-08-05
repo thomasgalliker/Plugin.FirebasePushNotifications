@@ -81,6 +81,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public string NotificationTitleKey { get; set; }
 
         public string NotificationBodyKey { get; set; }
+
+        public NotificationImportance DefaultNotificationChannelImportance { get; set; } = NotificationImportance.Default;
     }
 }
 #endif
