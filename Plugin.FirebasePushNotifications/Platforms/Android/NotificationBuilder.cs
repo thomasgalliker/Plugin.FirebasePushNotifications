@@ -11,7 +11,6 @@ using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 using static Android.App.ActivityManager;
 using Application = Android.App.Application;
-using Debug = System.Diagnostics.Debug;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -28,87 +27,71 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.options = options;
         }
 
+        public virtual bool ShouldHandleNotificationReceived(IDictionary<string, object> data)
+        {
+            if (data.TryGetBool(Constants.SilentKey, out var silentValue) && silentValue)
+            {
+                // If the message contains the silent key,
+                // we don't display any local notification.
+                return false;
+            }
+
+            if (data.ContainsKey(Constants.ClickActionKey) || data.ContainsKey(Constants.CategoryKey))
+            {
+                // If we received a "click_action" or "category"
+                // we need to create and show a local notification with action buttons.
+                return true;
+            }
+
+            var notificationImportance = this.GetNotificationImportance(data);
+            if (notificationImportance >= NotificationImportance.High && IsInForeground() == false)
+            {
+                // In case we receive a notification with priority >= high
+                // while the app runs in background mode,
+                // we show it in a local notification popup.
+                return true;
+            }
+
+            // if (this.GetNotificationTitle(data) == null && this.GetNotificationBody(data) == null)
+            // {
+            //     // If title and body is not present, it is a data-only message.
+            //     // We don't use local notifications in this case.
+            //     return false;
+            // }
+
+            return false;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="data"></param>
+        void INotificationBuilder.OnNotificationReceived(IDictionary<string, object> data)
+        {
+            if (!this.ShouldHandleNotificationReceived(data))
+            {
+                return;
+            }
+
+            this.OnNotificationReceived(data);
+        }
+
         public virtual void OnNotificationReceived(IDictionary<string, object> data)
         {
             this.logger.LogDebug("OnNotificationReceived");
 
             // TODO / WARNING:
-            // This piece of code is full of errors and contradictions.
-            // We need to find out which pieces are still needed and which are obsolete.
             // Long term goal: A developer can use IPushNotificationHandler to intercept all notifications and do some operations on them.
             // All the logic in here should move to the Android-specific implementation of FirebasePushNotificationManager.
-
-            if (data.TryGetBool(Constants.SilentKey, out var silentValue) && silentValue)
-            {
-                // If the message contains the silent key,
-                // we don't display any notification.
-                return;
-            }
-
-            var isForeground = IsInForeground();
-            var hasChannelId = data.TryGetString(Constants.ChannelIdKey, out var channelId);
-
-            NotificationImportance notificationImportance;
-            if (data.TryGetString(Constants.PriorityKey, out var priorityValue))
-            {
-                notificationImportance = GetNotificationImportance(priorityValue);
-            }
-            else
-            {
-                notificationImportance = this.options.Android.DefaultNotificationChannelImportance;
-            }
-
-            if (isForeground)
-            {
-                if (hasChannelId)
-                {
-                    return;
-                }
-
-                if (notificationImportance < NotificationImportance.High)
-                {
-                    return;
-                }
-            }
-
-            var messageTitle = this.GetMessageTitle(data);
-            var messageBody = this.GetMessageBody(data);
-
-            if (messageTitle == null && messageBody == null)
-            {
-                // If title and body is not present, it is a data-only message.
-                // Nothing to do here.
-                return;
-            }
 
             var context = Application.Context;
 
             // TODO: Cleanup these variables. There is a lot of legacy code from the Xamarin plugin here.
-            var notificationId = 0;
-            var showWhenVisible = FirebasePushNotificationManager.ShouldShowWhen;
             var useBigTextStyle = FirebasePushNotificationManager.UseBigTextStyle;
             var soundUri = FirebasePushNotificationManager.SoundUri;
             var largeIconResource = FirebasePushNotificationManager.LargeIconResource;
             var smallIconResource = FirebasePushNotificationManager.IconResource;
             var notificationColor = FirebasePushNotificationManager.Color;
-
-            if (data.TryGetString(Constants.IdKey, out var id))
-            {
-                try
-                {
-                    notificationId = Convert.ToInt32(id);
-                }
-                catch (Exception ex)
-                {
-                    // Keep the default value of zero for the notify_id, but log the conversion problem.
-                    Debug.WriteLine($"Failed to convert {id} to an integer {ex}");
-                }
-            }
-
-            if (data.TryGetBool(Constants.ShowWhenKey, out var shouldShowWhen))
-            {
-                showWhenVisible = shouldShowWhen;
-            }
 
             if (data.TryGetBool(Constants.BigTextStyleKey, out var shouldUseBigTextStyle))
             {
@@ -134,11 +117,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             catch (Resources.NotFoundException ex)
             {
-                Debug.WriteLine(ex.ToString());
+                this.logger.LogError(ex, "Failed to get sound");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.ToString());
+                this.logger.LogError(ex, "Failed to get sound");
             }
 
             soundUri ??= RingtoneManager.GetDefaultUri(RingtoneType.Notification);
@@ -149,15 +132,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     try
                     {
-                        smallIconResource = context.Resources.GetIdentifier(icon, "drawable", Application.Context.PackageName);
+                        smallIconResource = context.Resources.GetIdentifier(icon, "drawable", context.PackageName);
                         if (smallIconResource == 0)
                         {
-                            smallIconResource = context.Resources.GetIdentifier(icon, "mipmap", Application.Context.PackageName);
+                            smallIconResource = context.Resources.GetIdentifier(icon, "mipmap", context.PackageName);
                         }
                     }
                     catch (Resources.NotFoundException ex)
                     {
-                        Debug.WriteLine(ex.ToString());
+                        this.logger.LogError(ex, "Failed to get icon from Resources");
                     }
                 }
 
@@ -177,17 +160,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
             catch (Resources.NotFoundException ex)
             {
                 smallIconResource = context.ApplicationInfo.Icon;
-                Debug.WriteLine(ex.ToString());
+                this.logger.LogError(ex, "Failed to get icon from ApplicationInfo");
             }
 
             try
             {
                 if (data.TryGetString(Constants.LargeIconKey, out var largeIcon) && largeIcon != null)
                 {
-                    largeIconResource = context.Resources.GetIdentifier(largeIcon, "drawable", Application.Context.PackageName);
+                    largeIconResource = context.Resources.GetIdentifier(largeIcon, "drawable", context.PackageName);
                     if (largeIconResource == 0)
                     {
-                        largeIconResource = context.Resources.GetIdentifier(largeIcon, "mipmap", Application.Context.PackageName);
+                        largeIconResource = context.Resources.GetIdentifier(largeIcon, "mipmap", context.PackageName);
                     }
                 }
 
@@ -203,7 +186,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             catch (Resources.NotFoundException ex)
             {
                 largeIconResource = 0;
-                Debug.WriteLine(ex.ToString());
+                this.logger.LogError(ex, "Failed to get large icon");
             }
 
             if (data.TryGetString(Constants.ColorKey, out var colorValue) && colorValue != null)
@@ -218,18 +201,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            var resultIntent = typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType)
-                ? new Intent(Application.Context, FirebasePushNotificationManager.NotificationActivityType)
-                : (FirebasePushNotificationManager.DefaultNotificationActivityType == null
-                    ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName)
-                    : new Intent(Application.Context, FirebasePushNotificationManager.DefaultNotificationActivityType));
+            var resultIntent = CreateActivityLaunchIntent(context);
 
             var extras = new Bundle();
-            foreach (var p in data)
+            foreach (var kvp in data)
             {
-                extras.PutString(p.Key, p.Value.ToString());
+                extras.PutString(kvp.Key, kvp.Value.ToString());
             }
 
+            var notificationId = this.GetNotificationId(data);
             extras.PutInt(Constants.ActionNotificationIdKey, notificationId);
 
             if (data.TryGetString(Constants.NotificationTagKey, out var tag))
@@ -247,27 +227,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // TODO: Refactor this to avoid collisions!
             var requestCode = new Java.Util.Random().NextInt();
 
-            var pendingIntent = PendingIntent.GetActivity(context, requestCode, resultIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+            var pendingIntent = PendingIntent.GetActivity(context, requestCode, resultIntent,
+                PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-            if (string.IsNullOrEmpty(channelId))
-            {
-                var notificationChannels = NotificationChannels.Current.Channels;
-                var defaultNotificationChannelId = notificationChannels.Single(c => c.IsDefault);
-                channelId = defaultNotificationChannelId.ChannelId;
-            }
+            var channelId = GetChannelIdOrDefault(data);
 
             var notificationBuilder = new NotificationCompat.Builder(context, channelId)
-                 .SetSmallIcon(smallIconResource)
-                 .SetAutoCancel(true)
-                 .SetWhen(Java.Lang.JavaSystem.CurrentTimeMillis())
-                 .SetContentIntent(pendingIntent);
+                .SetSmallIcon(smallIconResource)
+                .SetAutoCancel(true)
+                .SetWhen(Java.Lang.JavaSystem.CurrentTimeMillis())
+                .SetContentIntent(pendingIntent);
 
-            messageTitle ??= GetDefaultMessageTitle(context);
+            var messageTitle = this.GetNotificationTitle(data) ?? GetDefaultNotificationTitle(context);
             if (!string.IsNullOrEmpty(messageTitle))
             {
                 notificationBuilder.SetContentTitle(messageTitle);
             }
 
+            var messageBody = this.GetNotificationBody(data);
             if (!string.IsNullOrEmpty(messageBody))
             {
                 notificationBuilder.SetContentText(messageBody);
@@ -275,6 +252,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBeanMr1)
             {
+                var showWhenVisible = GetShowWhenVisible(data);
                 notificationBuilder.SetShowWhen(showWhenVisible);
             }
 
@@ -286,11 +264,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var deleteIntent = new Intent(context, typeof(PushNotificationDeletedReceiver));
             deleteIntent.PutExtras(extras);
-            var pendingDeleteIntent = PendingIntent.GetBroadcast(context, requestCode, deleteIntent, PendingIntentFlags.CancelCurrent | PendingIntentFlags.Immutable);
+            var pendingDeleteIntent = PendingIntent.GetBroadcast(context, requestCode, deleteIntent,
+                PendingIntentFlags.CancelCurrent | PendingIntentFlags.Immutable);
             notificationBuilder.SetDeleteIntent(pendingDeleteIntent);
 
-            if (Build.VERSION.SdkInt < Android.OS.BuildVersionCodes.O)
+            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
+                var notificationImportance = this.GetNotificationImportance(data);
                 switch (notificationImportance)
                 {
                     case NotificationImportance.Max:
@@ -323,7 +303,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 catch (Exception ex)
                 {
-                    this.logger.LogError(ex, "Failed to set sound");
+                    this.logger.LogError(ex, "SetSound failed with exception");
                 }
             }
 
@@ -353,7 +333,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (allNotificationCategories is { Length: > 0 })
                 {
                     var notificationCategory = allNotificationCategories
-                        .SingleOrDefault(c => string.Equals(c.CategoryId, category, StringComparison.InvariantCultureIgnoreCase));
+                        .SingleOrDefault(c =>
+                            string.Equals(c.CategoryId, category, StringComparison.InvariantCultureIgnoreCase));
 
                     if (notificationCategory != null)
                     {
@@ -365,15 +346,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                             PendingIntent pendingActionIntent;
                             if (notificationAction.Type == NotificationActionType.Foreground)
                             {
-                                actionIntent = typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType)
-                                    ? new Intent(Application.Context, FirebasePushNotificationManager.NotificationActivityType)
-                                    : (FirebasePushNotificationManager.DefaultNotificationActivityType == null
-                                        ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName)
-                                        : new Intent(Application.Context, FirebasePushNotificationManager.DefaultNotificationActivityType));
+                                actionIntent = CreateActivityLaunchIntent(context);
 
                                 if (FirebasePushNotificationManager.NotificationActivityFlags != null)
                                 {
-                                    actionIntent.SetFlags(FirebasePushNotificationManager.NotificationActivityFlags.Value);
+                                    actionIntent.SetFlags(FirebasePushNotificationManager.NotificationActivityFlags
+                                        .Value);
                                 }
 
                                 extras.PutString(Constants.NotificationActionId, notificationAction.Id);
@@ -390,10 +368,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                                     PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
                             }
 
-                            // TODO: Replace all calls to Application.Context with context variable!
-
-                            var icon = context.Resources.GetIdentifier(notificationAction.Icon ?? "", "drawable",
-                                Application.Context.PackageName);
+                            var icon = context.Resources.GetIdentifier(notificationAction.Icon ?? "", "drawable", context.PackageName);
                             var action = new NotificationCompat.Action.Builder(icon, notificationAction.Title, pendingActionIntent)
                                 .Build();
                             notificationBuilder.AddAction(action);
@@ -429,7 +404,97 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private string GetMessageBody(IDictionary<string, object> data)
+        private static Intent CreateActivityLaunchIntent(Context context)
+        {
+            Intent activityIntent;
+
+            if (typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType))
+            {
+                activityIntent = new Intent(context, FirebasePushNotificationManager.NotificationActivityType);
+            }
+            else
+            {
+                activityIntent = FirebasePushNotificationManager.DefaultNotificationActivityType == null
+                    ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName)
+                    : new Intent(context, FirebasePushNotificationManager.DefaultNotificationActivityType);
+            }
+
+            return activityIntent;
+        }
+
+        private static bool GetShowWhenVisible(IDictionary<string, object> data)
+        {
+            bool showWhenVisible;
+            if (data.TryGetBool(Constants.ShowWhenKey, out var shouldShowWhen))
+            {
+                showWhenVisible = shouldShowWhen;
+            }
+            else
+            {
+                showWhenVisible = FirebasePushNotificationManager.ShouldShowWhen;
+            }
+
+            return showWhenVisible;
+        }
+
+        private static string GetChannelIdOrDefault(IDictionary<string, object> data)
+        {
+            var notificationChannels = NotificationChannels.Current.Channels;
+
+            NotificationChannelRequest notificationChannel = null;
+
+            if (data.TryGetString(Constants.ChannelIdKey, out var channelId))
+            {
+                notificationChannel = notificationChannels.SingleOrDefault(c =>
+                    string.Equals(c.ChannelId, channelId, StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            if (notificationChannel == null)
+            {
+                notificationChannel = notificationChannels.Single(c => c.IsDefault);
+            }
+
+            channelId = notificationChannel.ChannelId;
+            return channelId;
+        }
+
+        private int GetNotificationId(IDictionary<string, object> data)
+        {
+            var notificationId = 0;
+
+            // TODO: Use TryGetInt here
+            if (data.TryGetString(Constants.IdKey, out var id))
+            {
+                try
+                {
+                    notificationId = Convert.ToInt32(id);
+                }
+                catch (Exception ex)
+                {
+                    // Keep the default value of zero for the notify_id, but log the conversion problem.
+                    this.logger.LogError(ex, $"Failed to convert {id} to an integer");
+                }
+            }
+
+            return notificationId;
+        }
+
+        private NotificationImportance GetNotificationImportance(IDictionary<string, object> data)
+        {
+            NotificationImportance notificationImportance;
+            if (data.TryGetString(Constants.PriorityKey, out var priorityValue))
+            {
+                notificationImportance = GetNotificationImportance(priorityValue);
+            }
+            else
+            {
+                notificationImportance = this.options.Android.DefaultNotificationChannelImportance;
+            }
+
+            return notificationImportance;
+        }
+
+        private string GetNotificationBody(IDictionary<string, object> data)
         {
             string messageBody;
 
@@ -445,6 +510,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             else if (data.TryGetString(Constants.NotificationBodyKey, out var body))
             {
                 messageBody = body;
+            }
+            else if (data.TryGetString(Constants.GcmNotificationBodyKey, out var notificationBody))
+            {
+                messageBody = notificationBody;
             }
             else if (data.TryGetString(Constants.MessageKey, out var messageContent))
             {
@@ -466,12 +535,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return messageBody;
         }
 
-        private static string GetDefaultMessageTitle(Context context)
-        {
-            return context.ApplicationInfo.LoadLabel(context.PackageManager);
-        }
-
-        private string GetMessageTitle(IDictionary<string, object> data)
+        private string GetNotificationTitle(IDictionary<string, object> data)
         {
             string messageTitle;
 
@@ -484,12 +548,21 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 messageTitle = titleContent;
             }
+            else if (data.TryGetString(Constants.GcmNotificationTitleKey, out var notificationTitle))
+            {
+                messageTitle = notificationTitle;
+            }
             else
             {
                 messageTitle = null;
             }
 
             return messageTitle;
+        }
+
+        private static string GetDefaultNotificationTitle(Context context)
+        {
+            return context.ApplicationInfo.LoadLabel(context.PackageManager);
         }
 
         private static string GetCategoryValue(IDictionary<string, object> data)
@@ -539,13 +612,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// Resolves the localized parameters using the string resources, combining the key and the passed arguments of the notification.
         /// </summary>
         /// <param name="notificationBuilder">Notification builder.</param>
-        /// <param name="parameters">Parameters.</param>
-        private void ResolveLocalizedParameters(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> parameters)
+        /// <param name="data">Data payload.</param>
+        private void ResolveLocalizedParameters(NotificationCompat.Builder notificationBuilder,
+            IDictionary<string, object> data)
         {
             // Resolve title localization
-            if (parameters.TryGetString("title_loc_key", out var titleKey))
+            if (data.TryGetString("title_loc_key", out var titleKey))
             {
-                parameters.TryGetValue("title_loc_args", out var titleArgs);
+                data.TryGetValue("title_loc_args", out var titleArgs);
 
                 var localizedTitle = this.GetLocalizedString(titleKey, titleArgs as string[], notificationBuilder);
                 if (localizedTitle != null)
@@ -555,9 +629,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             // Resolve body localization
-            if (parameters.TryGetString("body_loc_key", out var bodyKey))
+            if (data.TryGetString("body_loc_key", out var bodyKey))
             {
-                parameters.TryGetValue("body_loc_args", out var bodyArgs);
+                data.TryGetValue("body_loc_args", out var bodyArgs);
 
                 var localizedBody = this.GetLocalizedString(bodyKey, bodyArgs as string[], notificationBuilder);
                 if (localizedBody != null)
@@ -567,7 +641,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private string GetLocalizedString(string name, string[] arguments, NotificationCompat.Builder notificationBuilder)
+        private string GetLocalizedString(string name, string[] arguments,
+            NotificationCompat.Builder notificationBuilder)
         {
             try
             {
@@ -593,18 +668,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// </summary>
         /// <param name="notificationBuilder">Notification builder.</param>
         /// <param name="data">Notification data.</param>
-        public virtual void OnBuildNotification(NotificationCompat.Builder notificationBuilder, IDictionary<string, object> data)
+        public virtual void OnBuildNotification(NotificationCompat.Builder notificationBuilder,
+            IDictionary<string, object> data)
         {
         }
 
         private static bool IsInForeground()
         {
-            bool isInForeground;
-
             var myProcess = new RunningAppProcessInfo();
             ActivityManager.GetMyMemoryState(myProcess);
-            isInForeground = myProcess.Importance == Android.App.Importance.Foreground;
-
+            var isInForeground = myProcess.Importance == Android.App.Importance.Foreground;
             return isInForeground;
         }
     }

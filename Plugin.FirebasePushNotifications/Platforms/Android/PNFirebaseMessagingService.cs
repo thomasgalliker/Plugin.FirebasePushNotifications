@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.Content;
 using Firebase.Messaging;
+using Microsoft.Extensions.Logging;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -8,8 +9,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [IntentFilter(new[] { "com.google.firebase.MESSAGING_EVENT" })]
     public class PNFirebaseMessagingService : FirebaseMessagingService
     {
+        private readonly ILogger logger;
+        private readonly INotificationBuilder notificationBuilder;
+
+        public PNFirebaseMessagingService()
+        {
+            this.logger = IPlatformApplication.Current.Services.GetService<ILogger<PNFirebaseMessagingService>>();
+            this.notificationBuilder = IPlatformApplication.Current.Services.GetService<INotificationBuilder>();
+        }
+
         public override void HandleIntent(Intent intent)
         {
+            this.logger.LogDebug("HandleIntent");
+
             // HandleIntent calls OnMessageReceived because - for some reason - plain notification messages
             // are not forwarded to OnMessageReceived. Only data messages arrive in OnMessageReceived which makes it impossible to
             // send a notification message with click_action/category content.
@@ -20,27 +32,32 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 if (intent.Extras != null)
                 {
-                    var builder = new RemoteMessage.Builder("FirebaseMessagingService");
-                    foreach (var (key, value) in intent.GetExtras())
+                    var data = intent.GetExtrasDict();
+                    if (this.notificationBuilder.ShouldHandleNotificationReceived(data))
                     {
-                        builder.AddData(key, $"{value}");
+                        this.notificationBuilder.OnNotificationReceived(data);
                     }
-
-                    this.OnMessageReceived(builder.Build());
+                    else
+                    {
+                        base.HandleIntent(intent);
+                    }
                 }
                 else
                 {
                     base.HandleIntent(intent);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                this.logger.LogError(ex, "HandleIntent failed with exception");
                 base.HandleIntent(intent);
             }
         }
 
         public override void OnMessageReceived(RemoteMessage remoteMessage)
         {
+            this.logger.LogDebug("OnMessageReceived");
+
             // OnMessageReceived will be fired if a notification is received
             // while the Android app runs in foreground - OR - if the notification
             // only contains data payload.
@@ -148,5 +165,4 @@ namespace Plugin.FirebasePushNotifications.Platforms
             firebasePushNotification.HandleTokenRefresh(refreshedToken);
         }
     }
-
 }
