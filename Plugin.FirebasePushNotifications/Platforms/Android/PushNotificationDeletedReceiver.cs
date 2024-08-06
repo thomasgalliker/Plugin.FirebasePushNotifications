@@ -8,7 +8,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public override void OnReceive(Context context, Intent intent)
         {
             var extras = intent.GetExtrasDict();
-            CrossFirebasePushNotification.Current.HandleNotificationDeleted(extras);
+            var firebasePushNotification = CrossFirebasePushNotification.Current;
+            firebasePushNotification.HandleNotificationDeleted(extras);
         }
     }
 }

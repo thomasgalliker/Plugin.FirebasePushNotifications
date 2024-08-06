@@ -13,7 +13,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
 
-            CrossFirebasePushNotification.Current.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
+            var firebasePushNotification = CrossFirebasePushNotification.Current;
+            firebasePushNotification.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
 
             var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
             var notificationId = extras.GetValueOrDefault(Constants.ActionNotificationIdKey, -1);

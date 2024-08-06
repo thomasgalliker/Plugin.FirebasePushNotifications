@@ -17,7 +17,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class NotificationBuilder : INotificationBuilder
     {
-        private readonly ILogger<NotificationBuilder> logger;
+        private readonly ILogger logger;
         private readonly FirebasePushNotificationOptions options;
 
         public NotificationBuilder(

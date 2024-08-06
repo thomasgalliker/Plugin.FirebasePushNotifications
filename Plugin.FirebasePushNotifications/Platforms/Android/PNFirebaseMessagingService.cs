@@ -120,15 +120,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            //Fix localization arguments parsing
-            var localizationKeys = new [] { "title_loc_args", "body_loc_args" };
+            // Fix localization arguments parsing
+            var localizationKeys = new[] { "title_loc_args", "body_loc_args" };
             foreach (var locKey in localizationKeys)
             {
                 if (data.ContainsKey(locKey) && data[locKey] is string parameterValue)
                 {
                     if (parameterValue.StartsWith("[") && parameterValue.EndsWith("]") && parameterValue.Length > 2)
                     {
-
                         var arrayValues = parameterValue[1..^1];
                         data[locKey] = arrayValues.Split(',').Select(t => t.Trim()).ToArray();
                     }
