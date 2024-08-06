@@ -1,4 +1,6 @@
-﻿namespace Plugin.FirebasePushNotifications
+﻿using Plugin.FirebasePushNotifications.Platforms.Channels;
+
+namespace Plugin.FirebasePushNotifications
 {
     internal static partial class Constants
     {
@@ -6,6 +8,13 @@
 
         public const string DefaultNotificationChannelId = "DefaultNotificationChannel";
         public const string DefaultNotificationChannelName = "Default";
+
+        internal static readonly NotificationChannelRequest DefaultNotificationChannel = new NotificationChannelRequest
+        {
+            ChannelId = Constants.DefaultNotificationChannelId,
+            ChannelName = Constants.DefaultNotificationChannelName,
+            IsDefault = true,
+        };
 
         public const string CategoryKey = "category";
         public const string TextKey = "text";

@@ -34,7 +34,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
             NotificationActivityType = options.Android.NotificationActivityType;
 
             var notificationChannels = NotificationChannels.Current;
-            notificationChannels.CreateChannels(options.Android.NotificationChannels);
+
+            var notificationChannelRequests = options.Android.NotificationChannels.ToArray();
+            if (notificationChannelRequests.Length == 0)
+            {
+                notificationChannelRequests = new[] { Constants.DefaultNotificationChannel };
+            }
+
+            notificationChannels.CreateChannels(notificationChannelRequests);
         }
 
         protected override void OnNotificationReceived(IDictionary<string, object> data)

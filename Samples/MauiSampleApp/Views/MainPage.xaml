@@ -83,6 +83,16 @@
                     Text="Get notification channels"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
+                <Button
+                    Command="{Binding DeleteNotificationChannelsCommand}"
+                    Text="Delete notification channels"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding CreateNotificationChannelsCommand}"
+                    Text="Create sample notification channels"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
                 <VerticalStackLayout 
                     BindableLayout.ItemTemplate="{StaticResource NotificationChannelItemTemplate}"
                     BindableLayout.ItemsSource="{Binding Channels}" />

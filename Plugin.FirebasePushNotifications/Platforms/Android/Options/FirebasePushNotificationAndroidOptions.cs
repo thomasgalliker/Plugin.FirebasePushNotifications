@@ -49,10 +49,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             var duplicateChannelIds = notificationChannels
-               .Select(c => c.ChannelId) //.Concat(new[] { DefaultNotificationChannel.ChannelId })
+               .Select(c => c.ChannelId)
                .GroupBy(c => c)
                .Where(g => g.Count() > 1)
-               .Select(g => g.Key);
+               .Select(g => g.Key)
+               .ToArray();
 
             if (duplicateChannelIds.Any())
             {

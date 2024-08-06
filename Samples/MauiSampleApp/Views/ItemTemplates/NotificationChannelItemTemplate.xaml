@@ -7,11 +7,16 @@
 
     <Grid
         Padding="4"
-        ColumnDefinitions="*, Auto"
+        ColumnDefinitions="Auto, *"
         ColumnSpacing="4">
         <Label
             Grid.Column="0"
+            Text="ChannelId: "
+            VerticalOptions="Center" />
+        <Label
+            Grid.Column="1"
             Text="{Binding .}"
+            FontFamily="{StaticResource FontFamilyMonospace}"
             VerticalOptions="Center" />
     </Grid>
 </ContentView>

@@ -16,6 +16,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class NotificationBuilder : INotificationBuilder
     {
+        private static readonly Java.Util.Random RNG = new Java.Util.Random();
+
         private readonly ILogger logger;
         private readonly FirebasePushNotificationOptions options;
 
@@ -44,20 +46,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             var notificationImportance = this.GetNotificationImportance(data);
-            if (notificationImportance >= NotificationImportance.High && IsInForeground() == false)
+            var isInForeground = IsInForeground();
+            if (isInForeground == false)
             {
-                // In case we receive a notification with priority >= high
-                // while the app runs in background mode,
-                // we show it in a local notification popup.
-                return true;
-            }
+                if (notificationImportance >= NotificationImportance.High)
+                {
+                    // In case we receive a notification with priority >= high
+                    // while the app runs in background mode,
+                    // we show it in a local notification popup.
+                    return true;
+                }
 
-            // if (this.GetNotificationTitle(data) == null && this.GetNotificationBody(data) == null)
-            // {
-            //     // If title and body is not present, it is a data-only message.
-            //     // We don't use local notifications in this case.
-            //     return false;
-            // }
+                var notificationChannel = GetChannel(data);
+                if (notificationChannel is { Importance: >= NotificationImportance.High })
+                {
+                    // In case we receive a notification which targets a specific notification channel
+                    // and the notification channel's importance is >= high
+                    // while the app runs in background mode,
+                    // we show it in a local notification popup.
+                    return true;
+                }
+            }
 
             return false;
         }
@@ -225,14 +234,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             // TODO: Refactor this to avoid collisions!
-            var requestCode = new Java.Util.Random().NextInt();
+            var requestCode = RNG.NextInt();
 
             var pendingIntent = PendingIntent.GetActivity(context, requestCode, resultIntent,
                 PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-            var channelId = GetChannelIdOrDefault(data);
+            var notificationChannel = GetChannelOrDefault(data);
 
-            var notificationBuilder = new NotificationCompat.Builder(context, channelId)
+            var notificationBuilder = new NotificationCompat.Builder(context, notificationChannel.ChannelId)
                 .SetSmallIcon(smallIconResource)
                 .SetAutoCancel(true)
                 .SetWhen(Java.Lang.JavaSystem.CurrentTimeMillis())
@@ -437,25 +446,30 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return showWhenVisible;
         }
 
-        private static string GetChannelIdOrDefault(IDictionary<string, object> data)
+        private static NotificationChannelRequest GetChannelOrDefault(IDictionary<string, object> data)
         {
-            var notificationChannels = NotificationChannels.Current.Channels;
+            var notificationChannel = GetChannel(data);
+            if (notificationChannel == null)
+            {
+                var notificationChannels = NotificationChannels.Current.Channels;
+                notificationChannel = notificationChannels.Single(c => c.IsDefault);
+            }
 
+            return notificationChannel;
+        }
+
+        private static NotificationChannelRequest GetChannel(IDictionary<string, object> data)
+        {
             NotificationChannelRequest notificationChannel = null;
 
             if (data.TryGetString(Constants.ChannelIdKey, out var channelId))
             {
+                var notificationChannels = NotificationChannels.Current.Channels;
                 notificationChannel = notificationChannels.SingleOrDefault(c =>
                     string.Equals(c.ChannelId, channelId, StringComparison.InvariantCultureIgnoreCase));
             }
 
-            if (notificationChannel == null)
-            {
-                notificationChannel = notificationChannels.Single(c => c.IsDefault);
-            }
-
-            channelId = notificationChannel.ChannelId;
-            return channelId;
+            return notificationChannel;
         }
 
         private int GetNotificationId(IDictionary<string, object> data)

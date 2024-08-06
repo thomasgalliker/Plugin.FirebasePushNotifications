@@ -27,8 +27,8 @@ namespace MauiSampleApp
                     o.AutoInitEnabled = false;
                     o.QueueFactory = new PersistentQueueFactory();
 #if ANDROID
-                    o.Android.NotificationActivityType = typeof(MainActivity);
-                    o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
+                    // o.Android.NotificationActivityType = typeof(MainActivity);
+                    // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
                     //o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray(); // TODO:
 #endif
                 })
