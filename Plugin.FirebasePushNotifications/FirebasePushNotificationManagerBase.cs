@@ -384,11 +384,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             string eventName,
             [CallerMemberName] string callerName = null) where TEventArgs : EventArgs
         {
-            if (eventHandler != null && eventHandler.GetInvocationList().Length is int subscribersCount && subscribersCount > 0)
+            if (eventHandler != null && eventHandler.GetInvocationList().Length is var subscribersCount and > 0)
             {
                 // If subscribers are present, invoke the event handler
                 this.logger.LogDebug(
-                     $"{callerName ?? nameof(this.RaiseOrQueueEvent)} raises event \"{eventName}\" to {subscribersCount} subscriber{(subscribersCount != 1 ? "s" : "")}");
+                     $"{callerName ?? nameof(this.RaiseOrQueueEvent)} raises event \"{eventName}\" " +
+                     $"to {subscribersCount} subscriber{(subscribersCount != 1 ? "s" : "")}");
 
                 var args = getEventArgs();
                 eventHandler.Invoke(this, args);
@@ -399,7 +400,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     // If no subscribers are present, queue the event args
                     this.logger.LogDebug(
-                        $"{callerName ?? nameof(this.RaiseOrQueueEvent)} queues event \"{eventName}\" into {queue.GetType().GetFormattedName()} for deferred delivery");
+                        $"{callerName ?? nameof(this.RaiseOrQueueEvent)} queues event \"{eventName}\" " +
+                        $"into {queue.GetType().GetFormattedName()} for deferred delivery");
 
                     var args = getEventArgs();
                     queue.Enqueue(args);
@@ -408,7 +410,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     // If no subscribers are present and no queue is present, we just drop the event...
                     this.logger.LogWarning(
-                        $"{callerName ?? nameof(this.RaiseOrQueueEvent)} drops event \"{eventName}\" (no event subscribers / no queue present).");
+                        $"{callerName ?? nameof(this.RaiseOrQueueEvent)} drops event \"{eventName}\" " +
+                        $"(no event subscribers / no queue present).");
                 }
             }
         }
@@ -431,7 +434,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (previousSubscriptions == null && eventHandler != null)
                 {
                     this.logger.LogDebug(
-                        $"{nameof(this.DequeueAndSubscribe)} dequeues {queue.Count} event{(queue.Count == 1 ? "" : "s")} \"{eventName}\" from {queue.GetType().GetFormattedName()} for deferred delivery");
+                        $"{nameof(this.DequeueAndSubscribe)} dequeues {queue.Count} event{(queue.Count == 1 ? "" : "s")} \"{eventName}\" " +
+                        $"from {queue.GetType().GetFormattedName()} for deferred delivery");
 
                     foreach (var args in queue.TryDequeueAll())
                     {
