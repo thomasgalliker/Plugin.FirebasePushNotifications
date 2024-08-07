@@ -162,7 +162,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var pendingIntent = PendingIntent.GetActivity(context, requestCode, resultIntent,
                 PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
+            var notificationImportance = this.GetNotificationImportance(data);
+
             var notificationChannel = GetChannelOrDefault(data);
+            if (notificationChannel.Importance < notificationImportance)
+            {
+                this.logger.LogWarning(
+                    $"Notification channel '{notificationChannel.ChannelId}' has Importance={notificationChannel.Importance} " +
+                    $"which is lower than '{notificationImportance}' required by the notification");
+            }
 
             var smallIconResource = this.GetSmallIconResource(data, context);
 
