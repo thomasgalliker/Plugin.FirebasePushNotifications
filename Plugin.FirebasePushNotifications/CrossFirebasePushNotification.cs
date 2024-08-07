@@ -11,7 +11,7 @@ namespace Plugin.FirebasePushNotifications
     /// </summary>
     public static class CrossFirebasePushNotification
     {
-        private static Lazy<IFirebasePushNotification> Implementation = new Lazy<IFirebasePushNotification>(CreateFirebasePushNotification, LazyThreadSafetyMode.PublicationOnly);
+        private static readonly Lazy<IFirebasePushNotification> Implementation = new Lazy<IFirebasePushNotification>(CreateFirebasePushNotification, LazyThreadSafetyMode.PublicationOnly);
 
         /// <summary>
         /// Gets if the plugin is supported on the current platform.
