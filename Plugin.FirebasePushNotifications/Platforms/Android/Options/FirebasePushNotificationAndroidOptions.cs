@@ -87,7 +87,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public int? DefaultIconResource { get; set; }
 
+        public int? DefaultLargeIconResource { get; set; }
+
         public Android.Graphics.Color? DefaultColor { get; set; }
+
+        public bool ShouldShowWhen { get; set; } = true;
+
+        public bool UseBigTextStyle { get; set; } = true;
     }
 }
 #endif

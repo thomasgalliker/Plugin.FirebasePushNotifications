@@ -11,13 +11,14 @@ using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 using Application = Android.App.Application;
 using Color = Android.Graphics.Color;
+using Uri = Android.Net.Uri;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class NotificationBuilder : INotificationBuilder
     {
         private static readonly long[] DefaultVibrationPattern = new long[] { 1000, 1000, 1000, 1000, 1000 };
-        private static readonly Java.Util.Random RNG = new Java.Util.Random();
+        private static readonly Java.Util.Random Rng = new Java.Util.Random();
 
         private readonly ILogger logger;
         private readonly FirebasePushNotificationOptions options;
@@ -42,7 +43,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (data.ContainsKey(Constants.ClickActionKey) || data.ContainsKey(Constants.CategoryKey))
             {
                 // If we received a "click_action" or "category"
-                // we need to create and show a local notification with action buttons.
+                // we need to show a local notification with action buttons.
                 return true;
             }
 
@@ -65,6 +66,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     // and the notification channel's importance is >= high
                     // while the app runs in background mode,
                     // we show it in a local notification popup.
+                    return true;
+                }
+
+                if (data.ContainsKey(Constants.LargeIconKey))
+                {
+                    // If we received a "large_icon"
+                    // we need to show a local notification with SetLargeIcon
                     return true;
                 }
             }
@@ -96,42 +104,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var context = Application.Context;
 
-            // TODO: Cleanup these variables. There is a lot of legacy code from the Xamarin plugin here.
-            var useBigTextStyle = FirebasePushNotificationManager.UseBigTextStyle;
-            var soundUri = FirebasePushNotificationManager.SoundUri;
-
-            if (data.TryGetBool(Constants.BigTextStyleKey, out var shouldUseBigTextStyle))
-            {
-                useBigTextStyle = shouldUseBigTextStyle;
-            }
-
-            try
-            {
-                if (data.TryGetString(Constants.SoundKey, out var soundName))
-                {
-                    var soundResId = context.Resources.GetIdentifier(soundName, "raw", context.PackageName);
-                    if (soundResId == 0 && soundName.IndexOf(".") != -1)
-                    {
-                        soundName = soundName[..soundName.LastIndexOf('.')];
-                        soundResId = context.Resources.GetIdentifier(soundName, "raw", context.PackageName);
-                    }
-
-                    soundUri = new Android.Net.Uri.Builder()
-                        .Scheme(ContentResolver.SchemeAndroidResource)
-                        .Path($"{context.PackageName}/{soundResId}")
-                        .Build();
-                }
-            }
-            catch (Resources.NotFoundException ex)
-            {
-                this.logger.LogError(ex, "Failed to get sound");
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogError(ex, "Failed to get sound");
-            }
-
-            soundUri ??= RingtoneManager.GetDefaultUri(RingtoneType.Notification);
+            var soundUri = this.GetSoundUri(data, context);
 
             var resultIntent = CreateActivityLaunchIntent(context);
 
@@ -157,7 +130,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             // TODO: Refactor this to avoid collisions!
-            var requestCode = RNG.NextInt();
+            var requestCode = Rng.NextInt();
 
             var pendingIntent = PendingIntent.GetActivity(context, requestCode, resultIntent,
                 PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
@@ -194,7 +167,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBeanMr1)
             {
-                var showWhenVisible = GetShowWhenVisible(data);
+                var showWhenVisible = this.GetShowWhenVisible(data);
                 notificationBuilder.SetShowWhen(showWhenVisible);
             }
 
@@ -202,6 +175,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (largeIconBitmap != null)
             {
                 notificationBuilder.SetLargeIcon(largeIconBitmap);
+                // notificationBuilder.SetStyle(new NotificationCompat.BigPictureStyle()
+                //     .BigPicture(largeIconBitmap)
+                //     .BigLargeIcon((Bitmap)null));
             }
 
             var deleteIntent = new Intent(context, typeof(PushNotificationDeletedReceiver));
@@ -240,15 +216,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 notificationBuilder.SetColor(notificationColor.Value);
             }
 
-            if (useBigTextStyle && Build.VERSION.SdkInt >= BuildVersionCodes.JellyBean)
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBean)
             {
-                // Using BigText notification style to support long message
-                var style = new NotificationCompat.BigTextStyle();
-                style.BigText(messageBody);
-                notificationBuilder.SetStyle(style);
+                var notificationStyle = this.GetNotificationStyle(data, messageBody);
+                if (notificationStyle != null)
+                {
+                    notificationBuilder.SetStyle(notificationStyle);
+                }
             }
-
-            // TODO: Move this logic to Android's FirebasePushNotificationManager
 
             var category = GetCategoryValue(data);
 
@@ -257,8 +232,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 var allNotificationCategories = CrossFirebasePushNotification.Current.NotificationCategories;
                 if (allNotificationCategories is { Length: > 0 })
                 {
-                    var notificationCategory = allNotificationCategories
-                        .SingleOrDefault(c =>
+                    var notificationCategory = allNotificationCategories.SingleOrDefault(c =>
                             string.Equals(c.CategoryId, category, StringComparison.InvariantCultureIgnoreCase));
 
                     if (notificationCategory != null)
@@ -294,8 +268,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                             }
 
                             var icon = context.Resources.GetIdentifier(notificationAction.Icon ?? "", "drawable", context.PackageName);
-                            var action = new NotificationCompat.Action.Builder(icon, notificationAction.Title, pendingActionIntent)
-                                .Build();
+                            var action = new NotificationCompat.Action.Builder(icon, notificationAction.Title, pendingActionIntent).Build();
                             notificationBuilder.AddAction(action);
                         }
                     }
@@ -327,6 +300,67 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 notificationManager.Notify(tag, notificationId, notification);
             }
+        }
+
+        private NotificationCompat.Style GetNotificationStyle(IDictionary<string, object> data, string messageBody)
+        {
+            bool useBigTextStyle;
+
+            if (data.TryGetBool(Constants.BigTextStyleKey, out var shouldUseBigTextStyle))
+            {
+                useBigTextStyle = shouldUseBigTextStyle;
+            }
+            else
+            {
+                useBigTextStyle = this.options.Android.UseBigTextStyle;
+            }
+
+            NotificationCompat.Style style = null;
+
+            if (useBigTextStyle)
+            {
+                var bigTextStyle = new NotificationCompat.BigTextStyle();
+                bigTextStyle.BigText(messageBody);
+                style = bigTextStyle;
+            }
+
+            // Add more styles, if needed...
+
+            return style;
+        }
+
+        private Uri GetSoundUri(IDictionary<string, object> data, Context context)
+        {
+            var soundUri = FirebasePushNotificationManager.SoundUri;
+
+            try
+            {
+                if (data.TryGetString(Constants.SoundKey, out var soundName))
+                {
+                    var soundResId = context.Resources.GetIdentifier(soundName, "raw", context.PackageName);
+                    if (soundResId == 0 && soundName.IndexOf(".") != -1)
+                    {
+                        soundName = soundName[..soundName.LastIndexOf('.')];
+                        soundResId = context.Resources.GetIdentifier(soundName, "raw", context.PackageName);
+                    }
+
+                    soundUri = new Android.Net.Uri.Builder()
+                        .Scheme(ContentResolver.SchemeAndroidResource)
+                        .Path($"{context.PackageName}/{soundResId}")
+                        .Build();
+                }
+            }
+            catch (Resources.NotFoundException ex)
+            {
+                this.logger.LogError(ex, "Failed to get sound");
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to get sound");
+            }
+
+            soundUri ??= RingtoneManager.GetDefaultUri(RingtoneType.Notification);
+            return soundUri;
         }
 
         private static int GetNotificationPriority(NotificationImportance notificationImportance)
@@ -368,32 +402,25 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private Bitmap GetLargeIconBitmap(IDictionary<string, object> data, Context context)
         {
-            var largeIconResource = FirebasePushNotificationManager.LargeIconResource;
+            var largeIconResource = GetIconResourceFromDrawableOrMipmap(context, data, Constants.LargeIconKey);
+
+            if (largeIconResource == 0 && this.options.Android.DefaultLargeIconResource is int defaultLargeIconResource)
+            {
+                largeIconResource = defaultLargeIconResource;
+            }
 
             try
             {
-                if (data.TryGetString(Constants.LargeIconKey, out var largeIcon) && largeIcon != null)
+                var name = context.Resources.GetResourceName(largeIconResource);
+                if (name == null)
                 {
-                    largeIconResource = context.Resources.GetIdentifier(largeIcon, "drawable", context.PackageName);
-                    if (largeIconResource == 0)
-                    {
-                        largeIconResource = context.Resources.GetIdentifier(largeIcon, "mipmap", context.PackageName);
-                    }
-                }
-
-                if (largeIconResource != 0)
-                {
-                    var name = context.Resources.GetResourceName(largeIconResource);
-                    if (name == null)
-                    {
-                        largeIconResource = 0;
-                    }
+                    largeIconResource = 0;
                 }
             }
             catch (Resources.NotFoundException ex)
             {
+                this.logger.LogError(ex, "Failed to get large icon resource");
                 largeIconResource = 0;
-                this.logger.LogError(ex, "Failed to get large icon");
             }
 
             Bitmap largeIconBitmap = null;
@@ -415,64 +442,62 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private int GetSmallIconResource(IDictionary<string, object> data, Context context)
         {
-            var smallIconResource = 0;
+            var smallIconResource = GetIconResourceFromDrawableOrMipmap(context, data, Constants.IconKey);
+
+            if (smallIconResource == 0 && this.options.Android.DefaultIconResource is int defaultIconResource)
+            {
+                smallIconResource = defaultIconResource;
+            }
+
+            if (smallIconResource == 0)
+            {
+                try
+                {
+                    var metadata = GetMetadata();
+                    smallIconResource = metadata.GetInt(Constants.MetadataIconKey, 0);
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogWarning(ex, "Failed to get default notification icon from meta-data");
+                }
+            }
 
             try
             {
-                if (data.TryGetString(Constants.IconKey, out var icon) && icon != null)
+                var name = context.Resources.GetResourceName(smallIconResource);
+                if (name == null)
                 {
-                    try
-                    {
-                        smallIconResource = context.Resources.GetIdentifier(icon, "drawable", context.PackageName);
-                        if (smallIconResource == 0)
-                        {
-                            smallIconResource = context.Resources.GetIdentifier(icon, "mipmap", context.PackageName);
-                        }
-                    }
-                    catch (Resources.NotFoundException ex)
-                    {
-                        this.logger.LogError(ex, "Failed to get icon from Resources");
-                    }
-                }
-
-                if (smallIconResource == 0 && this.options.Android.DefaultIconResource is int defaultIconResource)
-                {
-                    smallIconResource = defaultIconResource;
-                }
-
-                if (smallIconResource == 0)
-                {
-                    try
-                    {
-                        var metadata = GetMetadata();
-                        smallIconResource = metadata.GetInt(Constants.MetadataIconKey, 0);
-                    }
-                    catch (Exception ex)
-                    {
-                        this.logger.LogError(ex, "Failed to get default notification icon from meta-data");
-                    }
-                }
-
-                if (smallIconResource == 0)
-                {
-                    smallIconResource = context.ApplicationInfo.Icon;
-                }
-                else
-                {
-                    var name = context.Resources.GetResourceName(smallIconResource);
-                    if (name == null)
-                    {
-                        smallIconResource = context.ApplicationInfo.Icon;
-                    }
+                    smallIconResource = 0;
                 }
             }
             catch (Resources.NotFoundException ex)
             {
+                this.logger.LogError(ex, "Failed to get small icon resource");
+                smallIconResource = 0;
+            }
+
+            if (smallIconResource == 0)
+            {
                 smallIconResource = context.ApplicationInfo.Icon;
-                this.logger.LogError(ex, "Failed to get icon from ApplicationInfo");
             }
 
             return smallIconResource;
+        }
+
+        private static int GetIconResourceFromDrawableOrMipmap(Context context, IDictionary<string, object> data, string dataKey)
+        {
+            var largeIconResource = 0;
+
+            if (data.TryGetString(dataKey, out var largeIcon) && largeIcon != null)
+            {
+                largeIconResource = context.Resources.GetIdentifier(largeIcon, "drawable", context.PackageName);
+                if (largeIconResource == 0)
+                {
+                    largeIconResource = context.Resources.GetIdentifier(largeIcon, "mipmap", context.PackageName);
+                }
+            }
+
+            return largeIconResource;
         }
 
         private int? GetNotificationColor(IDictionary<string, object> data)
@@ -545,7 +570,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return activityIntent;
         }
 
-        private static bool GetShowWhenVisible(IDictionary<string, object> data)
+        private bool GetShowWhenVisible(IDictionary<string, object> data)
         {
             bool showWhenVisible;
             if (data.TryGetBool(Constants.ShowWhenKey, out var shouldShowWhen))
@@ -554,7 +579,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                showWhenVisible = FirebasePushNotificationManager.ShouldShowWhen;
+                showWhenVisible = this.options.Android.ShouldShowWhen;
             }
 
             return showWhenVisible;

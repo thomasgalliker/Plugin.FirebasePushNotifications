@@ -208,3 +208,5 @@ Contributors welcome! If you find a bug or you want to propose a new feature, fe
 - FCM messages, data format, concepts and options: https://firebase.google.com/docs/cloud-messaging/concept-options
 - Set up a Firebase Cloud Messaging client app on Apple platforms: https://firebase.google.com/docs/cloud-messaging/ios/client
 - Set up a Firebase Cloud Messaging client app on Android: https://firebase.google.com/docs/cloud-messaging/android/client
+- Expandable notification on Android: https://developer.android.com/develop/ui/views/notifications/expanded
+- 

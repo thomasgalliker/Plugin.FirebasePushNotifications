@@ -14,9 +14,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// </summary>
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        public static int LargeIconResource { get; set; }
-        public static bool ShouldShowWhen { get; set; } = true;
-        public static bool UseBigTextStyle { get; set; } = true;
         public static Android.Net.Uri SoundUri { get; set; }
         public static Type NotificationActivityType { get; set; }
         public static ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
