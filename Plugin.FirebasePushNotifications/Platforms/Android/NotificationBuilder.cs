@@ -104,8 +104,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var context = Application.Context;
 
-            var soundUri = this.GetSoundUri(data, context);
-
             var resultIntent = CreateActivityLaunchIntent(context);
 
             var extras = new Bundle();
@@ -199,6 +197,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
                 try
                 {
+                    var soundUri = this.GetSoundUri(data, context);
                     notificationBuilder.SetSound(soundUri);
                 }
                 catch (Exception ex)
