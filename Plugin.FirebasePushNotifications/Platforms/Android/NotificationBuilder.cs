@@ -139,8 +139,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (notificationChannel.Importance < notificationImportance)
             {
                 this.logger.LogWarning(
-                    $"Notification channel '{notificationChannel.ChannelId}' has Importance={notificationChannel.Importance} " +
-                    $"which is lower than '{notificationImportance}' required by the notification");
+                    $"Notification channel '{notificationChannel.ChannelId}' has importance '{notificationChannel.Importance}' " +
+                    $"which is lower than notification importance '{notificationImportance}'");
             }
 
             var smallIconResource = this.GetSmallIconResource(data, context);
@@ -173,9 +173,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (largeIconBitmap != null)
             {
                 notificationBuilder.SetLargeIcon(largeIconBitmap);
-                // notificationBuilder.SetStyle(new NotificationCompat.BigPictureStyle()
-                //     .BigPicture(largeIconBitmap)
-                //     .BigLargeIcon((Bitmap)null));
+
+                notificationBuilder.SetStyle(new NotificationCompat.BigPictureStyle()
+                    .BigPicture(largeIconBitmap)
+                    .BigLargeIcon((Bitmap)null));
             }
 
             var deleteIntent = new Intent(context, typeof(PushNotificationDeletedReceiver));
@@ -232,7 +233,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (allNotificationCategories is { Length: > 0 })
                 {
                     var notificationCategory = allNotificationCategories.SingleOrDefault(c =>
-                            string.Equals(c.CategoryId, category, StringComparison.InvariantCultureIgnoreCase));
+                        string.Equals(c.CategoryId, category, StringComparison.InvariantCultureIgnoreCase));
 
                     if (notificationCategory != null)
                     {
@@ -403,6 +404,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             var largeIconResource = GetIconResourceFromDrawableOrMipmap(context, data, Constants.LargeIconKey);
 
+            if (largeIconResource == 0 &&
+                data.TryGetString(Constants.LargeIconKey, out var largeIconUrl) &&
+                System.Uri.IsWellFormedUriString(largeIconUrl, UriKind.Absolute))
+            {
+                return this.DownloadBitmap(largeIconUrl);
+            }
+
             if (largeIconResource == 0 && this.options.Android.DefaultLargeIconResource is int defaultLargeIconResource)
             {
                 largeIconResource = defaultLargeIconResource;
@@ -437,6 +445,32 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             return largeIconBitmap;
+        }
+
+        private Bitmap DownloadBitmap(string url)
+        {
+            Bitmap bitmap = null;
+
+            try
+            {
+                using (var connection = new Java.Net.URL(url).OpenConnection())
+                {
+                    if (connection == null)
+                    {
+                        return null;
+                    }
+
+                    connection.DoInput = true;
+                    connection.Connect();
+                    bitmap = BitmapFactory.DecodeStream(connection.InputStream);
+                }
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "DownloadBitmap failed with exception");
+            }
+
+            return bitmap;
         }
 
         private int GetSmallIconResource(IDictionary<string, object> data, Context context)
