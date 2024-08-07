@@ -193,6 +193,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.preferences.Remove(Constants.Preferences.TokenKey);
         }
 
+        public void TestMethod()
+        {
+        }
+
         /// <inheritdoc />
         public void RegisteredForRemoteNotifications(NSData deviceToken)
         {
