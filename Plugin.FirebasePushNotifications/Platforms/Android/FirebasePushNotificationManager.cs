@@ -12,6 +12,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// Implementation of <see cref="IFirebasePushNotification"/>
     /// for Android.
     /// </summary>
+    [Preserve(AllMembers = true)]
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
         public static Android.Net.Uri SoundUri { get; set; }

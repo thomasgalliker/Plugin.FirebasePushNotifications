@@ -6,6 +6,7 @@ using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
+    [Preserve(AllMembers = true)]
     public abstract class FirebasePushNotificationManagerBase : IDisposable
     {
         private readonly string instanceId = Guid.NewGuid().ToString()[..5];

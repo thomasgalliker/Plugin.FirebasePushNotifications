@@ -9,10 +9,12 @@ using Foundation;
 using UIKit;
 #endif
 
+using Plugin.FirebasePushNotifications.Platforms;
 using Microsoft.Extensions.Logging;
 
 namespace Plugin.FirebasePushNotifications
 {
+    [Preserve(AllMembers = true)]
     public interface IFirebasePushNotification
     {
         /// <summary>
@@ -29,7 +31,7 @@ namespace Plugin.FirebasePushNotifications
         /// </summary>
         /// <remarks>
         /// The logger instance can be injected at runtime.
-        /// This is helpful since <see cref="CrossFirebasePushNotification.Current"/> is a singleton instance 
+        /// This is helpful since <see cref="CrossFirebasePushNotification.Current"/> is a singleton instance
         /// and does therefore not allow to inject any logger via constructor injection.
         /// </remarks>
         ILogger<IFirebasePushNotification> Logger { set; }
@@ -78,7 +80,7 @@ namespace Plugin.FirebasePushNotifications
         /// Registers the list notification categories <paramref name="notificationCategories"/>.
         /// </summary>
         /// <remarks>
-        /// All registered notification categories will be replaced 
+        /// All registered notification categories will be replaced
         /// with the given <paramref name="notificationCategories"/>.
         /// </remarks>
         void RegisterNotificationCategories(NotificationCategory[] notificationCategories);
