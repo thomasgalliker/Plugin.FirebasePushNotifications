@@ -84,6 +84,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public string NotificationBodyKey { get; set; }
 
         public NotificationImportance DefaultNotificationChannelImportance { get; set; } = NotificationImportance.Default;
+
+        public int? DefaultIconResource { get; set; }
+
+        public Android.Graphics.Color? DefaultColor { get; set; }
     }
 }
 #endif

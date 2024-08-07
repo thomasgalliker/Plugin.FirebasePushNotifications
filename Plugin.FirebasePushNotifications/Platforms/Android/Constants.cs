@@ -16,6 +16,9 @@ namespace Plugin.FirebasePushNotifications
             IsDefault = true,
         };
 
+        public const string MetadataIconKey = "com.google.firebase.messaging.default_notification_icon";
+        public const string MetadataColorKey = "com.google.firebase.messaging.default_notification_color";
+
         public const string CategoryKey = "category";
         public const string TextKey = "text";
         public const string SubtitleKey = "subtitle";

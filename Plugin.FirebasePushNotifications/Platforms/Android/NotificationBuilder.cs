@@ -11,6 +11,7 @@ using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 using static Android.App.ActivityManager;
 using Application = Android.App.Application;
+using Color = Android.Graphics.Color;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -98,9 +99,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // TODO: Cleanup these variables. There is a lot of legacy code from the Xamarin plugin here.
             var useBigTextStyle = FirebasePushNotificationManager.UseBigTextStyle;
             var soundUri = FirebasePushNotificationManager.SoundUri;
-            var largeIconResource = FirebasePushNotificationManager.LargeIconResource;
-            var smallIconResource = FirebasePushNotificationManager.IconResource;
-            var notificationColor = FirebasePushNotificationManager.Color;
 
             if (data.TryGetBool(Constants.BigTextStyleKey, out var shouldUseBigTextStyle))
             {
@@ -135,81 +133,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             soundUri ??= RingtoneManager.GetDefaultUri(RingtoneType.Notification);
 
-            try
-            {
-                if (data.TryGetString(Constants.IconKey, out var icon) && icon != null)
-                {
-                    try
-                    {
-                        smallIconResource = context.Resources.GetIdentifier(icon, "drawable", context.PackageName);
-                        if (smallIconResource == 0)
-                        {
-                            smallIconResource = context.Resources.GetIdentifier(icon, "mipmap", context.PackageName);
-                        }
-                    }
-                    catch (Resources.NotFoundException ex)
-                    {
-                        this.logger.LogError(ex, "Failed to get icon from Resources");
-                    }
-                }
-
-                if (smallIconResource == 0)
-                {
-                    smallIconResource = context.ApplicationInfo.Icon;
-                }
-                else
-                {
-                    var name = context.Resources.GetResourceName(smallIconResource);
-                    if (name == null)
-                    {
-                        smallIconResource = context.ApplicationInfo.Icon;
-                    }
-                }
-            }
-            catch (Resources.NotFoundException ex)
-            {
-                smallIconResource = context.ApplicationInfo.Icon;
-                this.logger.LogError(ex, "Failed to get icon from ApplicationInfo");
-            }
-
-            try
-            {
-                if (data.TryGetString(Constants.LargeIconKey, out var largeIcon) && largeIcon != null)
-                {
-                    largeIconResource = context.Resources.GetIdentifier(largeIcon, "drawable", context.PackageName);
-                    if (largeIconResource == 0)
-                    {
-                        largeIconResource = context.Resources.GetIdentifier(largeIcon, "mipmap", context.PackageName);
-                    }
-                }
-
-                if (largeIconResource > 0)
-                {
-                    var name = context.Resources.GetResourceName(largeIconResource);
-                    if (name == null)
-                    {
-                        largeIconResource = 0;
-                    }
-                }
-            }
-            catch (Resources.NotFoundException ex)
-            {
-                largeIconResource = 0;
-                this.logger.LogError(ex, "Failed to get large icon");
-            }
-
-            if (data.TryGetString(Constants.ColorKey, out var colorValue) && colorValue != null)
-            {
-                try
-                {
-                    notificationColor = Android.Graphics.Color.ParseColor(colorValue);
-                }
-                catch (Exception ex)
-                {
-                    this.logger.LogError(ex, "Failed to parse color");
-                }
-            }
-
             var resultIntent = CreateActivityLaunchIntent(context);
 
             var extras = new Bundle();
@@ -241,6 +164,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var notificationChannel = GetChannelOrDefault(data);
 
+            var smallIconResource = this.GetSmallIconResource(data, context);
+
             var notificationBuilder = new NotificationCompat.Builder(context, notificationChannel.ChannelId)
                 .SetSmallIcon(smallIconResource)
                 .SetAutoCancel(true)
@@ -265,9 +190,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 notificationBuilder.SetShowWhen(showWhenVisible);
             }
 
-            if (largeIconResource > 0)
+            var largeIconBitmap = this.GetLargeIconBitmap(data, context);
+            if (largeIconBitmap != null)
             {
-                var largeIconBitmap = BitmapFactory.DecodeResource(context.Resources, largeIconResource);
                 notificationBuilder.SetLargeIcon(largeIconBitmap);
             }
 
@@ -319,6 +244,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // Try to resolve (and apply) localized parameters
             this.ResolveLocalizedParameters(notificationBuilder, data);
 
+            var notificationColor = this.GetNotificationColor(data);
             if (notificationColor != null)
             {
                 notificationBuilder.SetColor(notificationColor.Value);
@@ -411,6 +337,167 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 notificationManager.Notify(tag, notificationId, notification);
             }
+        }
+
+        private Bitmap GetLargeIconBitmap(IDictionary<string, object> data, Context context)
+        {
+            var largeIconResource = FirebasePushNotificationManager.LargeIconResource;
+
+            try
+            {
+                if (data.TryGetString(Constants.LargeIconKey, out var largeIcon) && largeIcon != null)
+                {
+                    largeIconResource = context.Resources.GetIdentifier(largeIcon, "drawable", context.PackageName);
+                    if (largeIconResource == 0)
+                    {
+                        largeIconResource = context.Resources.GetIdentifier(largeIcon, "mipmap", context.PackageName);
+                    }
+                }
+
+                if (largeIconResource != 0)
+                {
+                    var name = context.Resources.GetResourceName(largeIconResource);
+                    if (name == null)
+                    {
+                        largeIconResource = 0;
+                    }
+                }
+            }
+            catch (Resources.NotFoundException ex)
+            {
+                largeIconResource = 0;
+                this.logger.LogError(ex, "Failed to get large icon");
+            }
+
+            Bitmap largeIconBitmap = null;
+
+            try
+            {
+                if (largeIconResource != 0)
+                {
+                    largeIconBitmap = BitmapFactory.DecodeResource(context.Resources, largeIconResource);
+                }
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to decode bitmap ");
+            }
+
+            return largeIconBitmap;
+        }
+
+        private int GetSmallIconResource(IDictionary<string, object> data, Context context)
+        {
+            var smallIconResource = 0;
+
+            try
+            {
+                if (data.TryGetString(Constants.IconKey, out var icon) && icon != null)
+                {
+                    try
+                    {
+                        smallIconResource = context.Resources.GetIdentifier(icon, "drawable", context.PackageName);
+                        if (smallIconResource == 0)
+                        {
+                            smallIconResource = context.Resources.GetIdentifier(icon, "mipmap", context.PackageName);
+                        }
+                    }
+                    catch (Resources.NotFoundException ex)
+                    {
+                        this.logger.LogError(ex, "Failed to get icon from Resources");
+                    }
+                }
+
+                if (smallIconResource == 0 && this.options.Android.DefaultIconResource is int defaultIconResource)
+                {
+                    smallIconResource = defaultIconResource;
+                }
+
+                if (smallIconResource == 0)
+                {
+                    try
+                    {
+                        var metadata = GetMetadata();
+                        smallIconResource = metadata.GetInt(Constants.MetadataIconKey, 0);
+                    }
+                    catch (Exception ex)
+                    {
+                        this.logger.LogError(ex, "Failed to get default notification icon from meta-data");
+                    }
+                }
+
+                if (smallIconResource == 0)
+                {
+                    smallIconResource = context.ApplicationInfo.Icon;
+                }
+                else
+                {
+                    var name = context.Resources.GetResourceName(smallIconResource);
+                    if (name == null)
+                    {
+                        smallIconResource = context.ApplicationInfo.Icon;
+                    }
+                }
+            }
+            catch (Resources.NotFoundException ex)
+            {
+                smallIconResource = context.ApplicationInfo.Icon;
+                this.logger.LogError(ex, "Failed to get icon from ApplicationInfo");
+            }
+
+            return smallIconResource;
+        }
+
+        private int? GetNotificationColor(IDictionary<string, object> data)
+        {
+            int? notificationColor = null;
+
+            if (data.TryGetString(Constants.ColorKey, out var colorValue) && colorValue != null)
+            {
+                try
+                {
+                    notificationColor = Color.ParseColor(colorValue);
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError(ex, "Failed to parse color");
+                }
+            }
+
+            if (notificationColor == null && this.options.Android.DefaultColor is Color defaultColor)
+            {
+                notificationColor = defaultColor;
+            }
+
+            if (notificationColor == null)
+            {
+                try
+                {
+                    var metadata = GetMetadata();
+                    var resourceId = metadata.GetInt(Constants.MetadataColorKey, 0);
+                    if (resourceId != 0)
+                    {
+                        notificationColor = AndroidX.Core.Content.ContextCompat.GetColor(Application.Context, resourceId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError(ex, "Failed to get default notification color from meta-data");
+                }
+            }
+
+            return notificationColor;
+        }
+
+        private static Bundle GetMetadata()
+        {
+            var applicationInfo = Application.Context.PackageManager.GetApplicationInfo(
+                Application.Context.PackageName,
+                Android.Content.PM.PackageInfoFlags.MetaData);
+
+            var metadata = applicationInfo.MetaData;
+
+            return metadata;
         }
 
         private static Intent CreateActivityLaunchIntent(Context context)
@@ -689,7 +776,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private static bool IsInForeground()
         {
-            var myProcess = new RunningAppProcessInfo();
+            var myProcess = new ActivityManager.RunningAppProcessInfo();
             ActivityManager.GetMyMemoryState(myProcess);
             var isInForeground = myProcess.Importance == Android.App.Importance.Foreground;
             return isInForeground;
