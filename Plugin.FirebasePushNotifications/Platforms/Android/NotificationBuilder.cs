@@ -9,7 +9,6 @@ using Java.Util;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
-using static Android.App.ActivityManager;
 using Application = Android.App.Application;
 using Color = Android.Graphics.Color;
 
@@ -17,6 +16,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class NotificationBuilder : INotificationBuilder
     {
+        private static readonly long[] DefaultVibrationPattern = new long[] { 1000, 1000, 1000, 1000, 1000 };
         private static readonly Java.Util.Random RNG = new Java.Util.Random();
 
         private readonly ILogger logger;
@@ -204,31 +204,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
-                var notificationImportance = this.GetNotificationImportance(data);
-                switch (notificationImportance)
+                var notificationPriority = GetNotificationPriority(notificationImportance);
+                notificationBuilder.SetPriority(notificationPriority);
+
+                var notificationVibrationPattern = GetNotificationVibrationPattern(notificationImportance);
+                if (notificationVibrationPattern != null)
                 {
-                    case NotificationImportance.Max:
-                        notificationBuilder.SetPriority(NotificationCompat.PriorityMax);
-                        notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
-                        break;
-                    case NotificationImportance.High:
-                        notificationBuilder.SetPriority(NotificationCompat.PriorityHigh);
-                        notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
-                        break;
-                    case NotificationImportance.Default:
-                        notificationBuilder.SetPriority(NotificationCompat.PriorityDefault);
-                        notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
-                        break;
-                    case NotificationImportance.Low:
-                        notificationBuilder.SetPriority(NotificationCompat.PriorityLow);
-                        break;
-                    case NotificationImportance.Min:
-                        notificationBuilder.SetPriority(NotificationCompat.PriorityMin);
-                        break;
-                    default:
-                        notificationBuilder.SetPriority(NotificationCompat.PriorityDefault);
-                        notificationBuilder.SetVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
-                        break;
+                    notificationBuilder.SetVibrate(notificationVibrationPattern);
                 }
 
                 try
@@ -336,6 +318,43 @@ namespace Plugin.FirebasePushNotifications.Platforms
             else
             {
                 notificationManager.Notify(tag, notificationId, notification);
+            }
+        }
+
+        private static int GetNotificationPriority(NotificationImportance notificationImportance)
+        {
+            switch (notificationImportance)
+            {
+                case NotificationImportance.Max:
+                    return NotificationCompat.PriorityMax;
+                case NotificationImportance.High:
+                    return NotificationCompat.PriorityHigh;
+                case NotificationImportance.Default:
+                    return NotificationCompat.PriorityDefault;
+                case NotificationImportance.Low:
+                    return NotificationCompat.PriorityLow;
+                case NotificationImportance.Min:
+                    return NotificationCompat.PriorityMin;
+                default:
+                    return NotificationCompat.PriorityDefault;
+            }
+        }
+
+        private static long[] GetNotificationVibrationPattern(NotificationImportance notificationImportance)
+        {
+            switch (notificationImportance)
+            {
+                case NotificationImportance.Unspecified:
+                case NotificationImportance.None:
+                case NotificationImportance.Max:
+                case NotificationImportance.High:
+                case NotificationImportance.Default:
+                    return DefaultVibrationPattern;
+                case NotificationImportance.Low:
+                case NotificationImportance.Min:
+                    return null;
+                default:
+                    return DefaultVibrationPattern;
             }
         }
 
