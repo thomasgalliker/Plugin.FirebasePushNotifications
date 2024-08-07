@@ -17,6 +17,13 @@ namespace Plugin.FirebasePushNotifications
     [Preserve(AllMembers = true)]
     public interface IFirebasePushNotification
     {
+#if !NETSTANDARD2_0
+        /// <summary>
+        /// Gets the singleton instance of <see cref="IFirebasePushNotification"/>.
+        /// </summary>
+        public static IFirebasePushNotification Current { get; set; } = CrossFirebasePushNotification.Current;
+#endif
+
         /// <summary>
         /// Clears all queues (if any exist).
         /// </summary>
@@ -62,6 +69,8 @@ namespace Plugin.FirebasePushNotifications
 #endif
 
 #if IOS
+        void TestMethod(); // TODO: REMOVE
+
         void RegisteredForRemoteNotifications(NSData deviceToken);
 
         void FailedToRegisterForRemoteNotifications(NSError error);
