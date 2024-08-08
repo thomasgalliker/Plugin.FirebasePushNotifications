@@ -9,7 +9,6 @@ using Foundation;
 using UIKit;
 #endif
 
-using Plugin.FirebasePushNotifications.Platforms;
 using Microsoft.Extensions.Logging;
 
 namespace Plugin.FirebasePushNotifications
@@ -17,12 +16,10 @@ namespace Plugin.FirebasePushNotifications
     [Preserve(AllMembers = true)]
     public interface IFirebasePushNotification
     {
-#if !NETSTANDARD2_0
         /// <summary>
         /// Gets the singleton instance of <see cref="IFirebasePushNotification"/>.
         /// </summary>
         public static IFirebasePushNotification Current { get; set; } = CrossFirebasePushNotification.Current;
-#endif
 
         /// <summary>
         /// Clears all queues (if any exist).

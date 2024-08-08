@@ -29,7 +29,7 @@ namespace Plugin.FirebasePushNotifications
         }
 
         /// <summary>
-        /// Current plugin implementation to use
+        /// Gets the singleton instance of <see cref="IFirebasePushNotification"/>.
         /// </summary>
         public static IFirebasePushNotification Current
         {
