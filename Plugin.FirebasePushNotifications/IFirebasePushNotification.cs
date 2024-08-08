@@ -69,8 +69,6 @@ namespace Plugin.FirebasePushNotifications
 #endif
 
 #if IOS
-        void TestMethod(); // TODO: REMOVE
-
         void RegisteredForRemoteNotifications(NSData deviceToken);
 
         void FailedToRegisterForRemoteNotifications(NSError error);
