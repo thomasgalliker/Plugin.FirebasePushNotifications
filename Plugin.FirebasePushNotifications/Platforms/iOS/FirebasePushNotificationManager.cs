@@ -12,7 +12,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [Preserve(AllMembers = true)]
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        private readonly Queue<Tuple<string, bool>> pendingTopics = new Queue<Tuple<string, bool>>();
+        private readonly Queue<(string Topic, bool Subscribe)> pendingTopics = new Queue<(string, bool)>();
         private bool hasToken = false;
         private bool disposed;
 
@@ -362,7 +362,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (!this.hasToken)
             {
-                this.pendingTopics.Enqueue(new Tuple<string, bool>(topic, true));
+                this.pendingTopics.Enqueue((topic, true));
                 return;
             }
 
@@ -424,7 +424,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (!this.hasToken)
             {
-                this.pendingTopics.Enqueue(new Tuple<string, bool>(topic, false));
+                this.pendingTopics.Enqueue((topic, false));
                 return;
             }
 
@@ -502,16 +502,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             while (this.pendingTopics.TryDequeue(out var pendingTopic))
             {
-                if (pendingTopic != null)
+                if (pendingTopic.Subscribe)
                 {
-                    if (pendingTopic.Item2)
-                    {
-                        this.SubscribeTopic(pendingTopic.Item1);
-                    }
-                    else
-                    {
-                        this.UnsubscribeTopic(pendingTopic.Item1);
-                    }
+                    this.SubscribeTopic(pendingTopic.Topic);
+                }
+                else
+                {
+                    this.UnsubscribeTopic(pendingTopic.Topic);
                 }
             }
         }
