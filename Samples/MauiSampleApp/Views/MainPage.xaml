@@ -222,7 +222,8 @@
 
                 <Entry
                     Placeholder="New topic name"
-                    Text="{Binding Topic}" />
+                    Text="{Binding Topic}"
+                    Keyboard="Url" />
                 <Button
                     Command="{Binding SubscribeToTopicCommand}"
                     Text="Subscribe to topic"
