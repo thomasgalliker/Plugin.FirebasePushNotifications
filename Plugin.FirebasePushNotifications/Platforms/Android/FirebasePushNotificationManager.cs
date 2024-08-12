@@ -108,14 +108,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     }
 
                     // TODO: Pass object instead of 3 parameters
-                    var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
-                    if (notificationActionId == null)
+                    var notificationCategoryId = extras.GetStringOrDefault(Constants.NotificationCategoryKey);
+                    if (notificationCategoryId == null)
                     {
                         this.HandleNotificationOpened(extras, NotificationCategoryType.Default);
                     }
                     else
                     {
-                        this.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
+                        var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
+                        this.HandleNotificationAction(extras, notificationCategoryId, notificationActionId, NotificationCategoryType.Default);
                     }
                 }
                 else

@@ -22,10 +22,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             try
             {
                 var extras = intent.GetExtrasDict();
+                var notificationCategoryId = extras.GetStringOrDefault(Constants.NotificationCategoryKey);
                 var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
 
                 var firebasePushNotification = CrossFirebasePushNotification.Current;
-                firebasePushNotification.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
+                firebasePushNotification.HandleNotificationAction(extras, notificationCategoryId, notificationActionId, NotificationCategoryType.Default);
 
                 var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
                 var notificationId = extras.GetValueOrDefault(Constants.ActionNotificationIdKey, -1);

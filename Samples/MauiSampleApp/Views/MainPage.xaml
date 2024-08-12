@@ -278,6 +278,8 @@
                 Text="Logs"
                 HorizontalOptions="Fill" />
 
+            <controls:DividerLine />
+
             <Label
                 Style="{StaticResource Heading2LabelStyle}"
                 Text="Interaction Checks" />

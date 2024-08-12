@@ -25,7 +25,16 @@ namespace MauiSampleApp.ViewModels
             {
                 new NotificationAction("Accept", "Accept", NotificationActionType.Default, "accept"),
                 new NotificationAction("Reject", "Reject", NotificationActionType.Default, "reject")
-             });
+            });
+            yield return new NotificationCategory("dismiss",new []
+            {
+                new NotificationAction("dismiss","Dismiss", NotificationActionType.Default),
+            });
+            yield return new NotificationCategory("navigate", new []
+            {
+                new NotificationAction("dismiss", "Dismiss", NotificationActionType.Default),
+                new NotificationAction("navigate", "Navigate To", NotificationActionType.Foreground)
+            });
         }
     }
 }

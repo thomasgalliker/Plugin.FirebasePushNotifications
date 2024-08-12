@@ -465,7 +465,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 notificationCategoryType = NotificationCategoryType.Default;
             }
-
             const string defaultActionIdentifier = "com.apple.UNNotificationDefaultActionIdentifier";
             var actionIdentifier = string.Equals(response.ActionIdentifier, defaultActionIdentifier, StringComparison.InvariantCultureIgnoreCase)
                 ? null
@@ -477,7 +476,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                this.HandleNotificationAction(data, actionIdentifier, notificationCategoryType);
+                var categoryIdentifier = response.Notification.Request.Content.CategoryIdentifier;
+                this.HandleNotificationAction(data, categoryIdentifier, actionIdentifier, notificationCategoryType);
             }
 
             // Inform caller it has been handled

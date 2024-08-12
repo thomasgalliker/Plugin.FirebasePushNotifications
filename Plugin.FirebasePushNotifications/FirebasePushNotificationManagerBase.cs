@@ -71,7 +71,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.ClearQueues"/>
         public void ClearQueues()
         {
             this.logger.LogDebug("ClearQueues");
@@ -92,16 +92,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// </summary>
         protected abstract void ConfigurePlatform(FirebasePushNotificationOptions options);
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IFirebasePushNotification.Logger"/>
         public ILogger<IFirebasePushNotification> Logger
         {
             set => this.logger = value;
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.NotificationHandler"/>
         public IPushNotificationHandler NotificationHandler { get; set; }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.NotificationCategories"/>
         public NotificationCategory[] NotificationCategories
         {
             get
@@ -124,7 +124,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.RegisterNotificationCategories"/>
         public void RegisterNotificationCategories(NotificationCategory[] notificationCategories)
         {
             if (notificationCategories == null)
@@ -149,7 +149,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.ClearNotificationCategories"/>
         public void ClearNotificationCategories()
         {
             this.NotificationCategories = null;
@@ -164,7 +164,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.SubscribedTopics"/>
         public string[] SubscribedTopics
         {
             get
@@ -307,13 +307,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.NotificationHandler?.OnOpened(data, notificationCategoryType);
         }
 
-        private NotificationAction GetNotificationAction(string notificationActionId)
-        {
-            return this.NotificationCategories
-                .SelectMany(c => c.Actions)
-                .SingleOrDefault(a => a.Id == notificationActionId);
-        }
-
         protected virtual void OnNotificationOpened(IDictionary<string, object> data, NotificationCategoryType notificationCategoryType)
         {
         }
@@ -333,11 +326,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public void HandleNotificationAction(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType)
+        public void HandleNotificationAction(IDictionary<string, object> data, string categoryId, string actionId, NotificationCategoryType notificationCategoryType)
         {
             this.logger.LogDebug("HandleNotificationAction");
 
-            var notificationAction = this.GetNotificationAction(notificationActionId);
+            var notificationAction = this.GetNotificationAction(categoryId, actionId);
 
             this.RaiseOrQueueEvent(
                 this.notificationActionEventHandler,
@@ -349,6 +342,31 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             // TODO: Extend interface
             //this.NotificationHandler?.OnAction(data);
+        }
+
+        private NotificationAction GetNotificationAction(string categoryId, string actionId)
+        {
+            var notificationCategory = this.NotificationCategories
+                .SingleOrDefault(c => string.Equals(c.CategoryId, categoryId, StringComparison.InvariantCultureIgnoreCase));
+
+            if (notificationCategory != null)
+            {
+                var notificationAction = notificationCategory.Actions
+                    .SingleOrDefault(a => string.Equals(a.Id, actionId, StringComparison.InvariantCultureIgnoreCase));
+
+                if (notificationAction != null)
+                {
+                    return notificationAction;
+                }
+
+                throw new InvalidOperationException(
+                    $"Notification action with Id=\"{actionId}\" " +
+                    $"could not be found in category with {nameof(categoryId)}=\"{categoryId}\"");
+            }
+
+            throw new InvalidOperationException(
+                $"Notification category with {nameof(categoryId)}=\"{categoryId}\" " +
+                $"could not be found in {nameof(this.NotificationCategories)}");
         }
 
         protected virtual void OnNotificationAction(IDictionary<string, object> data)
@@ -387,8 +405,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 // If subscribers are present, invoke the event handler
                 this.logger.LogDebug(
-                     $"{callerName ?? nameof(this.RaiseOrQueueEvent)} raises event \"{eventName}\" " +
-                     $"to {subscribersCount} subscriber{(subscribersCount != 1 ? "s" : "")}");
+                    $"{callerName ?? nameof(this.RaiseOrQueueEvent)} raises event \"{eventName}\" " +
+                    $"to {subscribersCount} subscriber{(subscribersCount != 1 ? "s" : "")}");
 
                 var args = getEventArgs();
                 eventHandler.Invoke(this, args);

@@ -42,7 +42,7 @@ namespace Plugin.FirebasePushNotifications
 
         void HandleNotificationReceived(IDictionary<string, object> data);
 
-        void HandleNotificationAction(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType);
+        void HandleNotificationAction(IDictionary<string, object> data, string categoryId, string actionId, NotificationCategoryType notificationCategoryType);
 
         void HandleNotificationDeleted(IDictionary<string, object> data);
 

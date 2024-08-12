@@ -239,6 +239,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     {
                         foreach (var notificationAction in notificationCategory.Actions)
                         {
+                            extras.PutString(Constants.NotificationCategoryKey, notificationCategory.CategoryId);
+                            extras.PutString(Constants.NotificationActionId, notificationAction.Id);
+
                             var aRequestCode = Guid.NewGuid().GetHashCode();
 
                             Intent actionIntent;
@@ -246,22 +249,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
                             if (notificationAction.Type == NotificationActionType.Foreground)
                             {
                                 actionIntent = CreateActivityLaunchIntent(context);
+                                actionIntent.PutExtras(extras);
 
                                 if (FirebasePushNotificationManager.NotificationActivityFlags != null)
                                 {
-                                    actionIntent.SetFlags(FirebasePushNotificationManager.NotificationActivityFlags
-                                        .Value);
+                                    actionIntent.SetFlags(FirebasePushNotificationManager.NotificationActivityFlags.Value);
                                 }
 
-                                extras.PutString(Constants.NotificationActionId, notificationAction.Id);
-                                actionIntent.PutExtras(extras);
                                 pendingActionIntent = PendingIntent.GetActivity(context, aRequestCode, actionIntent,
                                     PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
                             }
                             else
                             {
                                 actionIntent = new Intent(context, typeof(PushNotificationActionReceiver));
-                                extras.PutString(Constants.NotificationActionId, notificationAction.Id);
                                 actionIntent.PutExtras(extras);
                                 pendingActionIntent = PendingIntent.GetBroadcast(context, aRequestCode, actionIntent,
                                     PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
