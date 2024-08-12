@@ -68,6 +68,7 @@ namespace MauiSampleApp
 
             builder.Services.AddSingleton<INavigationService, MauiNavigationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
+            builder.Services.AddSingleton(_ => Launcher.Default);
             builder.Services.AddSingleton(_ => Share.Default);
             builder.Services.AddSingleton(_ => Preferences.Default);
             builder.Services.AddSingleton(_ => Email.Default);

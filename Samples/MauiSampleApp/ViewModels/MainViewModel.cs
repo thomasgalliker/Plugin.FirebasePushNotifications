@@ -23,6 +23,7 @@ namespace MauiSampleApp.ViewModels
         private readonly IShare share;
         private readonly IClipboard clipboard;
         private readonly IPreferences preferences;
+        private readonly ILauncher launcher;
 
         private AsyncRelayCommand registerForPushNotificationsCommand;
         private AsyncRelayCommand unregisterForPushNotificationsCommand;
@@ -54,6 +55,7 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand copyTokenCommand;
         private AsyncRelayCommand deleteNotificationChannelsCommand;
         private AsyncRelayCommand createNotificationChannelsCommand;
+        private IAsyncRelayCommand<string> openUrlCommand;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
@@ -64,7 +66,8 @@ namespace MauiSampleApp.ViewModels
             INotificationPermissions notificationPermissions,
             IShare share,
             IClipboard clipboard,
-            IPreferences preferences)
+            IPreferences preferences,
+            ILauncher launcher)
         {
             this.logger = logger;
             this.dialogService = dialogService;
@@ -75,6 +78,7 @@ namespace MauiSampleApp.ViewModels
             this.share = share;
             this.clipboard = clipboard;
             this.preferences = preferences;
+            this.launcher = launcher;
         }
 
         public IAsyncRelayCommand AppearingCommand => this.appearingCommand ??= new AsyncRelayCommand(this.OnAppearingAsync);
@@ -599,6 +603,23 @@ namespace MauiSampleApp.ViewModels
             catch (Exception)
             {
                 await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Cancelled", "OK");
+            }
+        }
+
+        public IAsyncRelayCommand<string> OpenUrlCommand
+        {
+            get => this.openUrlCommand ??= new AsyncRelayCommand<string>(this.OpenUrlAsync);
+        }
+
+        private async Task OpenUrlAsync(string url)
+        {
+            try
+            {
+                await this.launcher.TryOpenAsync(url);
+            }
+            catch
+            {
+                // Ignore exceptions
             }
         }
     }

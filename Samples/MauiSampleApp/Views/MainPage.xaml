@@ -44,8 +44,25 @@
                     Source="dotnet_bot.png"
                     HeightRequest="100" />
                 <Label
-                    Grid.Column="1"
-                    Text="MAUI sample app for Firebase push notifications. This sample app is used to demonstrate and test the main features of the nuget package Plugin.FirebasePushNotifications." />
+                    Grid.Column="1">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span
+                                Text="MAUI sample app for Firebase push notifications. This sample app is used to demonstrate and test the main features of the nuget package " />
+                            <Span
+                                Text="Plugin.FirebasePushNotifications"
+                                Style="{StaticResource HyperlinkSpanStyle}">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding OpenUrlCommand}"
+                                        CommandParameter="https://www.nuget.org/packages/Plugin.FirebasePushNotifications"/>
+                                </Span.GestureRecognizers>
+                            </Span>
+                            <Span
+                                Text="." />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
             </Grid>
 
             <controls:DividerLine />
