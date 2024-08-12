@@ -111,7 +111,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
                     if (notificationActionId == null)
                     {
-                        this.HandleNotificationOpened(extras, notificationActionId, NotificationCategoryType.Default);
+                        this.HandleNotificationOpened(extras, NotificationCategoryType.Default);
                     }
                     else
                     {

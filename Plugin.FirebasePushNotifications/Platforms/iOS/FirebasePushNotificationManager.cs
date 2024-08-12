@@ -473,7 +473,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (string.IsNullOrEmpty(actionIdentifier))
             {
-                this.HandleNotificationOpened(data, actionIdentifier, notificationCategoryType);
+                this.HandleNotificationOpened(data, notificationCategoryType);
             }
             else
             {

@@ -22,10 +22,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private IQueue<FirebasePushNotificationDataEventArgs> notificationReceivedQueue;
         private IQueue<FirebasePushNotificationDataEventArgs> notificationDeletedQueue;
         private IQueue<FirebasePushNotificationResponseEventArgs> notificationOpenedQueue;
-        private IQueue<FirebasePushNotificationResponseEventArgs> notificationActionQueue;
+        private IQueue<FirebasePushNotificationActionEventArgs> notificationActionQueue;
 
         private EventHandler<FirebasePushNotificationTokenEventArgs> tokenRefreshEventHandler;
-        private EventHandler<FirebasePushNotificationResponseEventArgs> notificationActionEventHandler;
+        private EventHandler<FirebasePushNotificationActionEventArgs> notificationActionEventHandler;
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationReceivedEventHandler;
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationDeletedEventHandler;
         private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
@@ -58,7 +58,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.notificationReceivedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationReceivedQueue");
                 this.notificationDeletedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationDeletedQueue");
                 this.notificationOpenedQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationOpenedQueue");
-                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationActionQueue");
+                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationActionEventArgs>("notificationActionQueue");
             }
             else
             {
@@ -292,21 +292,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
             remove => this.notificationDeletedEventHandler -= value;
         }
 
-        public void HandleNotificationOpened(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType)
+        public void HandleNotificationOpened(IDictionary<string, object> data, NotificationCategoryType notificationCategoryType)
         {
             this.logger.LogDebug("HandleNotificationOpened");
 
-            var notificationAction = this.GetNotificationAction(notificationActionId);
-
             this.RaiseOrQueueEvent(
                 this.notificationOpenedEventHandler,
-                () => new FirebasePushNotificationResponseEventArgs(data, notificationAction, notificationCategoryType),
+                () => new FirebasePushNotificationResponseEventArgs(data, notificationCategoryType),
                 this.notificationOpenedQueue,
                 nameof(this.NotificationOpened));
 
-            this.OnNotificationOpened(data, notificationAction, notificationCategoryType);
+            this.OnNotificationOpened(data, notificationCategoryType);
 
-            this.NotificationHandler?.OnOpened(data, notificationAction, notificationCategoryType);
+            this.NotificationHandler?.OnOpened(data, notificationCategoryType);
         }
 
         private NotificationAction GetNotificationAction(string notificationActionId)
@@ -316,7 +314,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 .SingleOrDefault(a => a.Id == notificationActionId);
         }
 
-        protected virtual void OnNotificationOpened(IDictionary<string, object> data, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
+        protected virtual void OnNotificationOpened(IDictionary<string, object> data, NotificationCategoryType notificationCategoryType)
         {
         }
 
@@ -343,7 +341,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             this.RaiseOrQueueEvent(
                 this.notificationActionEventHandler,
-                () => new FirebasePushNotificationResponseEventArgs(data, notificationAction, notificationCategoryType),
+                () => new FirebasePushNotificationActionEventArgs(data, notificationAction, notificationCategoryType),
                 this.notificationActionQueue,
                 nameof(this.NotificationAction));
 
@@ -357,7 +355,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
-        public event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationAction
+        public event EventHandler<FirebasePushNotificationActionEventArgs> NotificationAction
         {
             add
             {

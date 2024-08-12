@@ -152,7 +152,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Event triggered when a notification is opened by tapping an action.
         /// </summary>
-        event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationAction;
+        event EventHandler<FirebasePushNotificationActionEventArgs> NotificationAction;
 
         /// <summary>
         /// Event triggered when a notification is received.

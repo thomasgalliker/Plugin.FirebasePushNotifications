@@ -8,7 +8,7 @@ namespace MauiSampleApp.Services
         {
         }
 
-        public void OnOpened(IDictionary<string, object> parameters, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
+        public void OnOpened(IDictionary<string, object> parameters, NotificationCategoryType notificationCategoryType)
         {
         }
 

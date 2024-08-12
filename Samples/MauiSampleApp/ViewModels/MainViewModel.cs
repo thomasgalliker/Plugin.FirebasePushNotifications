@@ -276,7 +276,7 @@ namespace MauiSampleApp.ViewModels
             await this.dialogService.ShowDialogAsync("OnNotificationOpened", e.ToString(), "OK");
         }
 
-        private async void OnNotificationAction(object sender, FirebasePushNotificationResponseEventArgs e)
+        private async void OnNotificationAction(object sender, FirebasePushNotificationActionEventArgs e)
         {
             await WaitAsync();
             await this.dialogService.ShowDialogAsync("OnNotificationAction", e.ToString(), "OK");

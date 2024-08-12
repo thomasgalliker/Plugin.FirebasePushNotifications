@@ -229,8 +229,8 @@ namespace Plugin.FirebasePushNotifications.Tests
             firebasePushNotificationManager.NotificationOpened += (s, e) => listOfEventArgs.Add(e);
 
             // Act
-            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
-            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, NotificationCategoryType.Default);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
@@ -250,8 +250,8 @@ namespace Plugin.FirebasePushNotifications.Tests
             var identifier = "99";
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
-            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, NotificationCategoryType.Default);
 
             // Act
             firebasePushNotificationManager.NotificationOpened += (s, e) => listOfEventArgs.Add(e);
