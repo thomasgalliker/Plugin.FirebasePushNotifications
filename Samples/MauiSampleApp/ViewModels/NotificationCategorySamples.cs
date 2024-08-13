@@ -21,11 +21,20 @@ namespace MauiSampleApp.ViewModels
                 new NotificationAction("Reply", "Reply", NotificationActionType.Foreground),
                 new NotificationAction("Forward", "Forward", NotificationActionType.Foreground)
             });
-            yield return new NotificationCategory("request", new[]
+            yield return new NotificationCategory("contract", new[]
             {
-                new NotificationAction("Accept", "Accept", NotificationActionType.Default, "check"),
-                new NotificationAction("Reject", "Reject", NotificationActionType.Default, "cancel")
-             });
+                new NotificationAction("Accept", "Accept", NotificationActionType.Default, "accept"),
+                new NotificationAction("Reject", "Reject", NotificationActionType.Default, "reject")
+            });
+            yield return new NotificationCategory("dismiss",new []
+            {
+                new NotificationAction("dismiss","Dismiss", NotificationActionType.Default),
+            });
+            yield return new NotificationCategory("navigate", new []
+            {
+                new NotificationAction("dismiss", "Dismiss", NotificationActionType.Default),
+                new NotificationAction("navigate", "Navigate To", NotificationActionType.Foreground)
+            });
         }
     }
 }

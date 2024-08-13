@@ -1,7 +1,7 @@
 ﻿#if ANDROID
 using Android.App;
 using Android.Content;
-using Plugin.FirebasePushNotifications.Platforms.Channels;
+using Plugin.FirebasePushNotifications.Platforms;
 #endif
 
 #if IOS
@@ -10,18 +10,16 @@ using UIKit;
 #endif
 
 using Microsoft.Extensions.Logging;
-using Plugin.FirebasePushNotifications.Platforms;
 
 namespace Plugin.FirebasePushNotifications
 {
+    [Preserve(AllMembers = true)]
     public interface IFirebasePushNotification
     {
         /// <summary>
-        /// Configures this instance of <see cref="IFirebasePushNotification"/>
-        /// with <paramref name="options"/>.
+        /// Gets the singleton instance of <see cref="IFirebasePushNotification"/>.
         /// </summary>
-        /// <param name="options">The firebase push notification options.</param>
-        void Configure(FirebasePushNotificationOptions options);
+        public static IFirebasePushNotification Current { get; set; } = CrossFirebasePushNotification.Current;
 
         /// <summary>
         /// Clears all queues (if any exist).
@@ -37,14 +35,14 @@ namespace Plugin.FirebasePushNotifications
         /// </summary>
         /// <remarks>
         /// The logger instance can be injected at runtime.
-        /// This is helpful since <see cref="CrossFirebasePushNotification.Current"/> is a singleton instance 
+        /// This is helpful since <see cref="CrossFirebasePushNotification.Current"/> is a singleton instance
         /// and does therefore not allow to inject any logger via constructor injection.
         /// </remarks>
-        ILogger<FirebasePushNotificationManager> Logger { set; }
+        ILogger<IFirebasePushNotification> Logger { set; }
 
         void HandleNotificationReceived(IDictionary<string, object> data);
 
-        void HandleNotificationAction(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType);
+        void HandleNotificationAction(IDictionary<string, object> data, string categoryId, string actionId, NotificationCategoryType notificationCategoryType);
 
         void HandleNotificationDeleted(IDictionary<string, object> data);
 
@@ -59,6 +57,12 @@ namespace Plugin.FirebasePushNotifications
         /// to your MauiProgram startup.
         /// </summary>
         void ProcessIntent(Activity activity, Intent intent);
+
+        /// <summary>
+        /// The notification builder receives notification data, modifies notification messages,
+        /// customizes notification feedback and provides user actions.
+        /// </summary>
+        public INotificationBuilder NotificationBuilder { get; set; }
 #endif
 
 #if IOS
@@ -80,7 +84,7 @@ namespace Plugin.FirebasePushNotifications
         /// Registers the list notification categories <paramref name="notificationCategories"/>.
         /// </summary>
         /// <remarks>
-        /// All registered notification categories will be replaced 
+        /// All registered notification categories will be replaced
         /// with the given <paramref name="notificationCategories"/>.
         /// </remarks>
         void RegisterNotificationCategories(NotificationCategory[] notificationCategories);
@@ -131,7 +135,7 @@ namespace Plugin.FirebasePushNotifications
         Task UnregisterForPushNotificationsAsync(); // TODO: Clear all preferences when unregistering from push notification!
 
         /// <summary>
-        /// Notification handler to receive, customize notification feedback and provide user actions
+        /// The notification handler is an extension point where notification messages are sent to.
         /// </summary>
         IPushNotificationHandler NotificationHandler { get; set; }
 
@@ -148,7 +152,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Event triggered when a notification is opened by tapping an action.
         /// </summary>
-        event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationAction;
+        event EventHandler<FirebasePushNotificationActionEventArgs> NotificationAction;
 
         /// <summary>
         /// Event triggered when a notification is received.

@@ -11,7 +11,7 @@
         /// <summary>
         /// The default notification category type.
         /// </summary>
-        Default,
+        Default = 0,
 
         /// <summary>
         /// The custom notification category type.
@@ -19,7 +19,7 @@
         /// <remarks>
         /// Only applies to iOS (UNNotificationResponse.IsCustomAction).
         /// </remarks>
-        Custom,
+        Custom = 1,
 
         /// <summary>
         /// The dismiss notification category type.
@@ -27,6 +27,6 @@
         /// <remarks>
         /// Only applies to iOS (UNNotificationResponse.IsDismissAction).
         /// </remarks>
-        Dismiss
+        Dismiss = 2
     }
 }

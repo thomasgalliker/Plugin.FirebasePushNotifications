@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
 using Plugin.FirebasePushNotifications.Model.Queues;
-using Plugin.FirebasePushNotifications.Platforms;
 using Plugin.FirebasePushNotifications.Tests.Logging;
 using Xunit.Abstractions;
 
@@ -19,8 +18,8 @@ namespace Plugin.FirebasePushNotifications.Tests
             this.testOutputHelper = testOutputHelper;
             this.autoMocker = new AutoMocker();
 
-            this.autoMocker.Use<ILogger<FirebasePushNotificationManager>>(
-                new TestOutputHelperLogger<FirebasePushNotificationManager>(this.testOutputHelper));
+            this.autoMocker.Use<ILogger<IFirebasePushNotification>>(
+                new TestOutputHelperLogger<IFirebasePushNotification>(this.testOutputHelper));
 
             this.autoMocker.Use(new FirebasePushNotificationOptions
             {
@@ -128,10 +127,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
-            {
-                { "key", "value" }
-            };
+            var data = new Dictionary<string, object> { { "key", "value" } };
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
             firebasePushNotificationManager.NotificationReceived += (s, e) => listOfEventArgs.Add(e);
@@ -151,10 +147,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
-            {
-                { "key", "value" }
-            };
+            var data = new Dictionary<string, object> { { "key", "value" } };
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
             firebasePushNotificationManager.HandleNotificationReceived(data);
@@ -174,10 +167,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
-            {
-                { "key", "value" }
-            };
+            var data = new Dictionary<string, object> { { "key", "value" } };
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
             firebasePushNotificationManager.NotificationDeleted += (s, e) => listOfEventArgs.Add(e);
@@ -197,10 +187,7 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
-            {
-                { "key", "value" }
-            };
+            var data = new Dictionary<string, object> { { "key", "value" } };
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
             firebasePushNotificationManager.HandleNotificationDeleted(data);
@@ -220,18 +207,14 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
-            {
-                { "key", "value" }
-            };
-            var identifier = "99";
+            var data = new Dictionary<string, object> { { "key", "value" } };
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
             firebasePushNotificationManager.NotificationOpened += (s, e) => listOfEventArgs.Add(e);
 
             // Act
-            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
-            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, NotificationCategoryType.Default);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
@@ -244,15 +227,11 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
-            {
-                { "key", "value" }
-            };
-            var identifier = "99";
+            var data = new Dictionary<string, object> { { "key", "value" } };
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
-            firebasePushNotificationManager.HandleNotificationOpened(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationOpened(data, NotificationCategoryType.Default);
 
             // Act
             firebasePushNotificationManager.NotificationOpened += (s, e) => listOfEventArgs.Add(e);
@@ -268,22 +247,31 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
+            var notificationCategories = new[]
             {
-                { "key", "value" }
+                new NotificationCategory("meeting_invitation",
+                    new[]
+                    {
+                        new NotificationAction("accept", "Accept", NotificationActionType.Foreground),
+                        new NotificationAction("decline", "Decline", NotificationActionType.Destructive),
+                    })
             };
-            var identifier = "99";
+
+            var data = new Dictionary<string, object> { { "key", "value" } };
+            var categoryId = "meeting_invitation";
+            var actionId = "accept";
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.RegisterNotificationCategories(notificationCategories);
             firebasePushNotificationManager.NotificationAction += (s, e) => listOfEventArgs.Add(e);
 
             // Act
-            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
-            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationAction(data, categoryId, actionId, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationAction(data, categoryId, actionId, NotificationCategoryType.Default);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
-            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationResponseEventArgs>();
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationActionEventArgs>();
         }
 
         [Fact]
@@ -292,22 +280,31 @@ namespace Plugin.FirebasePushNotifications.Tests
             // Arrange
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
+            var notificationCategories = new[]
             {
-                { "key", "value" }
+                new NotificationCategory("meeting_invitation",
+                    new[]
+                    {
+                        new NotificationAction("accept", "Accept", NotificationActionType.Foreground),
+                        new NotificationAction("decline", "Decline", NotificationActionType.Destructive),
+                    })
             };
-            var identifier = "99";
+
+            var data = new Dictionary<string, object> { { "key", "value" } };
+            var categoryId = "meeting_invitation";
+            var actionId = "accept";
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
-            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
-            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.RegisterNotificationCategories(notificationCategories);
+            firebasePushNotificationManager.HandleNotificationAction(data, categoryId, actionId, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationAction(data, categoryId, actionId, NotificationCategoryType.Default);
 
             // Act
             firebasePushNotificationManager.NotificationAction += (s, e) => listOfEventArgs.Add(e);
 
             // Assert
             listOfEventArgs.Should().HaveCount(2);
-            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationResponseEventArgs>();
+            listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationActionEventArgs>();
         }
 
         [Fact]
@@ -322,37 +319,48 @@ namespace Plugin.FirebasePushNotifications.Tests
 
             this.autoMocker.Use(new FirebasePushNotificationOptions
             {
-                QueueFactory = queueFactoryMock.Object,
-                Preferences = firebasePushNotificationPreferences.Object,
+                QueueFactory = queueFactoryMock.Object, Preferences = firebasePushNotificationPreferences.Object,
             });
 
-            var loggerMock = new Mock<ILogger<FirebasePushNotificationManager>>();
+            var loggerMock = new Mock<ILogger<IFirebasePushNotification>>();
             this.autoMocker.Use(loggerMock.Object);
 
             var listOfEventArgs = new List<EventArgs>();
 
-            var data = new Dictionary<string, object>
+            var notificationCategories = new[]
             {
-                { "key", "value" }
+                new NotificationCategory("meeting_invitation",
+                    new[]
+                    {
+                        new NotificationAction("accept", "Accept", NotificationActionType.Foreground),
+                        new NotificationAction("decline", "Decline", NotificationActionType.Destructive),
+                    })
             };
-            var identifier = "99";
+
+            var data = new Dictionary<string, object> { { "key", "value" } };
+            var categoryId = "meeting_invitation";
+            var actionId = "accept";
 
             var firebasePushNotificationManager = this.autoMocker.CreateInstance<TestFirebasePushNotificationManager>();
+            firebasePushNotificationManager.RegisterNotificationCategories(notificationCategories);
+
             queueFactoryMock.Invocations.Clear();
             loggerMock.Invocations.Clear();
 
             // Act
-            firebasePushNotificationManager.HandleNotificationAction(data, identifier, NotificationCategoryType.Default);
+            firebasePushNotificationManager.HandleNotificationAction(data, categoryId, actionId, NotificationCategoryType.Default);
 
             // Assert
             listOfEventArgs.Should().HaveCount(0);
 
             queueFactoryMock.VerifyNoOtherCalls();
-            
+
             loggerMock.Verify(l => l.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) => o.ToString() == "HandleNotificationAction drops event \"NotificationAction\" (no event subscribers / no queue present)."),
+                It.Is<It.IsAnyType>((o, t) =>
+                    o.ToString() ==
+                    "HandleNotificationAction drops event \"NotificationAction\" (no event subscribers / no queue present)."),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
         }

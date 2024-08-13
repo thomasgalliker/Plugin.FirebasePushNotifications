@@ -5,16 +5,16 @@ namespace Plugin.FirebasePushNotifications.Model
         /// <summary>
         /// Did not ask user for this permission (iOS only).
         /// </summary>
-        NotDetermined,
+        NotDetermined = 0,
 
         /// <summary>
         /// Notification permission request was denied (or did not ask for permission on Android).
         /// </summary>
-        Denied,
+        Denied = 1,
 
         /// <summary>
         /// User has authorized the notification permission request.
         /// </summary>
-        Granted
+        Granted = 2
     }
 }

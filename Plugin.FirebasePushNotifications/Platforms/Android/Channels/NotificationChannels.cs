@@ -24,21 +24,15 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 #endif
         }
 
-        private static readonly NotificationChannelRequest DefaultNotificationChannel = new NotificationChannelRequest
-        {
-            ChannelId = Constants.DefaultNotificationChannelId,
-            ChannelName = Constants.DefaultNotificationChannelName,
-            IsDefault = true,
-        };
-
         /// <inheritdoc />
         public IEnumerable<NotificationChannelRequest> Channels { get; private set; } = Array.Empty<NotificationChannelRequest>();
 
+        /// <inheritdoc />
         public void CreateChannels(NotificationChannelRequest[] notificationChannelRequests)
         {
             FirebasePushNotificationAndroidOptions.EnsureNotificationChannelRequests(
                     notificationChannelRequests,
-                    $"{nameof(CreateChannels)}",
+                    $"{nameof(this.CreateChannels)}",
                     nameof(notificationChannelRequests));
 
             this.CreateChannelsInternal(notificationChannelRequests);
@@ -74,11 +68,6 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             if (!OperatingSystem.IsAndroidVersionAtLeast(26))
             {
                 return;
-            }
-
-            if (notificationChannelRequests.Length == 0)
-            {
-                notificationChannelRequests = new[] { DefaultNotificationChannel };
             }
 
             var notificationManager = NotificationManagerCompat.From(Android.App.Application.Context);
@@ -144,7 +133,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 
             FirebasePushNotificationAndroidOptions.EnsureNotificationChannelRequests(
                  notificationChannelsToKeep,
-                 $"{nameof(DeleteChannels)}",
+                 $"{nameof(this.DeleteChannels)}",
                  nameof(channelIds));
 
             this.DeleteChannelsInternals(notificationChannelsToDelete, notificationChannelsToKeep);

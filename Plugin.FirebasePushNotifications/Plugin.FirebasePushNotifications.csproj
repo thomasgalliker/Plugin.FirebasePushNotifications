@@ -4,6 +4,8 @@
 		<TargetFrameworks>net7.0;net7.0-android;net7.0-ios;net8.0;net8.0-android;net8.0-ios</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<UseMaui>true</UseMaui>
+		<MauiVersion Condition="$(TargetFramework.Contains('net8.0'))">8.0.3</MauiVersion>
+		<MauiVersion Condition="$(TargetFramework.Contains('net7.0'))">7.0.49</MauiVersion>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
@@ -35,7 +37,11 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>1.0
+		<PackageReleaseNotes>2.0
+- Complete refactoring of the original 1.x implementation
+- Simplified APIs, less static code, support for dependency injection
+
+1.0
 - Initial release
 		</PackageReleaseNotes>
 		<Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>

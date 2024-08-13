@@ -4,20 +4,17 @@ namespace Plugin.FirebasePushNotifications
 {
     public class FirebasePushNotificationResponseEventArgs : FirebasePushNotificationDataEventArgs
     {
-        public FirebasePushNotificationResponseEventArgs(IDictionary<string, object> data, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
+        public FirebasePushNotificationResponseEventArgs(IDictionary<string, object> data, NotificationCategoryType notificationCategoryType)
             : base(data)
         {
-            this.Action = notificationAction;
             this.Type = notificationCategoryType;
         }
-
-        public NotificationAction Action { get; }
 
         public NotificationCategoryType Type { get; }
 
         public override string ToString()
         {
-            return $"Action.Id={(this.Action is NotificationAction action ? $"\"{action.Id}\"" : "null")}, Type={this.Type}, Data=[{this.Data.ToDebugString()}]";
+            return $"Type={this.Type}, Data=[{this.Data.ToDebugString()}]";
         }
     }
 }

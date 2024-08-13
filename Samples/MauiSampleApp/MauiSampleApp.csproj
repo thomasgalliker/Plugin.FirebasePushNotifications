@@ -5,17 +5,17 @@
 		<OutputType>Exe</OutputType>
 		<RootNamespace>MauiSampleApp</RootNamespace>
 		<UseMaui>true</UseMaui>
-    <MauiVersion>8.0.40</MauiVersion>
+    <MauiVersion>8.0.71</MauiVersion>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<IsPackable>false</IsPackable>
 
 		<!-- Display name -->
-		<ApplicationTitle>MauiSampleApp</ApplicationTitle>
+		<ApplicationTitle>Firebase Push Demo</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.mauisampleapp</ApplicationId>
+		<ApplicationId>com.companyname.firebasepushdemo</ApplicationId>
 		<ApplicationIdGuid>da8d1bd2-3ced-4171-b0da-3f1a7806e5af</ApplicationIdGuid>
 
 		<!-- Versions -->
@@ -49,7 +49,55 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
-	<!-- Firebase service keys -->
+  <!-- Android build properties -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
+    <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+    <UseInterpreter>false</UseInterpreter>
+    <AndroidUseAapt2>true</AndroidUseAapt2>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Debug'">
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <AndroidLinkTool>r8</AndroidLinkTool>
+    <AndroidPackageFormat>aab</AndroidPackageFormat>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <JavaMaximumHeapSize>1G</JavaMaximumHeapSize>
+    <AndroidSupportedAbis>armeabi-v7a;x86;x86_64;arm64-v8a</AndroidSupportedAbis>
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+  </PropertyGroup>
+
+  <!-- iOS build properties -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios'))">
+    <ConsolePause>false</ConsolePause>
+    <CodesignKey>iPhone Developer</CodesignKey>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Platform)' == 'Simulator'">
+    <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Platform)' == 'Device'">
+    <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Configuration)' == 'Debug'">
+    <MtouchDebug>true</MtouchDebug>
+    <CreatePackage>false</CreatePackage>
+    <ProvisioningType>automatic</ProvisioningType>
+    <CodesignProvision />
+    <MtouchLink>None</MtouchLink>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Configuration)' == 'Release'">
+    <MtouchDebug>false</MtouchDebug>
+    <CreatePackage>true</CreatePackage>
+    <ArchiveOnBuild>true</ArchiveOnBuild>
+    <MtouchLink>SdkOnly</MtouchLink>
+  </PropertyGroup>
+
+  <!-- Firebase service keys -->
 	<ItemGroup Condition="$(TargetFramework.Contains('-android'))">
 		<GoogleServicesJson Include="Platforms\Android\Resources\google-services.json" Link="Platforms\Android\Resources\google-services.json" />
 	</ItemGroup>

@@ -12,25 +12,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// Implementation of <see cref="IFirebasePushNotification"/>
     /// for Android.
     /// </summary>
-    public partial class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
+    [Preserve(AllMembers = true)]
+    public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        public static string NotificationContentTitleKey { get; set; }
-        public static string NotificationContentTextKey { get; set; }
-        public static string NotificationContentDataKey { get; set; }
-        public static int IconResource { get; set; }
-        public static int LargeIconResource { get; set; }
-        public static bool ShouldShowWhen { get; set; } = true;
-        public static bool UseBigTextStyle { get; set; } = true;
         public static Android.Net.Uri SoundUri { get; set; }
-        public static Android.Graphics.Color? Color { get; set; }
         public static Type NotificationActivityType { get; set; }
         public static ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
-        public static NotificationImportance DefaultNotificationChannelImportance { get; set; } = NotificationImportance.Default;
 
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
-        public FirebasePushNotificationManager()
-            : base()
+        internal FirebasePushNotificationManager()
         {
         }
 
@@ -39,10 +30,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
             NotificationActivityType = options.Android.NotificationActivityType;
 
             var notificationChannels = NotificationChannels.Current;
-            notificationChannels.CreateChannels(options.Android.NotificationChannels);
 
-            // TODO: Migrate this code into Android-specific FirebasePushNotificationManager class.
-            this.NotificationHandler = new DefaultPushNotificationHandler();
+            var notificationChannelRequests = options.Android.NotificationChannels.ToArray();
+            if (notificationChannelRequests.Length == 0)
+            {
+                notificationChannelRequests = new[] { Constants.DefaultNotificationChannel };
+            }
+
+            notificationChannels.CreateChannels(notificationChannelRequests);
+        }
+
+        protected override void OnNotificationReceived(IDictionary<string, object> data)
+        {
+            this.NotificationBuilder?.OnNotificationReceived(data);
         }
 
         public void ProcessIntent(Activity activity, Intent intent)
@@ -83,7 +83,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (extras.Any())
             {
-                // Don't process old/historic intents which are recycled for whatever reasons
+                // Don't process old/historic intents which are recycled for whatever reason
                 var intentAlreadyHandledKey = Constants.ExtraFirebaseProcessIntentHandled;
                 if (!intent.GetBooleanExtra(intentAlreadyHandledKey, false))
                 {
@@ -108,14 +108,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     }
 
                     // TODO: Pass object instead of 3 parameters
-                    var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
-                    if (notificationActionId == null)
+                    var notificationCategoryId = extras.GetStringOrDefault(Constants.NotificationCategoryKey);
+                    if (notificationCategoryId == null)
                     {
-                        this.HandleNotificationOpened(extras, notificationActionId, NotificationCategoryType.Default);
+                        this.HandleNotificationOpened(extras, NotificationCategoryType.Default);
                     }
                     else
                     {
-                        this.HandleNotificationAction(extras, notificationActionId, NotificationCategoryType.Default);
+                        var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
+                        this.HandleNotificationAction(extras, notificationCategoryId, notificationActionId, NotificationCategoryType.Default);
                     }
                 }
                 else
@@ -134,23 +135,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 FirebaseMessaging.Instance.AutoInitEnabled = true;
 
-                await Task.Run(this.GetTokenAsync);
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
-                throw;
-            }
-        }
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.GetToken().AddOnCompleteListener(taskCompleteListener);
 
-        private async Task GetTokenAsync()
-        {
-            var tcs = new TaskCompletionSource<Java.Lang.Object>();
-            var taskCompleteListener = new TaskCompleteListener(tcs);
-            FirebaseMessaging.Instance.GetToken().AddOnCompleteListener(taskCompleteListener);
-
-            try
-            {
                 var taskResult = await tcs.Task;
                 var token = taskResult.ToString();
 
@@ -161,7 +149,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex, "GetTokenAsync failed with exception");
+                this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
                 throw;
             }
         }
@@ -175,15 +163,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 FirebaseMessaging.Instance.AutoInitEnabled = false;
 
-                await Task.Run(async () =>
-                {
-                    var tcs = new TaskCompletionSource<Java.Lang.Object>();
-                    var taskCompleteListener = new TaskCompleteListener(tcs);
-                    FirebaseMessaging.Instance.DeleteToken().AddOnCompleteListener(taskCompleteListener);
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.DeleteToken().AddOnCompleteListener(taskCompleteListener);
 
-                    await tcs.Task;
-                }
-                );
+                await tcs.Task;
             }
             catch (Exception ex)
             {
@@ -208,6 +192,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             //}
         }
+
+        public INotificationBuilder NotificationBuilder { get; set; }
 
         /// <inheritdoc />
         public void SubscribeTopics(string[] topics)

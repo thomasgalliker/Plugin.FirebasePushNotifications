@@ -6,6 +6,7 @@ using Plugin.FirebasePushNotifications.Model.Queues;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
+    [Preserve(AllMembers = true)]
     public abstract class FirebasePushNotificationManagerBase : IDisposable
     {
         private readonly string instanceId = Guid.NewGuid().ToString()[..5];
@@ -13,7 +14,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private string[] subscribedTopics;
         private NotificationCategory[] notificationCategories = null;
 
-        protected ILogger<FirebasePushNotificationManager> logger;
+        protected ILogger<IFirebasePushNotification> logger;
         protected IFirebasePushNotificationPreferences preferences;
         private bool disposed;
 
@@ -21,10 +22,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private IQueue<FirebasePushNotificationDataEventArgs> notificationReceivedQueue;
         private IQueue<FirebasePushNotificationDataEventArgs> notificationDeletedQueue;
         private IQueue<FirebasePushNotificationResponseEventArgs> notificationOpenedQueue;
-        private IQueue<FirebasePushNotificationResponseEventArgs> notificationActionQueue;
+        private IQueue<FirebasePushNotificationActionEventArgs> notificationActionQueue;
 
         private EventHandler<FirebasePushNotificationTokenEventArgs> tokenRefreshEventHandler;
-        private EventHandler<FirebasePushNotificationResponseEventArgs> notificationActionEventHandler;
+        private EventHandler<FirebasePushNotificationActionEventArgs> notificationActionEventHandler;
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationReceivedEventHandler;
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationDeletedEventHandler;
         private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
@@ -34,7 +35,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        public void Configure(FirebasePushNotificationOptions options)
+        internal void Configure(FirebasePushNotificationOptions options)
         {
             this.logger.LogDebug("Configure");
 
@@ -57,7 +58,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.notificationReceivedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationReceivedQueue");
                 this.notificationDeletedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationDeletedQueue");
                 this.notificationOpenedQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationOpenedQueue");
-                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationActionQueue");
+                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationActionEventArgs>("notificationActionQueue");
             }
             else
             {
@@ -70,7 +71,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.ClearQueues"/>
         public void ClearQueues()
         {
             this.logger.LogDebug("ClearQueues");
@@ -89,19 +90,18 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// <summary>
         /// Platform-specific additions to <see cref="Configure(FirebasePushNotificationOptions)"/>.
         /// </summary>
-        protected virtual void ConfigurePlatform(FirebasePushNotificationOptions options)
-        {
-        }
+        protected abstract void ConfigurePlatform(FirebasePushNotificationOptions options);
 
-        /// <inheritdoc/>
-        public ILogger<FirebasePushNotificationManager> Logger
+        /// <inheritdoc cref="IFirebasePushNotification.Logger"/>
+        public ILogger<IFirebasePushNotification> Logger
         {
             set => this.logger = value;
         }
 
+        /// <inheritdoc cref="IFirebasePushNotification.NotificationHandler"/>
         public IPushNotificationHandler NotificationHandler { get; set; }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.NotificationCategories"/>
         public NotificationCategory[] NotificationCategories
         {
             get
@@ -124,7 +124,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.RegisterNotificationCategories"/>
         public void RegisterNotificationCategories(NotificationCategory[] notificationCategories)
         {
             if (notificationCategories == null)
@@ -149,7 +149,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.ClearNotificationCategories"/>
         public void ClearNotificationCategories()
         {
             this.NotificationCategories = null;
@@ -164,7 +164,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IFirebasePushNotification.SubscribedTopics"/>
         public string[] SubscribedTopics
         {
             get
@@ -207,7 +207,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.tokenRefreshEventHandler,
                 () => new FirebasePushNotificationTokenEventArgs(token),
                 this.tokenRefreshQueue,
-                nameof(TokenRefreshed));
+                nameof(this.TokenRefreshed));
         }
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.notificationReceivedEventHandler,
                 () => new FirebasePushNotificationDataEventArgs(data),
                 this.notificationReceivedQueue,
-                nameof(NotificationReceived));
+                nameof(this.NotificationReceived));
 
             this.OnNotificationReceived(data);
 
@@ -268,7 +268,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.notificationDeletedEventHandler,
                 () => new FirebasePushNotificationDataEventArgs(data),
                 this.notificationDeletedQueue,
-                nameof(NotificationDeleted));
+                nameof(this.NotificationDeleted));
 
             this.OnNotificationDeleted(data);
 
@@ -292,31 +292,22 @@ namespace Plugin.FirebasePushNotifications.Platforms
             remove => this.notificationDeletedEventHandler -= value;
         }
 
-        public void HandleNotificationOpened(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType)
+        public void HandleNotificationOpened(IDictionary<string, object> data, NotificationCategoryType notificationCategoryType)
         {
             this.logger.LogDebug("HandleNotificationOpened");
 
-            var notificationAction = this.GetNotificationAction(notificationActionId);
-
             this.RaiseOrQueueEvent(
                 this.notificationOpenedEventHandler,
-                () => new FirebasePushNotificationResponseEventArgs(data, notificationAction, notificationCategoryType),
+                () => new FirebasePushNotificationResponseEventArgs(data, notificationCategoryType),
                 this.notificationOpenedQueue,
-                nameof(NotificationOpened));
+                nameof(this.NotificationOpened));
 
-            this.OnNotificationOpened(data, notificationAction, notificationCategoryType);
+            this.OnNotificationOpened(data, notificationCategoryType);
 
-            this.NotificationHandler?.OnOpened(data, notificationAction, notificationCategoryType);
+            this.NotificationHandler?.OnOpened(data, notificationCategoryType);
         }
 
-        private NotificationAction GetNotificationAction(string notificationActionId)
-        {
-            return this.NotificationCategories
-                .SelectMany(c => c.Actions)
-                .SingleOrDefault(a => a.Id == notificationActionId);
-        }
-
-        protected virtual void OnNotificationOpened(IDictionary<string, object> data, NotificationAction notificationAction, NotificationCategoryType notificationCategoryType)
+        protected virtual void OnNotificationOpened(IDictionary<string, object> data, NotificationCategoryType notificationCategoryType)
         {
         }
 
@@ -335,17 +326,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        public void HandleNotificationAction(IDictionary<string, object> data, string notificationActionId, NotificationCategoryType notificationCategoryType)
+        public void HandleNotificationAction(IDictionary<string, object> data, string categoryId, string actionId, NotificationCategoryType notificationCategoryType)
         {
             this.logger.LogDebug("HandleNotificationAction");
 
-            var notificationAction = this.GetNotificationAction(notificationActionId);
+            var notificationAction = this.GetNotificationAction(categoryId, actionId);
 
             this.RaiseOrQueueEvent(
                 this.notificationActionEventHandler,
-                () => new FirebasePushNotificationResponseEventArgs(data, notificationAction, notificationCategoryType),
+                () => new FirebasePushNotificationActionEventArgs(data, notificationAction, notificationCategoryType),
                 this.notificationActionQueue,
-                nameof(NotificationAction));
+                nameof(this.NotificationAction));
 
             this.OnNotificationAction(data);
 
@@ -353,11 +344,36 @@ namespace Plugin.FirebasePushNotifications.Platforms
             //this.NotificationHandler?.OnAction(data);
         }
 
+        private NotificationAction GetNotificationAction(string categoryId, string actionId)
+        {
+            var notificationCategory = this.NotificationCategories
+                .SingleOrDefault(c => string.Equals(c.CategoryId, categoryId, StringComparison.InvariantCultureIgnoreCase));
+
+            if (notificationCategory != null)
+            {
+                var notificationAction = notificationCategory.Actions
+                    .SingleOrDefault(a => string.Equals(a.Id, actionId, StringComparison.InvariantCultureIgnoreCase));
+
+                if (notificationAction != null)
+                {
+                    return notificationAction;
+                }
+
+                throw new InvalidOperationException(
+                    $"Notification action with Id=\"{actionId}\" " +
+                    $"could not be found in category with {nameof(categoryId)}=\"{categoryId}\"");
+            }
+
+            throw new InvalidOperationException(
+                $"Notification category with {nameof(categoryId)}=\"{categoryId}\" " +
+                $"could not be found in {nameof(this.NotificationCategories)}");
+        }
+
         protected virtual void OnNotificationAction(IDictionary<string, object> data)
         {
         }
 
-        public event EventHandler<FirebasePushNotificationResponseEventArgs> NotificationAction
+        public event EventHandler<FirebasePushNotificationActionEventArgs> NotificationAction
         {
             add
             {
@@ -385,11 +401,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             string eventName,
             [CallerMemberName] string callerName = null) where TEventArgs : EventArgs
         {
-            if (eventHandler != null && eventHandler.GetInvocationList().Length is int subscribersCount && subscribersCount > 0)
+            if (eventHandler != null && eventHandler.GetInvocationList().Length is var subscribersCount and > 0)
             {
                 // If subscribers are present, invoke the event handler
                 this.logger.LogDebug(
-                     $"{callerName ?? nameof(RaiseOrQueueEvent)} raises event \"{eventName}\" to {subscribersCount} subscriber{(subscribersCount != 1 ? "s" : "")}");
+                    $"{callerName ?? nameof(this.RaiseOrQueueEvent)} raises event \"{eventName}\" " +
+                    $"to {subscribersCount} subscriber{(subscribersCount != 1 ? "s" : "")}");
 
                 var args = getEventArgs();
                 eventHandler.Invoke(this, args);
@@ -400,7 +417,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     // If no subscribers are present, queue the event args
                     this.logger.LogDebug(
-                        $"{callerName ?? nameof(RaiseOrQueueEvent)} queues event \"{eventName}\" into {queue.GetType().GetFormattedName()} for deferred delivery");
+                        $"{callerName ?? nameof(this.RaiseOrQueueEvent)} queues event \"{eventName}\" " +
+                        $"into {queue.GetType().GetFormattedName()} for deferred delivery");
 
                     var args = getEventArgs();
                     queue.Enqueue(args);
@@ -409,13 +427,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     // If no subscribers are present and no queue is present, we just drop the event...
                     this.logger.LogWarning(
-                        $"{callerName ?? nameof(RaiseOrQueueEvent)} drops event \"{eventName}\" (no event subscribers / no queue present).");
+                        $"{callerName ?? nameof(this.RaiseOrQueueEvent)} drops event \"{eventName}\" " +
+                        $"(no event subscribers / no queue present).");
                 }
             }
         }
 
         /// <summary>
-        /// Dequeues queued event args (if a queue exists for the given event) 
+        /// Dequeues queued event args (if a queue exists for the given event)
         /// and subscribes to <paramref name="eventHandler"/> with <paramref name="value"/>.
         /// </summary>
         private void DequeueAndSubscribe<TEventArgs>(
@@ -432,7 +451,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (previousSubscriptions == null && eventHandler != null)
                 {
                     this.logger.LogDebug(
-                        $"{nameof(DequeueAndSubscribe)} dequeues {queue.Count} event{(queue.Count == 1 ? "" : "s")} \"{eventName}\" from {queue.GetType().GetFormattedName()} for deferred delivery");
+                        $"{nameof(this.DequeueAndSubscribe)} dequeues {queue.Count} event{(queue.Count == 1 ? "" : "s")} \"{eventName}\" " +
+                        $"from {queue.GetType().GetFormattedName()} for deferred delivery");
 
                     foreach (var args in queue.TryDequeueAll())
                     {

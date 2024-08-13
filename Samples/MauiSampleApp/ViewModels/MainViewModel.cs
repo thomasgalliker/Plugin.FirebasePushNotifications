@@ -5,7 +5,6 @@ using MauiSampleApp.Services;
 using MauiSampleApp.Views;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications;
-using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Model;
 
 namespace MauiSampleApp.ViewModels
@@ -24,6 +23,7 @@ namespace MauiSampleApp.ViewModels
         private readonly IShare share;
         private readonly IClipboard clipboard;
         private readonly IPreferences preferences;
+        private readonly ILauncher launcher;
 
         private AsyncRelayCommand registerForPushNotificationsCommand;
         private AsyncRelayCommand unregisterForPushNotificationsCommand;
@@ -53,6 +53,9 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand getNotificationChannelsCommand;
         private string[] channels;
         private AsyncRelayCommand copyTokenCommand;
+        private AsyncRelayCommand deleteNotificationChannelsCommand;
+        private AsyncRelayCommand createNotificationChannelsCommand;
+        private IAsyncRelayCommand<string> openUrlCommand;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
@@ -63,7 +66,8 @@ namespace MauiSampleApp.ViewModels
             INotificationPermissions notificationPermissions,
             IShare share,
             IClipboard clipboard,
-            IPreferences preferences)
+            IPreferences preferences,
+            ILauncher launcher)
         {
             this.logger = logger;
             this.dialogService = dialogService;
@@ -74,6 +78,7 @@ namespace MauiSampleApp.ViewModels
             this.share = share;
             this.clipboard = clipboard;
             this.preferences = preferences;
+            this.launcher = launcher;
         }
 
         public IAsyncRelayCommand AppearingCommand => this.appearingCommand ??= new AsyncRelayCommand(this.OnAppearingAsync);
@@ -125,7 +130,8 @@ namespace MauiSampleApp.ViewModels
             private set => this.SetProperty(ref this.authorizationStatus, value);
         }
 
-        public ICommand RequestNotificationPermissionsCommand => this.requestNotificationPermissionsCommand ??= new AsyncRelayCommand(this.RequestNotificationPermissionsAsync);
+        public ICommand RequestNotificationPermissionsCommand => this.requestNotificationPermissionsCommand ??=
+            new AsyncRelayCommand(this.RequestNotificationPermissionsAsync);
 
         private async Task RequestNotificationPermissionsAsync()
         {
@@ -141,7 +147,8 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public IAsyncRelayCommand RegisterForPushNotificationsCommand => this.registerForPushNotificationsCommand ??= new AsyncRelayCommand(this.RegisterForPushNotificationsAsync);
+        public IAsyncRelayCommand RegisterForPushNotificationsCommand => this.registerForPushNotificationsCommand ??=
+            new AsyncRelayCommand(this.RegisterForPushNotificationsAsync);
 
         private async Task RegisterForPushNotificationsAsync()
         {
@@ -160,7 +167,8 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public IAsyncRelayCommand UnregisterForPushNotificationsCommand => this.unregisterForPushNotificationsCommand ??= new AsyncRelayCommand(this.UnregisterForPushNotificationsAsync);
+        public IAsyncRelayCommand UnregisterForPushNotificationsCommand => this.unregisterForPushNotificationsCommand ??=
+            new AsyncRelayCommand(this.UnregisterForPushNotificationsAsync);
 
         private async Task UnregisterForPushNotificationsAsync()
         {
@@ -268,7 +276,7 @@ namespace MauiSampleApp.ViewModels
             await this.dialogService.ShowDialogAsync("OnNotificationOpened", e.ToString(), "OK");
         }
 
-        private async void OnNotificationAction(object sender, FirebasePushNotificationResponseEventArgs e)
+        private async void OnNotificationAction(object sender, FirebasePushNotificationActionEventArgs e)
         {
             await WaitAsync();
             await this.dialogService.ShowDialogAsync("OnNotificationAction", e.ToString(), "OK");
@@ -298,7 +306,10 @@ namespace MauiSampleApp.ViewModels
             private set => this.SetProperty(ref this.token, value);
         }
 
-        public ICommand ShareTokenCommand => this.shareTokenCommand ??= new AsyncRelayCommand(this.ShareTokenAsync);
+        public ICommand ShareTokenCommand
+        {
+            get => this.shareTokenCommand ??= new AsyncRelayCommand(this.ShareTokenAsync);
+        }
 
         private async Task ShareTokenAsync()
         {
@@ -306,7 +317,10 @@ namespace MauiSampleApp.ViewModels
             await this.share.RequestAsync(shareRequest);
         }
 
-        public ICommand GetTokenCommand => this.getTokenCommand ??= new AsyncRelayCommand(this.GetTokenAsync);
+        public ICommand GetTokenCommand
+        {
+            get => this.getTokenCommand ??= new AsyncRelayCommand(this.GetTokenAsync);
+        }
 
         private async Task GetTokenAsync()
         {
@@ -343,7 +357,10 @@ namespace MauiSampleApp.ViewModels
             private set => this.SetProperty(ref this.channels, value);
         }
 
-        public ICommand GetNotificationChannelsCommand => this.getNotificationChannelsCommand ??= new AsyncRelayCommand(this.GetNotificationChannelsAsync);
+        public ICommand GetNotificationChannelsCommand
+        {
+            get => this.getNotificationChannelsCommand ??= new AsyncRelayCommand(this.GetNotificationChannelsAsync);
+        }
 
         private async Task GetNotificationChannelsAsync()
         {
@@ -354,7 +371,50 @@ namespace MauiSampleApp.ViewModels
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "UpdateNotificationChannelsAsync failed with exception");
-                await this.dialogService.ShowDialogAsync("Error", "Get subscribed topics failed with exception", "OK");
+                await this.dialogService.ShowDialogAsync("Error", "Get notification channels failed with exception", "OK");
+            }
+        }
+
+        public ICommand DeleteNotificationChannelsCommand
+        {
+            get => this.deleteNotificationChannelsCommand ??= new AsyncRelayCommand(this.DeleteNotificationChannelsAsync);
+        }
+
+        private async Task DeleteNotificationChannelsAsync()
+        {
+            try
+            {
+#if ANDROID
+                this.notificationChannels.DeleteAllChannels();
+                this.UpdateNotificationChannels();
+#endif
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "DeleteNotificationChannelsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Delete notification channels failed with exception", "OK");
+            }
+        }
+
+        public ICommand CreateNotificationChannelsCommand
+        {
+            get => this.createNotificationChannelsCommand ??= new AsyncRelayCommand(this.CreateNotificationChannelsAsync);
+        }
+
+        private async Task CreateNotificationChannelsAsync()
+        {
+            try
+            {
+#if ANDROID
+                var notificationChannelRequests = MauiSampleApp.Platforms.Notifications.NotificationChannelSamples.GetAll().ToArray();
+                this.notificationChannels.CreateChannels(notificationChannelRequests);
+                this.UpdateNotificationChannels();
+#endif
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "CreateNotificationChannelsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Create notification channels failed with exception", "OK");
             }
         }
 
@@ -373,7 +433,8 @@ namespace MauiSampleApp.ViewModels
             private set => this.SetProperty(ref this.subscribedTopics, value);
         }
 
-        public ICommand GetSubscribedTopicsCommand => this.getSubscribedTopicsCommand ??= new AsyncRelayCommand(this.GetSubscribedTopicsAsync);
+        public ICommand GetSubscribedTopicsCommand =>
+            this.getSubscribedTopicsCommand ??= new AsyncRelayCommand(this.GetSubscribedTopicsAsync);
 
         private async Task GetSubscribedTopicsAsync()
         {
@@ -391,7 +452,7 @@ namespace MauiSampleApp.ViewModels
         private void UpdateSubscribedTopics()
         {
             this.SubscribedTopics = this.firebasePushNotification.SubscribedTopics
-                .Select(t => new SubscribedTopicViewModel(t, t => this.UnsubscribeFromTopicAsync(t)))
+                .Select(t => new SubscribedTopicViewModel(t, this.UnsubscribeFromTopicAsync))
                 .ToArray();
         }
 
@@ -433,7 +494,8 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public ICommand UnsubscribeAllTopicsCommand => this.unsubscribeAllTopicsCommand ??= new AsyncRelayCommand(this.UnsubscribeAllTopicsAsync);
+        public ICommand UnsubscribeAllTopicsCommand =>
+            this.unsubscribeAllTopicsCommand ??= new AsyncRelayCommand(this.UnsubscribeAllTopicsAsync);
 
         private async Task UnsubscribeAllTopicsAsync()
         {
@@ -456,7 +518,8 @@ namespace MauiSampleApp.ViewModels
             private set => this.SetProperty(ref this.notificationCategories, value);
         }
 
-        public ICommand GetNotificationCategoriesCommand => this.getNotificationCategoriesCommand ??= new AsyncRelayCommand(this.UpdateNotificationCategoriesAsync);
+        public ICommand GetNotificationCategoriesCommand =>
+            this.getNotificationCategoriesCommand ??= new AsyncRelayCommand(this.UpdateNotificationCategoriesAsync);
 
         private async Task UpdateNotificationCategoriesAsync()
         {
@@ -474,7 +537,8 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public ICommand RegisterNotificationCategoriesCommand => this.registerNotificationCategoriesCommand ??= new AsyncRelayCommand(this.RegisterNotificationCategoriesAsync);
+        public ICommand RegisterNotificationCategoriesCommand => this.registerNotificationCategoriesCommand ??=
+            new AsyncRelayCommand(this.RegisterNotificationCategoriesAsync);
 
         private async Task RegisterNotificationCategoriesAsync()
         {
@@ -492,7 +556,8 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public ICommand ClearNotificationCategoriesCommand => this.clearNotificationCategoriesCommand ??= new AsyncRelayCommand(this.ClearNotificationCategoriesAsync);
+        public ICommand ClearNotificationCategoriesCommand =>
+            this.clearNotificationCategoriesCommand ??= new AsyncRelayCommand(this.ClearNotificationCategoriesAsync);
 
         private async Task ClearNotificationCategoriesAsync()
         {
@@ -508,7 +573,8 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public ICommand NavigateToQueuesPageCommand => this.navigateToQueuesPageCommand ??= new AsyncRelayCommand(this.NavigateToQueuesPageAsync);
+        public ICommand NavigateToQueuesPageCommand =>
+            this.navigateToQueuesPageCommand ??= new AsyncRelayCommand(this.NavigateToQueuesPageAsync);
 
         private async Task NavigateToQueuesPageAsync()
         {
@@ -528,7 +594,7 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                var result = await MediaPicker.Default.CapturePhotoAsync();
+                var result = await MediaPicker.Default.CapturePhotoAsync().ConfigureAwait(true);
                 if (result != null)
                 {
                     await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Success", "OK");
@@ -537,6 +603,23 @@ namespace MauiSampleApp.ViewModels
             catch (Exception)
             {
                 await this.dialogService.ShowDialogAsync("CapturePhotoAsync", "Cancelled", "OK");
+            }
+        }
+
+        public IAsyncRelayCommand<string> OpenUrlCommand
+        {
+            get => this.openUrlCommand ??= new AsyncRelayCommand<string>(this.OpenUrlAsync);
+        }
+
+        private async Task OpenUrlAsync(string url)
+        {
+            try
+            {
+                await this.launcher.TryOpenAsync(url);
+            }
+            catch
+            {
+                // Ignore exceptions
             }
         }
     }

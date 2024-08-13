@@ -44,14 +44,31 @@
                     Source="dotnet_bot.png"
                     HeightRequest="100" />
                 <Label
-                    Grid.Column="1"
-                    Text="MAUI sample app for Firebase push notifications. This sample app is used to demonstrate and test the main features of the nuget package Plugin.FirebasePushNotifications." />
+                    Grid.Column="1">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span
+                                Text="MAUI sample app for Firebase push notifications. This sample app is used to demonstrate and test the main features of the nuget package " />
+                            <Span
+                                Text="Plugin.FirebasePushNotifications"
+                                Style="{StaticResource HyperlinkSpanStyle}">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding OpenUrlCommand}"
+                                        CommandParameter="https://www.nuget.org/packages/Plugin.FirebasePushNotifications"/>
+                                </Span.GestureRecognizers>
+                            </Span>
+                            <Span
+                                Text="." />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
             </Grid>
 
             <controls:DividerLine />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
+                Style="{StaticResource Heading2LabelStyle}"
                 Text="INotificationPermissions" />
 
             <Button
@@ -69,27 +86,39 @@
                 </Label.FormattedText>
             </Label>
 
-            <controls:DividerLine />
+            <controls:DividerLine IsVisible="{OnPlatform Android=True, Default=False}" />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
-                Text="INotificationChannels" />
-            <VerticalStackLayout Spacing="8">
+                Style="{StaticResource Heading2LabelStyle}"
+                Text="INotificationChannels"
+                IsVisible="{OnPlatform Android=True, Default=False}" />
+            <VerticalStackLayout 
+                Spacing="8"
+                IsVisible="{OnPlatform Android=True, Default=False}">
                 <Button
                     Command="{Binding GetNotificationChannelsCommand}"
                     Text="Get notification channels"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
-                <ListView
-                    HasUnevenRows="True"
-                    ItemTemplate="{StaticResource NotificationChannelItemTemplate}"
-                    ItemsSource="{Binding Channels}" />
+                <Button
+                    Command="{Binding DeleteNotificationChannelsCommand}"
+                    Text="Delete notification channels"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding CreateNotificationChannelsCommand}"
+                    Text="Create sample notification channels"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource NotificationChannelItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding Channels}" />
             </VerticalStackLayout>
 
             <controls:DividerLine />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
+                Style="{StaticResource Heading2LabelStyle}"
                 Text="IFirebasePushNotification" />
             <VerticalStackLayout Spacing="8">
                 <Button
@@ -102,6 +131,8 @@
                     Text="Unregister from push notifications"
                     HorizontalOptions="Fill" />
             </VerticalStackLayout>
+
+            <controls:DividerLine />
 
             <Grid
                 ColumnDefinitions="*, Auto"
@@ -118,6 +149,7 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     AutoSize="TextChanges"
+                    FontFamily="{StaticResource FontFamilyMonospace}"
                     Text="{Binding Token, Mode=OneWay}" />
                 <Grid
                     Grid.Row="1"
@@ -143,6 +175,8 @@
                         HorizontalOptions="Fill" />
                 </Grid>
             </Grid>
+
+            <controls:DividerLine />
 
             <VerticalStackLayout Spacing="8">
                 <Label
@@ -171,6 +205,8 @@
                     HorizontalOptions="Fill" />
             </VerticalStackLayout>
 
+            <controls:DividerLine />
+
             <VerticalStackLayout Spacing="8">
                 <Label
                     Style="{StaticResource Heading2LabelStyle}"
@@ -180,14 +216,14 @@
                     Text="Get subscribed topics"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
-                <ListView
-                    HasUnevenRows="True"
-                    ItemTemplate="{StaticResource SubscribedTopicItemTemplate}"
-                    ItemsSource="{Binding SubscribedTopics}" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource SubscribedTopicItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding SubscribedTopics}" />
 
                 <Entry
                     Placeholder="New topic name"
-                    Text="{Binding Topic}" />
+                    Text="{Binding Topic}"
+                    Keyboard="Url" />
                 <Button
                     Command="{Binding SubscribeToTopicCommand}"
                     Text="Subscribe to topic"
@@ -201,25 +237,25 @@
                     VerticalOptions="Start" />
             </VerticalStackLayout>
 
+            <controls:DividerLine />
+
             <VerticalStackLayout Spacing="8">
                 <Label
                     Style="{StaticResource Heading2LabelStyle}"
                     Text="Notification Categories" />
                 <Button
-                    Command="{Binding GetNotificationCategoriesCommand}"
-                    Text="Get notification categories"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Start" />
-                <ListView
-                    HasUnevenRows="True"
-                    ItemTemplate="{StaticResource NotificationCategoryItemTemplate}"
-                    ItemsSource="{Binding NotificationCategories}" />
-
-                <Button
                     Command="{Binding RegisterNotificationCategoriesCommand}"
                     Text="Register sample categories"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
+                <Button
+                    Command="{Binding GetNotificationCategoriesCommand}"
+                    Text="Get notification categories"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource NotificationCategoryItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding NotificationCategories}" />
                 <Button
                     Command="{Binding ClearNotificationCategoriesCommand}"
                     Text="Clear"
@@ -230,7 +266,7 @@
             <controls:DividerLine />
 
             <Label
-                Style="{StaticResource Heading1LabelStyle}"
+                Style="{StaticResource Heading2LabelStyle}"
                 Text="Internals" />
 
             <Button
@@ -241,6 +277,8 @@
                 Command="{Binding NavigateToLogPageCommand}"
                 Text="Logs"
                 HorizontalOptions="Fill" />
+
+            <controls:DividerLine />
 
             <Label
                 Style="{StaticResource Heading2LabelStyle}"
