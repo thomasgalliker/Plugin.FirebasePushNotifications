@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:MauiSampleApp.Controls"
+    xmlns:itemTemplates="clr-namespace:MauiSampleApp.Views.ItemTemplates"
+    xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
+    x:Class="MauiSampleApp.Views.MainPage"
+    Title="Firebase Push Notifications"
+    x:DataType="vm:MainViewModel">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <DataTemplate x:Key="NotificationChannelItemTemplate">
+                <itemTemplates:NotificationChannelItemTemplate />
+            </DataTemplate>
+            <DataTemplate x:Key="SubscribedTopicItemTemplate">
+                <itemTemplates:SubscribedTopicItemTemplate />
+            </DataTemplate>
+            <DataTemplate x:Key="NotificationCategoryItemTemplate">
+                <itemTemplates:NotificationCategoryItemTemplate />
+            </DataTemplate>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ContentPage.Behaviors>
+        <mct:EventToCommandBehavior
+            Command="{Binding AppearingCommand}"
+            EventName="Appearing" />
+    </ContentPage.Behaviors>
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="16"
+            Spacing="16"
+            VerticalOptions="Start">
+
+            <Grid
+                ColumnDefinitions="Auto, *"
+                ColumnSpacing="10">
+                <Image
+                    Grid.Column="0"
+                    Source="dotnet_bot.png"
+                    HeightRequest="100" />
+                <Label
+                    Grid.Column="1">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span
+                                Text="MAUI sample app for Firebase push notifications. This sample app is used to demonstrate and test the main features of the nuget package " />
+                            <Span
+                                Text="Plugin.FirebasePushNotifications"
+                                Style="{StaticResource HyperlinkSpanStyle}">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding OpenUrlCommand}"
+                                        CommandParameter="https://www.nuget.org/packages/Plugin.FirebasePushNotifications"/>
+                                </Span.GestureRecognizers>
+                            </Span>
+                            <Span
+                                Text="." />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </Grid>
+
+            <controls:DividerLine />
+
+            <Label
+                Style="{StaticResource Heading2LabelStyle}"
+                Text="INotificationPermissions" />
+
+            <Button
+                Command="{Binding RequestNotificationPermissionsCommand}"
+                Text="Request notification permissions"
+                HorizontalOptions="Fill" />
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="AuthorizationStatus: " />
+                        <Span
+                            FontAttributes="Bold"
+                            Text="{Binding AuthorizationStatus}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+            <controls:DividerLine IsVisible="{OnPlatform Android=True, Default=False}" />
+
+            <Label
+                Style="{StaticResource Heading2LabelStyle}"
+                Text="INotificationChannels"
+                IsVisible="{OnPlatform Android=True, Default=False}" />
+            <VerticalStackLayout 
+                Spacing="8"
+                IsVisible="{OnPlatform Android=True, Default=False}">
+                <Button
+                    Command="{Binding GetNotificationChannelsCommand}"
+                    Text="Get notification channels"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding DeleteNotificationChannelsCommand}"
+                    Text="Delete notification channels"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding CreateNotificationChannelsCommand}"
+                    Text="Create sample notification channels"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource NotificationChannelItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding Channels}" />
+            </VerticalStackLayout>
+
+            <controls:DividerLine />
+
+            <Label
+                Style="{StaticResource Heading2LabelStyle}"
+                Text="IFirebasePushNotification" />
+            <VerticalStackLayout Spacing="8">
+                <Button
+                    Command="{Binding RegisterForPushNotificationsCommand}"
+                    Text="Register for push notifications"
+                    HorizontalOptions="Fill" />
+
+                <Button
+                    Command="{Binding UnregisterForPushNotificationsCommand}"
+                    Text="Unregister from push notifications"
+                    HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+
+            <controls:DividerLine />
+
+            <Grid
+                ColumnDefinitions="*, Auto"
+                ColumnSpacing="4"
+                RowDefinitions="Auto, *"
+                RowSpacing="8">
+                <Label
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Style="{StaticResource Heading2LabelStyle}"
+                    Text="Push Notification Token" />
+                <Editor
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    AutoSize="TextChanges"
+                    FontFamily="{StaticResource FontFamilyMonospace}"
+                    Text="{Binding Token, Mode=OneWay}" />
+                <Grid
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    RowDefinitions="Auto,Auto,Auto"
+                    RowSpacing="8">
+                    <Button
+                        Grid.Row="0"
+                        Command="{Binding GetTokenCommand}"
+                        Text="Get"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Center" />
+                    <Button
+                        Grid.Row="1"
+                        Command="{Binding CopyTokenCommand}"
+                        Text="Copy"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Center" />
+                    <Button
+                        Grid.Row="2"
+                        Command="{Binding ShareTokenCommand}"
+                        Text="Share"
+                        HorizontalOptions="Fill" />
+                </Grid>
+            </Grid>
+
+            <controls:DividerLine />
+
+            <VerticalStackLayout Spacing="8">
+                <Label
+                    Style="{StaticResource Heading2LabelStyle}"
+                    Text="Notification Events" />
+
+                <Grid
+                    ColumnDefinitions="Auto, *"
+                    ColumnSpacing="8">
+                    <CheckBox
+                        Grid.Column="0"
+                        IsChecked="{Binding SubscribeEventsAtStartup}" />
+                    <Label
+                        Grid.Column="1"
+                        Text="Subscribe events at startup"
+                        VerticalOptions="Center" />
+                </Grid>
+
+                <Button
+                    Command="{Binding SubscribeEventsCommand}"
+                    Text="Subscribe events"
+                    HorizontalOptions="Fill" />
+                <Button
+                    Command="{Binding UnsubscribeEventsCommand}"
+                    Text="Unsubscribe events"
+                    HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+
+            <controls:DividerLine />
+
+            <VerticalStackLayout Spacing="8">
+                <Label
+                    Style="{StaticResource Heading2LabelStyle}"
+                    Text="Topics" />
+                <Button
+                    Command="{Binding GetSubscribedTopicsCommand}"
+                    Text="Get subscribed topics"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource SubscribedTopicItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding SubscribedTopics}" />
+
+                <Entry
+                    Placeholder="New topic name"
+                    Text="{Binding Topic}"
+                    Keyboard="Url" />
+                <Button
+                    Command="{Binding SubscribeToTopicCommand}"
+                    Text="Subscribe to topic"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding UnsubscribeAllTopicsCommand}"
+                    LineBreakMode="MiddleTruncation"
+                    Text="Unsubscribe all"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+            </VerticalStackLayout>
+
+            <controls:DividerLine />
+
+            <VerticalStackLayout Spacing="8">
+                <Label
+                    Style="{StaticResource Heading2LabelStyle}"
+                    Text="Notification Categories" />
+                <Button
+                    Command="{Binding RegisterNotificationCategoriesCommand}"
+                    Text="Register sample categories"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding GetNotificationCategoriesCommand}"
+                    Text="Get notification categories"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <VerticalStackLayout 
+                    BindableLayout.ItemTemplate="{StaticResource NotificationCategoryItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding NotificationCategories}" />
+                <Button
+                    Command="{Binding ClearNotificationCategoriesCommand}"
+                    Text="Clear"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+            </VerticalStackLayout>
+
+            <controls:DividerLine />
+
+            <Label
+                Style="{StaticResource Heading2LabelStyle}"
+                Text="Internals" />
+
+            <Button
+                Command="{Binding NavigateToQueuesPageCommand}"
+                Text="Queues"
+                HorizontalOptions="Fill" />
+            <Button
+                Command="{Binding NavigateToLogPageCommand}"
+                Text="Logs"
+                HorizontalOptions="Fill" />
+
+            <controls:DividerLine />
+
+            <Label
+                Style="{StaticResource Heading2LabelStyle}"
+                Text="Interaction Checks" />
+            <Label Text="MediaPicker uses a separate Activity on Android to take photos. This interacts with the ProcessIntent method of IFirebasePushNotification" />
+            <Button
+                Command="{Binding CapturePhotoCommand}"
+                Text="MediaPicker.CapturePhotoAsync"
+                HorizontalOptions="Fill" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

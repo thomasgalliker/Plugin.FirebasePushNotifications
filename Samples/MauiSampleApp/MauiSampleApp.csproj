@@ -1,21 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net7.0-android;net7.0-ios</TargetFrameworks>
+		<TargetFrameworks>net8.0;net8.0-android;net8.0-ios</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>MauiSampleApp</RootNamespace>
 		<UseMaui>true</UseMaui>
+    <MauiVersion>8.0.71</MauiVersion>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<IsPackable>false</IsPackable>
-		<LangVersion>latest</LangVersion>
-		
+
 		<!-- Display name -->
-		<ApplicationTitle>MauiSampleApp</ApplicationTitle>
+		<ApplicationTitle>Firebase Push Demo</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.mauisampleapp</ApplicationId>
+		<ApplicationId>com.companyname.firebasepushdemo</ApplicationId>
 		<ApplicationIdGuid>da8d1bd2-3ced-4171-b0da-3f1a7806e5af</ApplicationIdGuid>
 
 		<!-- Versions -->
@@ -30,13 +30,13 @@
 		<!-- In order to use this project as a test target, we mark it as OutputType=Library -->
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
-	
+
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#FDA612" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FDA612" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
@@ -49,12 +49,87 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+  <!-- Android build properties -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
+    <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+    <UseInterpreter>false</UseInterpreter>
+    <AndroidUseAapt2>true</AndroidUseAapt2>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Debug'">
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <AndroidLinkTool>r8</AndroidLinkTool>
+    <AndroidPackageFormat>aab</AndroidPackageFormat>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <JavaMaximumHeapSize>1G</JavaMaximumHeapSize>
+    <AndroidSupportedAbis>armeabi-v7a;x86;x86_64;arm64-v8a</AndroidSupportedAbis>
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+  </PropertyGroup>
+
+  <!-- iOS build properties -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios'))">
+    <ConsolePause>false</ConsolePause>
+    <CodesignKey>iPhone Developer</CodesignKey>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Platform)' == 'Simulator'">
+    <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Platform)' == 'Device'">
+    <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Configuration)' == 'Debug'">
+    <MtouchDebug>true</MtouchDebug>
+    <CreatePackage>false</CreatePackage>
+    <ProvisioningType>automatic</ProvisioningType>
+    <CodesignProvision />
+    <MtouchLink>None</MtouchLink>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Configuration)' == 'Release'">
+    <MtouchDebug>false</MtouchDebug>
+    <CreatePackage>true</CreatePackage>
+    <ArchiveOnBuild>true</ArchiveOnBuild>
+    <MtouchLink>SdkOnly</MtouchLink>
+  </PropertyGroup>
+
+  <!-- Firebase service keys -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+		<GoogleServicesJson Include="Platforms\Android\Resources\google-services.json" Link="Platforms\Android\Resources\google-services.json" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
+		<BundleResource Include="Platforms\iOS\GoogleService-Info.plist" Link="GoogleService-Info.plist" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Configuration)' == 'Debug'">
+		<CodesignEntitlements>Platforms/iOS/Entitlements.plist</CodesignEntitlements>
+	</PropertyGroup>
+
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.11" />
+		<PackageReference Include="ValueConverters.MAUI" Version="3.0.26" />
+    
+    <!--To avoid silly build errors... incredible!-->
+		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj" />
+		<ProjectReference Include="..\..\Plugin.FirebasePushNotifications\Plugin.FirebasePushNotifications.csproj" />
 	</ItemGroup>
+
+	<ProjectExtensions>
+		<VisualStudio>
+			<UserProperties XamarinHotReloadDebuggerTimeoutExceptionMauiSampleAppHideInfoBar="True" />
+		</VisualStudio>
+	</ProjectExtensions>
 
 </Project>

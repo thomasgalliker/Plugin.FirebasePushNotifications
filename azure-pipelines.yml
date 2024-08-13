@@ -33,8 +33,8 @@ variables:
   solution: 'Plugin.FirebasePushNotifications.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  majorVersion: 1
-  minorVersion: 0
+  majorVersion: 2
+  minorVersion: 2
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
     # Versioning: 1.0.0
@@ -76,9 +76,9 @@ steps:
     DisableTelemetry: false'
     
 - task: UseDotNet@2
-  displayName: 'Use .NET 7.x'
+  displayName: 'Use .NET 8.x'
   inputs:
-    version: 7.x
+    version: 8.x
     
 - task: Bash@3
   displayName: Install .NET MAUI
@@ -87,6 +87,13 @@ steps:
     script: |
       dotnet nuget locals all --clear 
       dotnet workload install maui android ios maui-android maui-ios --source https://api.nuget.org/v3/index.json
+
+- task: JavaToolInstaller@0
+  displayName: "Install Java"
+  inputs:
+    versionSpec: '11'
+    jdkArchitectureOption: 'x64'
+    jdkSourceOption: 'PreInstalled'
 
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 6.x'
@@ -98,6 +105,32 @@ steps:
   inputs:
     command: restore
     projects: '$(solution)'
+
+- task: DownloadSecureFile@1
+  name: GoogleServiceFileAndroid
+  displayName: 'Download secure file google-services.json'
+  inputs:
+    secureFile: 'google-services.json'
+   
+- task: DownloadSecureFile@1
+  name: GoogleServiceFileiOS
+  displayName: 'Download secure file GoogleService-Info.plist'
+  inputs:
+    secureFile: 'GoogleService-Info.plist'
+
+- task: CopyFiles@2
+  displayName: 'Copy file google-services.json'
+  inputs:
+    SourceFolder: '$(Agent.TempDirectory)'
+    Contents: '$(GoogleServiceFileAndroid.secureFilePath)'
+    TargetFolder: '$(Build.SourcesDirectory)\Samples\MauiSampleApp\Platforms\Android\Resources'
+    
+- task: CopyFiles@2
+  displayName: 'Copy file GoogleService-Info.plist'
+  inputs:
+    SourceFolder: '$(Agent.TempDirectory)'
+    Contents: '$(GoogleServiceFileiOS.secureFilePath)'
+    TargetFolder: '$(Build.SourcesDirectory)\Samples\MauiSampleApp\Platforms\iOS'
 
 - task: DotNetCoreCLI@2
   displayName: 'Build solution'

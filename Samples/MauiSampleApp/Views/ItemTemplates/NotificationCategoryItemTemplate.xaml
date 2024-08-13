@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:itemTemplates="clr-namespace:MauiSampleApp.Views.ItemTemplates"
+    xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
+    x:Class="MauiSampleApp.Views.ItemTemplates.NotificationCategoryItemTemplate"
+    x:DataType="vm:NotificationCategoryViewModel">
+
+    <Grid
+        Padding="4"
+        ColumnDefinitions="*, *"
+        ColumnSpacing="4"
+        RowDefinitions="*">
+        <Grid.Resources>
+            <ResourceDictionary>
+                <DataTemplate x:Key="NotificationActionItemTemplate">
+                    <itemTemplates:NotificationActionItemTemplate />
+                </DataTemplate>
+            </ResourceDictionary>
+        </Grid.Resources>
+
+        <Label
+            Grid.Column="0"
+            FontAttributes="Bold"
+            Text="{Binding Category, StringFormat='NotificationCategory: {0}'}"
+            VerticalOptions="Start" />
+        <VerticalStackLayout
+            Grid.Column="1"
+            BindableLayout.ItemTemplate="{StaticResource NotificationActionItemTemplate}"
+            BindableLayout.ItemsSource="{Binding Actions}" />
+    </Grid>
+</ContentView>

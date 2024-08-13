@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net7.0-android;net7.0-ios</TargetFrameworks>
+		<TargetFrameworks>net7.0;net7.0-android;net7.0-ios;net8.0;net8.0-android;net8.0-ios</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<UseMaui>true</UseMaui>
+		<MauiVersion Condition="$(TargetFramework.Contains('net8.0'))">8.0.3</MauiVersion>
+		<MauiVersion Condition="$(TargetFramework.Contains('net7.0'))">7.0.49</MauiVersion>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<IsPackable>true</IsPackable>
-		<LangVersion>latest</LangVersion>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.0</SupportedOSPlatformVersion>
@@ -29,28 +30,40 @@
 		<Authors>Thomas Galliker</Authors>
 		<PackageId>Plugin.FirebasePushNotifications</PackageId>
 		<PackageTags>firebase;push;notification;notifications</PackageTags>
-		<PackageIconUrl>https://raw.githubusercontent.com/thomasgalliker/Plugin.FirebasePushNotifications/develop/Images/logo.png</PackageIconUrl>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageProjectUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>1.0
+		<PackageReleaseNotes>2.0
+- Complete refactoring of the original 1.x implementation
+- Simplified APIs, less static code, support for dependency injection
+
+1.0
 - Initial release
 		</PackageReleaseNotes>
-		<Copyright>Copyright 2023</Copyright>
+		<Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<None Include="..\README.md">
-			<Pack>True</Pack>
-			<PackagePath>\</PackagePath>
-		</None>
-	</ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="True" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="True" PackagePath="\" />
+    <None Include="..\Images\logo.png" Pack="True" PackagePath="\" />
+  </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Newtonsoft.Json" Version="[13.0.3,)" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="$(TargetFramework.Contains('net7.0'))">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[7.0.0,)" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="$(TargetFramework.Contains('net8.0'))">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.0,)" />
 	</ItemGroup>
 	
 	<!--Platform-specific package references--> 
@@ -64,8 +77,8 @@
 		<PackageReference Include="Xamarin.Firebase.Common" Version="120.3.3.1" />
 
 		<!--Temporary workaround for issue in AndroidX: https://github.com/xamarin/AndroidX/issues/742-->
-		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2" />
-		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2" />
+		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2.1" />
+		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">

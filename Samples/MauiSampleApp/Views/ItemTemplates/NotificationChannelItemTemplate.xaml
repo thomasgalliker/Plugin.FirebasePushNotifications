@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="MauiSampleApp.Views.ItemTemplates.NotificationChannelItemTemplate"
+    x:DataType="x:String">
+
+    <Grid
+        Padding="4"
+        ColumnDefinitions="Auto, *"
+        ColumnSpacing="4">
+        <Label
+            Grid.Column="0"
+            Text="ChannelId: "
+            VerticalOptions="Center" />
+        <Label
+            Grid.Column="1"
+            Text="{Binding .}"
+            FontFamily="{StaticResource FontFamilyMonospace}"
+            VerticalOptions="Center" />
+    </Grid>
+</ContentView>

@@ -1,40 +1,51 @@
 ﻿using Android.App;
 using Android.Content;
+using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
     [BroadcastReceiver(Enabled = true, Exported = false)]
     public class PushNotificationActionReceiver : BroadcastReceiver
     {
+        private readonly ILogger logger;
+
+        public PushNotificationActionReceiver()
+        {
+            this.logger = IPlatformApplication.Current.Services.GetService<ILogger<PushNotificationActionReceiver>>();
+        }
+
         public override void OnReceive(Context context, Intent intent)
         {
-            IDictionary<string, object> parameters = new Dictionary<string, object>();
-            var extras = intent.Extras;
+            this.logger.LogDebug("OnReceive");
 
-            if (extras != null && !extras.IsEmpty)
+            try
             {
-                foreach (var key in extras.KeySet())
+                var extras = intent.GetExtrasDict();
+                var notificationCategoryId = extras.GetStringOrDefault(Constants.NotificationCategoryKey);
+                var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
+
+                var firebasePushNotification = CrossFirebasePushNotification.Current;
+                firebasePushNotification.HandleNotificationAction(extras, notificationCategoryId, notificationActionId, NotificationCategoryType.Default);
+
+                var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
+                var notificationId = extras.GetValueOrDefault(Constants.ActionNotificationIdKey, -1);
+                if (notificationId != -1)
                 {
-                    parameters.Add(key, $"{extras.Get(key)}");
-                    System.Diagnostics.Debug.WriteLine(key, $"{extras.Get(key)}");
+                    var notificationTag = extras.GetStringOrDefault(Constants.ActionNotificationTagKey, null);
+                    if (notificationTag == null)
+                    {
+                        manager.Cancel(notificationId);
+                    }
+                    else
+                    {
+                        manager.Cancel(notificationTag, notificationId);
+                    }
                 }
             }
-            FirebasePushNotificationManager.RegisterAction(parameters);
-
-            var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
-            var notificationId = extras.GetInt(DefaultPushNotificationHandler.ActionNotificationIdKey, -1);
-            if (notificationId != -1)
+            catch (Exception ex)
             {
-                var notificationTag = extras.GetString(DefaultPushNotificationHandler.ActionNotificationTagKey, string.Empty);
-
-                if (notificationTag == null)
-                {
-                    manager.Cancel(notificationId);
-                }
-                else
-                {
-                    manager.Cancel(notificationTag, notificationId);
-                }
+                this.logger.LogError(ex, "OnReceive failed with exception");
             }
         }
     }

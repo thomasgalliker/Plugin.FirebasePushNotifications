@@ -1,6 +1,5 @@
 ﻿#if ANDROID || IOS
 #define ANDROID_OR_IOS
-using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Platforms;
 #endif
 
@@ -10,9 +9,9 @@ namespace Plugin.FirebasePushNotifications
     /// <summary>
     /// Cross-platform Firebase push notification.
     /// </summary>
-    public class CrossFirebasePushNotification
+    public static class CrossFirebasePushNotification
     {
-        private static Lazy<IFirebasePushNotification> Implementation = new Lazy<IFirebasePushNotification>(CreateFirebasePushNotification, LazyThreadSafetyMode.PublicationOnly);
+        private static readonly Lazy<IFirebasePushNotification> Implementation = new Lazy<IFirebasePushNotification>(CreateFirebasePushNotification, LazyThreadSafetyMode.PublicationOnly);
 
         /// <summary>
         /// Gets if the plugin is supported on the current platform.
@@ -30,7 +29,7 @@ namespace Plugin.FirebasePushNotifications
         }
 
         /// <summary>
-        /// Current plugin implementation to use
+        /// Gets the singleton instance of <see cref="IFirebasePushNotification"/>.
         /// </summary>
         public static IFirebasePushNotification Current
         {
@@ -42,27 +41,8 @@ namespace Plugin.FirebasePushNotifications
 #if ANDROID_OR_IOS
             return new FirebasePushNotificationManager();
 #else
-            throw NotImplementedInReferenceAssembly();
+            throw Exceptions.NotImplementedInReferenceAssembly();
 #endif
-        }
-
-
-        private static Exception NotImplementedInReferenceAssembly()
-        {
-            return new NotImplementedException(
-                "This functionality is not implemented for the current platform. " +
-                "You should reference the NuGet package from your main application project in order to reference the platform-specific implementation.");
-        }
-
-        /// <summary>
-        /// Clean-up implementation reference.
-        /// </summary>
-        public static void Dispose()
-        {
-            if (Implementation != null && Implementation.IsValueCreated)
-            {
-                Implementation = new Lazy<IFirebasePushNotification>(CreateFirebasePushNotification, LazyThreadSafetyMode.PublicationOnly);
-            }
         }
     }
 }
