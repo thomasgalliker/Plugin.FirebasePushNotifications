@@ -44,7 +44,7 @@ var builder = MauiApp.CreateBuilder()
 `UseFirebasePushNotifications` has optional configuration parameters which are documented in another section of this document.
 
 ### API Usage
-`IFirebasePushNotification` is the main interface which handles most of the desired Firebase push notification features. This interface is injectable via dependency injection or accessible as a static singleton instance `CrossFirebasePushNotification.Current`. We highly encourage you to use the dependency injection approach in order to keep your code testable.
+`IFirebasePushNotification` is the main interface which handles most of the desired Firebase push notification features. This interface is injectable via dependency injection or accessible as a static singleton instance `IFirebasePushNotification.Current`. We strongly encourage you to use the dependency injection approach in order to keep your code testable.
 
 The following lines of code demonstrate how the `IFirebasePushNotification` instance is injected in `MainViewModel` and assigned to a local field for later use:
 ```csharp
@@ -156,7 +156,7 @@ var categories = new[]
 
 Notification categories are usually registered at app startup time using the following method call:
 ```csharp
-IFirebasePushNotification.RegisterNotificationCategories(categories);
+IFirebasePushNotification.Current.RegisterNotificationCategories(categories);
 ```
 
 ##### Subscribe to Notification Actions
@@ -197,6 +197,16 @@ Use the Firebase Admin SDK (or any other HTTP client) to send a push notificatio
 If everything works fine, the mobile device with the given token displays the notification action as follows:
 
 ![Notification Category medication_intake](Docs/notificationcategory_takemedicine.png?raw=true)
+
+##### More Push Notification Scenarios
+There are a lot of features in this library that can be controlled via specific data flags. The most common scenarios
+are end-to-end tested using postman calls. You can find an up-to-date postman collection in this repository:
+[FCM Plugin.FirebasePushNotifications.postman_collection.json](Docs/FCM Plugin.FirebasePushNotifications.postman_collection.json)
+
+- Import the collection in postman.
+- Adjust the variables, especially the `project_id` and the `fcm_token` accordingly.
+- Authenticate each call by selecting the Auth Type "Firebase Cloud Messaging API (Oauth 2.0)".
+- Press "Authorize" and enter the credentials of a user which is allowed to send FCM messages for the configured FCM project.
 
 ### Options
 > *to be documented*
