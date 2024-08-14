@@ -198,7 +198,7 @@ If everything works fine, the mobile device with the given token displays the no
 
 ![Notification Category medication_intake](Docs/notificationcategory_takemedicine.png?raw=true)
 
-##### More Push Notification Scenarios
+#### More Push Notification Scenarios
 There are a lot of features in this library that can be controlled via specific data flags. The most common scenarios
 are end-to-end tested using postman calls. You can find an up-to-date postman collection in this repository:
 [FCM Plugin.FirebasePushNotifications.postman_collection.json](Docs/FCM Plugin.FirebasePushNotifications.postman_collection.json)
