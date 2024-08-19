@@ -1,5 +1,6 @@
 ﻿using Foundation;
 using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Extensions;
 using UIKit;
 using UserNotifications;
 
@@ -141,7 +142,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = true;
 
-
             var authOptions = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
             var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
             if (granted)
@@ -236,13 +236,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private void DidReceiveRemoteNotificationInternal(NSDictionary userInfo)
         {
             Firebase.CloudMessaging.Messaging.SharedInstance.AppDidReceiveMessage(userInfo);
-            var data = GetParameters(userInfo);
+            var data = userInfo.GetParameters();
             this.HandleNotificationReceived(data);
         }
 
         private void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification, Action<UNNotificationPresentationOptions> completionHandler)
         {
-            var data = GetParameters(notification.Request.Content.UserInfo);
+            var data = notification.Request.Content.UserInfo.GetParameters();
             var notificationPresentationOptions = GetNotificationPresentationOptions(data);
             this.logger.LogDebug($"WillPresentNotification: UNNotificationPresentationOptions={notificationPresentationOptions}");
 
@@ -294,48 +294,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             return notificationPresentationOptions;
-        }
-
-        private static IDictionary<string, object> GetParameters(NSDictionary data)
-        {
-            var parameters = new Dictionary<string, object>();
-
-            var keyAps = new NSString("aps");
-            var keyAlert = new NSString("alert");
-
-            foreach (var val in data)
-            {
-                if (val.Key.Equals(keyAps))
-                {
-                    if (data.ValueForKey(keyAps) is NSDictionary aps)
-                    {
-                        foreach (var apsVal in aps)
-                        {
-                            if (apsVal.Value is NSDictionary dictionaryValue)
-                            {
-                                if (apsVal.Key.Equals(keyAlert))
-                                {
-                                    foreach (var alertVal in dictionaryValue)
-                                    {
-                                        parameters.Add($"aps.alert.{alertVal.Key}", $"{alertVal.Value}");
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                parameters.Add($"aps.{apsVal.Key}", $"{apsVal.Value}");
-                            }
-
-                        }
-                    }
-                }
-                else
-                {
-                    parameters.Add($"{val.Key}", $"{val.Value}");
-                }
-            }
-
-            return parameters;
         }
 
         /// <inheritdoc />
@@ -449,7 +407,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("DidReceiveNotificationResponse");
 
-            var data = GetParameters(response.Notification.Request.Content.UserInfo);
+            var data = response.Notification.Request.Content.UserInfo.GetParameters();
 
             NotificationCategoryType notificationCategoryType;
 
