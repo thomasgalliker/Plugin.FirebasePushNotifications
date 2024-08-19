@@ -500,6 +500,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 var deliveredNotifications = await UNUserNotificationCenter.Current.GetDeliveredNotificationsAsync();
                 var deliveredNotificationsMatches = deliveredNotifications
+                    .Where(u => $"{u.Request.Content.UserInfo[notificationIdKey]}".Equals($"{id}"))
+                    .Select(s => s.Request.Identifier)
                     .ToArray();
                 if (deliveredNotificationsMatches.Length > 0)
                 {

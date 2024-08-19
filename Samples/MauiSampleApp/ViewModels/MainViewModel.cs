@@ -130,8 +130,10 @@ namespace MauiSampleApp.ViewModels
             private set => this.SetProperty(ref this.authorizationStatus, value);
         }
 
-        public ICommand RequestNotificationPermissionsCommand => this.requestNotificationPermissionsCommand ??=
-            new AsyncRelayCommand(this.RequestNotificationPermissionsAsync);
+        public ICommand RequestNotificationPermissionsCommand
+        {
+            get => this.requestNotificationPermissionsCommand ??= new AsyncRelayCommand(this.RequestNotificationPermissionsAsync);
+        }
 
         private async Task RequestNotificationPermissionsAsync()
         {
@@ -147,8 +149,10 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public IAsyncRelayCommand RegisterForPushNotificationsCommand => this.registerForPushNotificationsCommand ??=
-            new AsyncRelayCommand(this.RegisterForPushNotificationsAsync);
+        public IAsyncRelayCommand RegisterForPushNotificationsCommand
+        {
+            get => this.registerForPushNotificationsCommand ??= new AsyncRelayCommand(this.RegisterForPushNotificationsAsync);
+        }
 
         private async Task RegisterForPushNotificationsAsync()
         {
@@ -167,8 +171,10 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public IAsyncRelayCommand UnregisterForPushNotificationsCommand => this.unregisterForPushNotificationsCommand ??=
-            new AsyncRelayCommand(this.UnregisterForPushNotificationsAsync);
+        public IAsyncRelayCommand UnregisterForPushNotificationsCommand
+        {
+            get => this.unregisterForPushNotificationsCommand ??= new AsyncRelayCommand(this.UnregisterForPushNotificationsAsync);
+        }
 
         private async Task UnregisterForPushNotificationsAsync()
         {
@@ -212,9 +218,13 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public IAsyncRelayCommand SubscribeEventsCommand => this.subscribeEventsCommand ??= new AsyncRelayCommand(
-            execute: this.SubscribeEventsAsync,
-            canExecute: () => !this.IsSubscribedToEvents);
+        public IAsyncRelayCommand SubscribeEventsCommand
+        {
+            get =>
+                this.subscribeEventsCommand ??= new AsyncRelayCommand(
+                    execute: this.SubscribeEventsAsync,
+                    canExecute: () => !this.IsSubscribedToEvents);
+        }
 
         private async Task SubscribeEventsAsync()
         {
@@ -235,9 +245,12 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public IAsyncRelayCommand UnsubscribeEventsCommand => this.unsubscribeEventsCommand ??= new AsyncRelayCommand(
-            execute: this.UnsubscribeEventsAsync,
-            canExecute: () => this.IsSubscribedToEvents);
+        public IAsyncRelayCommand UnsubscribeEventsCommand
+        {
+            get => this.unsubscribeEventsCommand ??= new AsyncRelayCommand(
+                    execute: this.UnsubscribeEventsAsync,
+                    canExecute: () => this.IsSubscribedToEvents);
+        }
 
         private async Task UnsubscribeEventsAsync()
         {

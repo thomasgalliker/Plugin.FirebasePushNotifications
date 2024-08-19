@@ -29,7 +29,7 @@ namespace MauiSampleApp
 #if ANDROID
                     // o.Android.NotificationActivityType = typeof(MainActivity);
                     // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
-                    //o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray(); // TODO:
+                    // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
 #endif
                 })
                 .ConfigureFonts(fonts =>
