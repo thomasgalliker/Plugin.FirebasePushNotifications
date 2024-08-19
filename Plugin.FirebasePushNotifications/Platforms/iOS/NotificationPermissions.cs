@@ -1,3 +1,5 @@
+using Foundation;
+using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Model;
 using UserNotifications;
 
@@ -5,8 +7,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class NotificationPermissions : INotificationPermissions
     {
-        public NotificationPermissions()
+        private const UNAuthorizationOptions AuthorizationOptions =
+            UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
+
+        private readonly ILogger logger;
+
+        public NotificationPermissions(ILogger<NotificationPermissions> logger)
         {
+            this.logger = logger;
         }
 
         /// <inheritdoc/>
@@ -35,14 +43,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc/>
-        public Task<bool> RequestPermissionAsync()
+        public async Task<bool> RequestPermissionAsync()
         {
-            var tcs = new TaskCompletionSource<bool>();
-            UNUserNotificationCenter.Current.RequestAuthorization(
-                UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound,
-                (approved, error) => tcs.TrySetResult(approved)
-            );
-            return tcs.Task;
+            var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(AuthorizationOptions);
+            if (error != null)
+            {
+                var exception = new Exception("RequestPermissionAsync failed with exception", new NSErrorException(error));
+                this.logger.LogError(exception, exception.Message);
+                throw exception;
+            }
+
+            return granted;
         }
     }
 }
