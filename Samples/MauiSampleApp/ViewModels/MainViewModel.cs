@@ -263,6 +263,8 @@ namespace MauiSampleApp.ViewModels
             this.Token = e.Token;
 
             await this.dialogService.ShowDialogAsync("OnTokenRefresh", e.ToString(), "OK");
+
+            this.UpdateSubscribedTopics();
         }
 
         private async void OnNotificationReceived(object sender, FirebasePushNotificationDataEventArgs e)

@@ -13,8 +13,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [Preserve(AllMembers = true)]
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
+        private const UNAuthorizationOptions AuthorizationOptions =
+            UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
+
         private readonly Queue<(string Topic, bool Subscribe)> pendingTopics = new Queue<(string, bool)>();
-        private bool hasToken = false;
         private bool disposed;
 
         internal FirebasePushNotificationManager()
@@ -26,7 +28,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             get
             {
-                var fcmToken = Firebase.CloudMessaging.Messaging.SharedInstance?.FcmToken;
+                var fcmToken = Firebase.CloudMessaging.Messaging.SharedInstance.FcmToken;
                 if (!string.IsNullOrEmpty(fcmToken))
                 {
                     return fcmToken;
@@ -142,18 +144,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = true;
 
-            var authOptions = UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
-            var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(authOptions);
+            var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(AuthorizationOptions);
             if (granted)
             {
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     UIApplication.SharedApplication.RegisterForRemoteNotifications();
                 });
-
-                // this.DidReceiveRegistrationToken(
-                //     Firebase.CloudMessaging.Messaging.SharedInstance,
-                //     Firebase.CloudMessaging.Messaging.SharedInstance.FcmToken);
             }
             else
             {
@@ -168,15 +165,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        private static bool HasApnsToken => Firebase.CloudMessaging.Messaging.SharedInstance.ApnsToken != null;
+
         /// <inheritdoc />
         public async Task UnregisterForPushNotificationsAsync()
         {
             this.logger.LogDebug("UnregisterForPushNotificationsAsync");
 
-            if (this.hasToken)
+            if (HasApnsToken)
             {
                 this.UnsubscribeAllTopics();
-                this.hasToken = false;
             }
 
             Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = false;
@@ -318,7 +316,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 throw new ArgumentException("Topic must not be empty", nameof(topic));
             }
 
-            if (!this.hasToken)
+            if (!HasApnsToken)
             {
                 this.pendingTopics.Enqueue((topic, true));
                 return;
@@ -332,7 +330,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 Firebase.CloudMessaging.Messaging.SharedInstance.Subscribe(topic);
                 subscribedTopics.Add(topic);
 
-                // TODO: Improve write performance here; don't loop all topics one by one
                 this.SubscribedTopics = subscribedTopics.ToArray();
             }
             else
@@ -344,8 +341,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// <inheritdoc />
         public void UnsubscribeAllTopics()
         {
-            foreach (var topic in this.SubscribedTopics)
+            var topics = this.SubscribedTopics.ToArray();
+            this.logger.LogDebug($"UnsubscribeAllTopics: topics=[{string.Join(',', topics)}]");
+
+            foreach (var topic in topics)
             {
+                this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
                 Firebase.CloudMessaging.Messaging.SharedInstance.Unsubscribe(topic);
             }
 
@@ -380,7 +381,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 throw new ArgumentException("Topic must not be empty", nameof(topic));
             }
 
-            if (!this.hasToken)
+            if (!HasApnsToken)
             {
                 this.pendingTopics.Enqueue((topic, false));
                 return;
@@ -394,7 +395,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 Firebase.CloudMessaging.Messaging.SharedInstance.Unsubscribe(topic);
                 subscribedTopics.Remove(topic);
 
-                // TODO: Improve write performance here; don't loop all topics one by one
                 this.SubscribedTopics = subscribedTopics.ToArray();
             }
             else
@@ -456,7 +456,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             this.HandleTokenRefresh(fcmToken);
 
-            this.hasToken = true;
+            this.TryDequeuePendingTopics();
+        }
+
+        private void TryDequeuePendingTopics()
+        {
+            if (!HasApnsToken)
+            {
+                return;
+            }
 
             while (this.pendingTopics.TryDequeue(out var pendingTopic))
             {
@@ -491,11 +499,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (UIDevice.CurrentDevice.CheckSystemVersion(10, 0))
             {
                 var deliveredNotifications = await UNUserNotificationCenter.Current.GetDeliveredNotificationsAsync();
-                var deliveredNotificationsMatches = deliveredNotifications.Where(u => $"{u.Request.Content.UserInfo[notificationIdKey]}".Equals($"{id}")).Select(s => s.Request.Identifier).ToArray();
+                var deliveredNotificationsMatches = deliveredNotifications
+                    .ToArray();
                 if (deliveredNotificationsMatches.Length > 0)
                 {
                     UNUserNotificationCenter.Current.RemoveDeliveredNotifications(deliveredNotificationsMatches);
-
                 }
             }
             else
