@@ -496,21 +496,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public async void RemoveNotification(int id)
         {
             const string notificationIdKey = "id";
-            if (UIDevice.CurrentDevice.CheckSystemVersion(10, 0))
+            var deliveredNotifications = await UNUserNotificationCenter.Current.GetDeliveredNotificationsAsync();
+            var deliveredNotificationsMatches = deliveredNotifications
+                .Where(u => $"{u.Request.Content.UserInfo[notificationIdKey]}".Equals($"{id}"))
+                .Select(s => s.Request.Identifier)
+                .ToArray();
+            if (deliveredNotificationsMatches.Length > 0)
             {
-                var deliveredNotifications = await UNUserNotificationCenter.Current.GetDeliveredNotificationsAsync();
-                var deliveredNotificationsMatches = deliveredNotifications
-                    .Where(u => $"{u.Request.Content.UserInfo[notificationIdKey]}".Equals($"{id}"))
-                    .Select(s => s.Request.Identifier)
-                    .ToArray();
-                if (deliveredNotificationsMatches.Length > 0)
-                {
-                    UNUserNotificationCenter.Current.RemoveDeliveredNotifications(deliveredNotificationsMatches);
-                }
-            }
-            else
-            {
-                throw new NotSupportedException();
+                UNUserNotificationCenter.Current.RemoveDeliveredNotifications(deliveredNotificationsMatches);
             }
         }
 
