@@ -172,11 +172,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("UnregisterForPushNotificationsAsync");
 
-            if (HasApnsToken)
-            {
-                this.UnsubscribeAllTopics();
-            }
-
             Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = false;
 
             // if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is MessagingDelegateImpl)

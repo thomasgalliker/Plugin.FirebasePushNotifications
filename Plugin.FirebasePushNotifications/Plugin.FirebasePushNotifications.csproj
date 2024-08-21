@@ -37,7 +37,11 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>2.0
+		<PackageReleaseNotes>2.3
+- General bug fixes and code cleanup
+- Bug fixes in the area of topic subscriptions
+
+2.2
 - Complete refactoring of the original 1.x implementation
 - Simplified APIs, less static code, support for dependency injection
 
