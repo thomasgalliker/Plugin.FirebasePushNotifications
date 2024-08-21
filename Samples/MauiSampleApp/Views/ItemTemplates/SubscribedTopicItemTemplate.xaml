@@ -13,6 +13,7 @@
         <Label
             Grid.Column="0"
             Text="{Binding Topic}"
+            FontFamily="{StaticResource FontFamilyMonospace}" 
             VerticalOptions="Center" />
         <Button
             Grid.Column="1"
