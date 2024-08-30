@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using MauiSampleApp.Services;
+using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Model.Queues;
 using System.Windows.Input;
@@ -14,15 +15,20 @@ namespace MauiSampleApp.ViewModels
         private ICommand enqueueCommand;
         private ICommand tryDequeueAllCommand;
 
-        public QueuesViewModel(IDialogService dialogService)
+        public QueuesViewModel(
+            IDialogService dialogService,
+            ILoggerFactory loggerFactory)
         {
             this.dialogService = dialogService;
 
             var persistentQueueFactory = new PersistentQueueFactory();
-            this.testQueue = persistentQueueFactory.Create<FirebasePushNotificationDataEventArgs>("testQueue");
+            this.testQueue = persistentQueueFactory.Create<FirebasePushNotificationDataEventArgs>("testQueue", loggerFactory);
         }
 
-        public ICommand EnqueueCommand => this.enqueueCommand ??= new RelayCommand(this.Enqueue);
+        public ICommand EnqueueCommand
+        {
+            get => this.enqueueCommand ??= new RelayCommand(this.Enqueue);
+        }
 
         private void Enqueue()
         {
@@ -35,7 +41,10 @@ namespace MauiSampleApp.ViewModels
             this.testQueue.Enqueue(new FirebasePushNotificationDataEventArgs(dict));
         }
 
-        public ICommand TryDequeueAllCommand => this.tryDequeueAllCommand ??= new RelayCommand(this.TryDequeueAll);
+        public ICommand TryDequeueAllCommand
+        {
+            get => this.tryDequeueAllCommand ??= new RelayCommand(this.TryDequeueAll);
+        }
 
         private void TryDequeueAll()
         {

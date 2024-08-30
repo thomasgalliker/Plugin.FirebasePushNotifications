@@ -4,6 +4,8 @@
 using Plugin.FirebasePushNotifications.Platforms;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 using Plugin.FirebasePushNotifications.Model.Queues;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
 #endif
 
 #if IOS
@@ -40,11 +42,6 @@ namespace Plugin.FirebasePushNotifications
                     }
 
                     var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
-                    if (defaultOptions.QueueFactory is IQueueFactory queueFactory)
-                    {
-                        queueFactory.LoggerFactory = loggerFactory;
-                    }
-
                     var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
 
                     if (launchOptions != null)
@@ -67,23 +64,12 @@ namespace Plugin.FirebasePushNotifications
 
                     if (CrossFirebasePushNotification.Current is FirebasePushNotificationManager firebasePushNotification)
                     {
-                        firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
-
                         if (firebasePushNotification.NotificationHandler == null)
                         {
                             // Resolve IPushNotificationHandler (if not already set)
                             var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
                             firebasePushNotification.NotificationHandler = pushNotificationHandler;
                         }
-
-                        if (defaultOptions.Preferences == null)
-                        {
-                            // Resolve IFirebasePushNotificationPreferences (if not already set)
-                            var preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
-                            defaultOptions.Preferences = preferences;
-                        }
-
-                        firebasePushNotification.Configure(defaultOptions);
                     }
 
                     Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
@@ -93,40 +79,14 @@ namespace Plugin.FirebasePushNotifications
 #elif ANDROID
                 events.AddAndroid(android => android.OnApplicationCreate(d =>
                 {
-                    var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
-                    if (defaultOptions.QueueFactory is IQueueFactory queueFactory)
-                    {
-                        queueFactory.LoggerFactory = loggerFactory;
-                    }
-
-                    var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
-
                     if (CrossFirebasePushNotification.Current is FirebasePushNotificationManager firebasePushNotification)
                     {
-                        firebasePushNotification.Logger = loggerFactory.CreateLogger<FirebasePushNotificationManager>();
-
-                        if (firebasePushNotification.NotificationBuilder == null)
+                        // Resolve IPushNotificationHandler (if not already set)
+                        var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                        if (pushNotificationHandler != null)
                         {
-                            // Resolve INotificationBuilder (if not already set)
-                            var notificationBuilder = IPlatformApplication.Current.Services.GetService<INotificationBuilder>();
-                            firebasePushNotification.NotificationBuilder = notificationBuilder;
-                        }
-
-                        if (firebasePushNotification.NotificationHandler == null)
-                        {
-                            // Resolve IPushNotificationHandler (if not already set)
-                            var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
                             firebasePushNotification.NotificationHandler = pushNotificationHandler;
                         }
-
-                        if (defaultOptions.Preferences == null)
-                        {
-                            // Resolve IFirebasePushNotificationPreferences (if not already set)
-                            var preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
-                            defaultOptions.Preferences = preferences;
-                        }
-
-                        firebasePushNotification.Configure(defaultOptions);
                     }
 
                     if (defaultOptions.AutoInitEnabled)
@@ -137,6 +97,8 @@ namespace Plugin.FirebasePushNotifications
                         }
                         catch (Exception ex)
                         {
+                            var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
+                            var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
                             logger.LogError(ex, "FirebaseApp.InitializeApp failed with exception. " +
                                                 "Make sure the google-services.json file is present and marked as GoogleServicesJson.");
                             throw;
@@ -164,14 +126,14 @@ namespace Plugin.FirebasePushNotifications
 #if ANDROID || IOS
             builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
             builder.Services.AddSingleton<INotificationPermissions, NotificationPermissions>();
-            builder.Services.AddSingleton<IFirebasePushNotificationPreferences, FirebasePushNotificationPreferences>();
-            builder.Services.AddSingleton<IPreferences>(_ => Preferences.Default);
+            builder.Services.TryAddSingleton<IFirebasePushNotificationPreferences, FirebasePushNotificationPreferences>();
+            builder.Services.TryAddSingleton<IPreferences>(_ => Preferences.Default);
             builder.Services.AddSingleton(defaultOptions);
 #endif
 
 #if ANDROID
             builder.Services.AddSingleton(c => NotificationChannels.Current);
-            builder.Services.AddSingleton<INotificationBuilder, NotificationBuilder>();
+            builder.Services.TryAddSingleton<INotificationBuilder, NotificationBuilder>();
 #elif IOS
             builder.Services.AddSingleton<INotificationChannels, NotificationChannels>();
 #endif

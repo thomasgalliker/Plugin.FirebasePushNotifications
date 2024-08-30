@@ -15,17 +15,32 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [Preserve(AllMembers = true)]
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
+        [Obsolete("Will be move to FirebasePushNotificationOptions.Android soon")]
         public static Android.Net.Uri SoundUri { get; set; }
+
+        [Obsolete("Will be move to FirebasePushNotificationOptions.Android soon")]
         public static Type NotificationActivityType { get; set; }
+
+        [Obsolete("Will be move to FirebasePushNotificationOptions.Android soon")]
         public static ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
 
+        [Obsolete("Will be move to FirebasePushNotificationOptions.Android soon")]
         internal static Type DefaultNotificationActivityType { get; set; } = null;
 
-        internal FirebasePushNotificationManager()
+        internal FirebasePushNotificationManager(
+            ILogger<FirebasePushNotificationManager> logger,
+            ILoggerFactory loggerFactory,
+            FirebasePushNotificationOptions options,
+            IPushNotificationHandler pushNotificationHandler,
+            IFirebasePushNotificationPreferences preferences,
+            INotificationBuilder notificationBuilder)
+            : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
+            this.NotificationBuilder = notificationBuilder;
+            this.ConfigurePlatform(options);
         }
 
-        protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
+        private void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
             NotificationActivityType = options.Android.NotificationActivityType;
 

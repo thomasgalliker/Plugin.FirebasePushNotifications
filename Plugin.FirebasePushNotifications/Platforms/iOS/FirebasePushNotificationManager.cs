@@ -19,8 +19,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private readonly Queue<(string Topic, bool Subscribe)> pendingTopics = new Queue<(string, bool)>();
         private bool disposed;
 
-        internal FirebasePushNotificationManager()
+        internal FirebasePushNotificationManager(
+            ILogger<FirebasePushNotificationManager> logger,
+            ILoggerFactory loggerFactory,
+            FirebasePushNotificationOptions options,
+            IPushNotificationHandler pushNotificationHandler,
+            IFirebasePushNotificationPreferences preferences)
+           : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
+            this.ConfigurePlatform(options);
         }
 
         /// <inheritdoc />
@@ -104,8 +111,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return notificationActionType;
         }
 
-        /// <inheritdoc />
-        protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
+        private void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
             var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
 

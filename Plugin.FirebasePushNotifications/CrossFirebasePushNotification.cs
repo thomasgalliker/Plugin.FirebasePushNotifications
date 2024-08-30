@@ -1,5 +1,6 @@
 ﻿#if ANDROID || IOS
 #define ANDROID_OR_IOS
+using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Platforms;
 #endif
 
@@ -39,7 +40,27 @@ namespace Plugin.FirebasePushNotifications
         private static IFirebasePushNotification CreateFirebasePushNotification()
         {
 #if ANDROID_OR_IOS
-            return new FirebasePushNotificationManager();
+            var logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<FirebasePushNotificationManager>>();
+            var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
+            var options = IPlatformApplication.Current.Services.GetService<FirebasePushNotificationOptions>();
+            var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+            var preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
+
+#if ANDROID
+            var notificationBuilder = IPlatformApplication.Current.Services.GetService<INotificationBuilder>();
+#endif
+
+            return new FirebasePushNotificationManager(
+                logger,
+                loggerFactory,
+                options,
+                pushNotificationHandler,
+                preferences
+#if ANDROID
+                ,
+                notificationBuilder
+#endif
+                );
 #else
             throw Exceptions.NotImplementedInReferenceAssembly();
 #endif
