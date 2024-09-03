@@ -36,11 +36,6 @@ namespace Plugin.FirebasePushNotifications
 #if IOS
                 events.AddiOS(iOS => iOS.FinishedLaunching((application, launchOptions) =>
                 {
-                    if (Firebase.Core.App.DefaultInstance == null)
-                    {
-                        Firebase.Core.App.Configure();
-                    }
-
                     var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
                     var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
 
@@ -62,61 +57,39 @@ namespace Plugin.FirebasePushNotifications
                         logger.LogDebug("FinishedLaunching");
                     }
 
-                    if (CrossFirebasePushNotification.Current is FirebasePushNotificationManager firebasePushNotification)
-                    {
-                        if (firebasePushNotification.NotificationHandler == null)
-                        {
-                            // Resolve IPushNotificationHandler (if not already set)
-                            var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
-                            firebasePushNotification.NotificationHandler = pushNotificationHandler;
-                        }
-                    }
+                    var firebasePushNotification = IFirebasePushNotification.Current;
 
-                    Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
+                    if (firebasePushNotification.NotificationHandler == null)
+                    {
+                        // Resolve IPushNotificationHandler (if not already set)
+                        var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                        firebasePushNotification.NotificationHandler = pushNotificationHandler;
+                    }
 
                     return true;
                 }));
 #elif ANDROID
-                events.AddAndroid(android => android.OnApplicationCreate(d =>
-                {
-                    if (CrossFirebasePushNotification.Current is FirebasePushNotificationManager firebasePushNotification)
-                    {
-                        // Resolve IPushNotificationHandler (if not already set)
-                        var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
-                        if (pushNotificationHandler != null)
-                        {
-                            firebasePushNotification.NotificationHandler = pushNotificationHandler;
-                        }
-                    }
-
-                    if (defaultOptions.AutoInitEnabled)
-                    {
-                        try
-                        {
-                            Firebase.FirebaseApp.InitializeApp(d.ApplicationContext);
-                        }
-                        catch (Exception ex)
-                        {
-                            var loggerFactory = IPlatformApplication.Current.Services.GetRequiredService<ILoggerFactory>();
-                            var logger = loggerFactory.CreateLogger(typeof(MauiAppBuilderExtensions));
-                            logger.LogError(ex, "FirebaseApp.InitializeApp failed with exception. " +
-                                                "Make sure the google-services.json file is present and marked as GoogleServicesJson.");
-                            throw;
-                        }
-                    }
-
-                    Firebase.Messaging.FirebaseMessaging.Instance.AutoInitEnabled = defaultOptions.AutoInitEnabled;
-                }));
+                // events.AddAndroid(android => android.OnApplicationCreate(d =>
+                // {
+                // }));
                 events.AddAndroid(android => android.OnCreate((activity, intent) =>
                 {
                     //Firebase.FirebaseApp.InitializeApp(activity);
 
-                    var firebasePushNotification = CrossFirebasePushNotification.Current;
+                    var firebasePushNotification = IFirebasePushNotification.Current;
+
+                    // Resolve IPushNotificationHandler (if not already set)
+                    var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                    if (pushNotificationHandler != null)
+                    {
+                        firebasePushNotification.NotificationHandler = pushNotificationHandler;
+                    }
+
                     firebasePushNotification.ProcessIntent(activity, activity.Intent);
                 }));
                 events.AddAndroid(android => android.OnNewIntent((activity, intent) =>
                 {
-                    var firebasePushNotification = CrossFirebasePushNotification.Current;
+                    var firebasePushNotification = IFirebasePushNotification.Current;
                     firebasePushNotification.ProcessIntent(activity, intent);
                 }));
 #endif

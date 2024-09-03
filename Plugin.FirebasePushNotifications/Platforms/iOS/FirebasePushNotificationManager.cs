@@ -113,14 +113,20 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
-            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
+            if (Firebase.Core.App.DefaultInstance == null)
+            {
+                Firebase.Core.App.Configure();
+            }
 
+            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
             if (firebaseMessaging == null)
             {
                 var sharedInstanceNullErrorMessage = "Firebase.CloudMessaging.Messaging.SharedInstance is null";
                 this.logger.LogError(sharedInstanceNullErrorMessage);
                 throw new NullReferenceException(sharedInstanceNullErrorMessage);
             }
+
+            firebaseMessaging.AutoInitEnabled = options.AutoInitEnabled;
 
             if (UNUserNotificationCenter.Current.Delegate != null)
             {

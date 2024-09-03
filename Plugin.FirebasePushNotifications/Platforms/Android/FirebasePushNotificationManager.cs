@@ -42,6 +42,23 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void ConfigurePlatform(FirebasePushNotificationOptions options)
         {
+            if (options.AutoInitEnabled)
+            {
+                try
+                {
+                    var context = Platform.CurrentActivity;
+                    Firebase.FirebaseApp.InitializeApp(context);
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError(ex, "FirebaseApp.InitializeApp failed with exception. " +
+                                             "Make sure the google-services.json file is present and marked as GoogleServicesJson.");
+                    throw;
+                }
+            }
+
+            FirebaseMessaging.Instance.AutoInitEnabled = options.AutoInitEnabled;
+
             NotificationActivityType = options.Android.NotificationActivityType;
 
             var notificationChannels = NotificationChannels.Current;
