@@ -48,34 +48,34 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             var notificationImportance = this.GetNotificationImportance(data);
-            var isInForeground = IsInForeground();
-            if (isInForeground == false)
+            if (notificationImportance >= NotificationImportance.High)
             {
-                if (notificationImportance >= NotificationImportance.High)
-                {
-                    // In case we receive a notification with priority >= high
-                    // while the app runs in background mode,
-                    // we show it in a local notification popup.
-                    return true;
-                }
-
-                var notificationChannel = GetChannel(data);
-                if (notificationChannel is { Importance: >= NotificationImportance.High })
-                {
-                    // In case we receive a notification which targets a specific notification channel
-                    // and the notification channel's importance is >= high
-                    // while the app runs in background mode,
-                    // we show it in a local notification popup.
-                    return true;
-                }
-
-                if (data.ContainsKey(Constants.LargeIconKey))
-                {
-                    // If we received a "large_icon"
-                    // we need to show a local notification with SetLargeIcon
-                    return true;
-                }
+                // In case we receive a notification with priority >= high
+                // we show it in a local notification popup.
+                return true;
             }
+
+            var notificationChannel = GetChannel(data);
+            if (notificationChannel is { Importance: >= NotificationImportance.High })
+            {
+                // In case we receive a notification which targets a specific notification channel
+                // and the notification channel's importance is >= high
+                // we show it in a local notification popup.
+                return true;
+            }
+
+            if (data.ContainsKey(Constants.LargeIconKey))
+            {
+                // If we received a "large_icon"
+                // we need to show a local notification with SetLargeIcon
+                return true;
+            }
+
+            //var isInForeground = IsInForeground();
+            //if (isInForeground == false)
+            //{
+            //    // There is currently no special handling for apps that run in background mode
+            //}
 
             return false;
         }
