@@ -37,18 +37,23 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>2.3
-- General bug fixes and code cleanup
-- Bug fixes in the area of topic subscriptions
-- IFirebasePushNotification.Current
+		<PackageReleaseNotes>2.4
+- Refactor instanciation of IFirebasePushNotification.
+- Refactor startup procedure of platform-specific services.
+- Add singleton instance INotificationPermissions.Current.
+
+2.3
+- General bug fixes and code cleanup.
+- Bug fixes in the area of topic subscriptions.
+- IFirebasePushNotification.Current.
 - Add singleton instance IFirebasePushNotification.Current and INotificationPermissions.Current.
 
 2.2
-- Complete refactoring of the original 1.x implementation
-- Simplified APIs, less static code, support for dependency injection
+- Complete refactoring of the original 1.x implementation.
+- Simplified APIs, less static code, support for dependency injection.
 
 1.0
-- Initial release
+- Initial release.
 		</PackageReleaseNotes>
 		<Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
