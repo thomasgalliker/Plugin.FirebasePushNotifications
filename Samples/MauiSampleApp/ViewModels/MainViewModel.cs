@@ -109,8 +109,9 @@ namespace MauiSampleApp.ViewModels
                     await this.SubscribeEventsAsync();
                 }
 
+                await this.GetNotificationChannelsAsync();
                 await this.GetSubscribedTopicsAsync();
-                await this.UpdateNotificationCategoriesAsync();
+                await this.GetNotificationCategoriesAsync();
             }
             catch (Exception ex)
             {
@@ -534,9 +535,9 @@ namespace MauiSampleApp.ViewModels
         }
 
         public ICommand GetNotificationCategoriesCommand =>
-            this.getNotificationCategoriesCommand ??= new AsyncRelayCommand(this.UpdateNotificationCategoriesAsync);
+            this.getNotificationCategoriesCommand ??= new AsyncRelayCommand(this.GetNotificationCategoriesAsync);
 
-        private async Task UpdateNotificationCategoriesAsync()
+        private async Task GetNotificationCategoriesAsync()
         {
             try
             {
@@ -562,7 +563,7 @@ namespace MauiSampleApp.ViewModels
                 var categories = NotificationCategorySamples.GetAll().ToArray();
                 this.firebasePushNotification.RegisterNotificationCategories(categories);
 
-                await this.UpdateNotificationCategoriesAsync();
+                await this.GetNotificationCategoriesAsync();
             }
             catch (Exception ex)
             {
@@ -579,7 +580,7 @@ namespace MauiSampleApp.ViewModels
             try
             {
                 this.firebasePushNotification.ClearNotificationCategories();
-                await this.UpdateNotificationCategoriesAsync();
+                await this.GetNotificationCategoriesAsync();
             }
             catch (Exception ex)
             {

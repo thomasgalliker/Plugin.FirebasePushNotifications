@@ -136,6 +136,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var notificationImportance = this.GetNotificationImportance(data);
 
             var notificationChannel = GetChannelOrDefault(data);
+            if (notificationChannel == null)
+            {
+                this.logger.LogError(
+                    $"NotificationCompat.Builder requires a notification channel to work properly. " +
+                    $"Use {nameof(INotificationChannels)}.{nameof(INotificationChannels.CreateChannels)} to create at least one notification channel.");
+                return;
+            }
+
             if (notificationChannel.Importance < notificationImportance)
             {
                 this.logger.LogWarning(
@@ -621,10 +629,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private static NotificationChannelRequest GetChannelOrDefault(IDictionary<string, object> data)
         {
             var notificationChannel = GetChannel(data);
+
             if (notificationChannel == null)
             {
                 var notificationChannels = NotificationChannels.Current.Channels;
-                notificationChannel = notificationChannels.Single(c => c.IsDefault);
+                notificationChannel = notificationChannels.SingleOrDefault(c => c.IsDefault);
             }
 
             return notificationChannel;
