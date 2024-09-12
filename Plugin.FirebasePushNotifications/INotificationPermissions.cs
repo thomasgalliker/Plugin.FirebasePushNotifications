@@ -6,6 +6,11 @@ namespace Plugin.FirebasePushNotifications
     public interface INotificationPermissions
     {
         /// <summary>
+        /// Gets the singleton instance of <see cref="INotificationPermissions"/>.
+        /// </summary>
+        public static INotificationPermissions Current { get; set; } = CrossNotificationPermissions.Current;
+
+        /// <summary>
         /// Gets the authorization status for notification permissions.
         /// </summary>
         /// <returns>The authorization status, see <see cref="AuthorizationStatus"/>.</returns>

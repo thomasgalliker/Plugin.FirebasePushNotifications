@@ -14,6 +14,9 @@ namespace MauiSampleApp.Views
             // and don't want to use dependency injection, uncomment the following lines of code
             // to see how such code would work:
 
+            //INotificationPermissions notificationPermissions = INotificationPermissions.Current;
+            //var permissionStatus = await notificationPermissions.RequestPermissionAsync();
+
             //IFirebasePushNotification.Current.TokenRefreshed += this.OnTokenRefresh;
             //IFirebasePushNotification.Current.NotificationOpened += this.OnNotificationOpened;
             //IFirebasePushNotification.Current.NotificationReceived += this.OnNotificationReceived;

@@ -98,7 +98,7 @@ namespace Plugin.FirebasePushNotifications
             // Service registrations
 #if ANDROID || IOS
             builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
-            builder.Services.AddSingleton<INotificationPermissions, NotificationPermissions>();
+            builder.Services.AddSingleton(c => CrossNotificationPermissions.Current);
             builder.Services.TryAddSingleton<IFirebasePushNotificationPreferences, FirebasePushNotificationPreferences>();
             builder.Services.TryAddSingleton<IPreferences>(_ => Preferences.Default);
             builder.Services.AddSingleton(defaultOptions);

@@ -40,6 +40,8 @@
 		<PackageReleaseNotes>2.3
 - General bug fixes and code cleanup
 - Bug fixes in the area of topic subscriptions
+- IFirebasePushNotification.Current
+- Add singleton instance IFirebasePushNotification.Current and INotificationPermissions.Current.
 
 2.2
 - Complete refactoring of the original 1.x implementation
