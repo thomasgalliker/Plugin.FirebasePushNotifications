@@ -23,13 +23,6 @@ namespace Plugin.FirebasePushNotifications
         /// </remarks>
         public virtual IQueueFactory QueueFactory { get; set; }
 
-        /// <summary>
-        /// The preferences handler which is used to read and write
-        /// temporary data during the lifetime of the application that uses this plugin.
-        /// Default: <see cref="FirebasePushNotificationPreferences"/>.
-        /// </summary>
-        public virtual IFirebasePushNotificationPreferences Preferences { get; set; }
-
 #if ANDROID
         public virtual FirebasePushNotificationAndroidOptions Android { get; set; } = new FirebasePushNotificationAndroidOptions();
 #endif
@@ -38,8 +31,7 @@ namespace Plugin.FirebasePushNotifications
         {
             return $"[{nameof(FirebasePushNotificationOptions)}: " +
                    $"{nameof(this.AutoInitEnabled)}={this.AutoInitEnabled}," +
-                   $"{nameof(this.QueueFactory)}={this.QueueFactory?.GetType().FullName}, " +
-                   $"{nameof(this.Preferences)}={this.Preferences?.GetType().FullName}"
+                   $"{nameof(this.QueueFactory)}={this.QueueFactory?.GetType().FullName}"
                    ;
         }
     }

@@ -30,16 +30,6 @@ namespace Plugin.FirebasePushNotifications
         /// </remarks>
         void ClearQueues();
 
-        /// <summary>
-        /// Sets the logger instance.
-        /// </summary>
-        /// <remarks>
-        /// The logger instance can be injected at runtime.
-        /// This is helpful since <see cref="CrossFirebasePushNotification.Current"/> is a singleton instance
-        /// and does therefore not allow to inject any logger via constructor injection.
-        /// </remarks>
-        ILogger<IFirebasePushNotification> Logger { set; }
-
         void HandleNotificationReceived(IDictionary<string, object> data);
 
         void HandleNotificationAction(IDictionary<string, object> data, string categoryId, string actionId, NotificationCategoryType notificationCategoryType);

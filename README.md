@@ -59,6 +59,7 @@ public MainViewModel(
 
 #### Managing Notification Permissions
 Before we can receive any notification we need to make sure the user has given consent to receive notifications. `INotificationPermissions` is the service you can use to check the current authorization status or ask for notification permission.
+You can either inject `INotificationPermissions` into your view models or access it via the the static singleton instance `INotificationPermissions.Current`.
 
 - Check the current notification permission status:
 ```csharp

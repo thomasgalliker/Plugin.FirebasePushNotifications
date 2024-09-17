@@ -10,7 +10,6 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         private readonly IFileInfoFactory fileInfoFactory;
         private readonly IDirectoryInfoFactory directoryInfoFactory;
         private readonly IDirectoryInfo baseDirectoryInfo;
-        private ILoggerFactory loggerFactory;
 
         public PersistentQueueFactory()
             : this(PersistentQueueOptions.Default)
@@ -18,28 +17,19 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         }
 
         public PersistentQueueFactory(PersistentQueueOptions options)
-            : this(options, NullLoggerFactory.Instance, FileInfoFactory.Current, DirectoryInfoFactory.Current)
+            : this(options, FileInfoFactory.Current, DirectoryInfoFactory.Current)
         {
         }
 
         internal PersistentQueueFactory(
             PersistentQueueOptions options,
-            ILoggerFactory loggerFactory,
             IFileInfoFactory fileInfoFactory,
             IDirectoryInfoFactory directoryInfoFactory)
         {
             this.options = options;
-            this.LoggerFactory = loggerFactory;
             this.fileInfoFactory = fileInfoFactory;
             this.directoryInfoFactory = directoryInfoFactory;
-
             this.baseDirectoryInfo = this.CreateDirectoryIfNotExists(options.BaseDirectory);
-        }
-
-        public ILoggerFactory LoggerFactory
-        {
-            get => this.loggerFactory;
-            set => this.loggerFactory = value ?? NullLoggerFactory.Instance;
         }
 
         private IDirectoryInfo CreateDirectoryIfNotExists(string path)
@@ -53,10 +43,10 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             return directoryInfo;
         }
 
-        /// <inheritdoc />
-        public IQueue<T> Create<T>(string key)
+        public IQueue<T> Create<T>(string key, ILoggerFactory loggerFactory)
         {
-            var logger = this.LoggerFactory.CreateLogger<PersistentQueue<T>>();
+            loggerFactory ??= NullLoggerFactory.Instance;
+            var logger = loggerFactory.CreateLogger<PersistentQueue<T>>();
             var fileInfo = this.fileInfoFactory.FromPath(Path.Combine(this.baseDirectoryInfo.FullName, this.options.FileNameSelector((typeof(T), key))));
             return new PersistentQueue<T>(logger, fileInfo);
         }

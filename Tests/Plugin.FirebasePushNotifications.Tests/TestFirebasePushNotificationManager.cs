@@ -11,13 +11,11 @@ namespace Plugin.FirebasePushNotifications.Tests
     {
         public TestFirebasePushNotificationManager(
             ILogger<IFirebasePushNotification> logger,
-            FirebasePushNotificationOptions options)
-        {
-            this.Logger = logger;
-            this.Configure(options);
-        }
-
-        protected override void ConfigurePlatform(FirebasePushNotificationOptions options)
+            ILoggerFactory loggerFactory,
+            FirebasePushNotificationOptions options,
+            IPushNotificationHandler pushNotificationHandler,
+            IFirebasePushNotificationPreferences preferences)
+            : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
         }
 

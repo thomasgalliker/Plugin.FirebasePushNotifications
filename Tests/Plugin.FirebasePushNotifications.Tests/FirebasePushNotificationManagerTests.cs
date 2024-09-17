@@ -24,7 +24,6 @@ namespace Plugin.FirebasePushNotifications.Tests
             this.autoMocker.Use(new FirebasePushNotificationOptions
             {
                 QueueFactory = new InMemoryQueueFactory(),
-                Preferences = this.autoMocker.GetMock<IFirebasePushNotificationPreferences>().Object,
             });
         }
 
@@ -311,15 +310,13 @@ namespace Plugin.FirebasePushNotifications.Tests
         public void OnNotificationAction_ShouldDropEvent_IfNoSubscriptionAndNoQueueIsPresent()
         {
             // Arrange
-            var firebasePushNotificationPreferences = this.autoMocker.GetMock<IFirebasePushNotificationPreferences>();
-
             var queueFactoryMock = new Mock<IQueueFactory>();
-            queueFactoryMock.Setup(q => q.Create<FirebasePushNotificationDataEventArgs>(It.IsAny<string>()))
+            queueFactoryMock.Setup(q => q.Create<FirebasePushNotificationDataEventArgs>(It.IsAny<string>(), It.IsAny<ILoggerFactory>()))
                 .Returns((IQueue<FirebasePushNotificationDataEventArgs>)null);
 
             this.autoMocker.Use(new FirebasePushNotificationOptions
             {
-                QueueFactory = queueFactoryMock.Object, Preferences = firebasePushNotificationPreferences.Object,
+                QueueFactory = queueFactoryMock.Object,
             });
 
             var loggerMock = new Mock<ILogger<IFirebasePushNotification>>();

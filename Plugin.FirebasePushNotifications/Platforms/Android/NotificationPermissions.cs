@@ -130,6 +130,5 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             return areNotificationsEnabled;
         }
-
     }
 }

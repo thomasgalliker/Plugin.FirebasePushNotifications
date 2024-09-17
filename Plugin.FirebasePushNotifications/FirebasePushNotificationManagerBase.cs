@@ -10,12 +10,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
     public abstract class FirebasePushNotificationManagerBase : IDisposable
     {
         private readonly string instanceId = Guid.NewGuid().ToString()[..5];
+        protected readonly ILogger logger;
+        private readonly ILoggerFactory loggerFactory;
+        protected readonly IFirebasePushNotificationPreferences preferences;
 
         private string[] subscribedTopics;
         private NotificationCategory[] notificationCategories = null;
-
-        protected ILogger<IFirebasePushNotification> logger;
-        protected IFirebasePushNotificationPreferences preferences;
         private bool disposed;
 
         private IQueue<FirebasePushNotificationTokenEventArgs> tokenRefreshQueue;
@@ -30,20 +30,18 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private EventHandler<FirebasePushNotificationDataEventArgs> notificationDeletedEventHandler;
         private EventHandler<FirebasePushNotificationResponseEventArgs> notificationOpenedEventHandler;
 
-        protected FirebasePushNotificationManagerBase()
+        protected internal FirebasePushNotificationManagerBase(
+         ILogger<IFirebasePushNotification> logger,
+         ILoggerFactory loggerFactory,
+         FirebasePushNotificationOptions options,
+         IPushNotificationHandler pushNotificationHandler,
+         IFirebasePushNotificationPreferences preferences)
         {
-        }
-
-        /// <inheritdoc />
-        internal void Configure(FirebasePushNotificationOptions options)
-        {
-            this.logger.LogDebug("Configure");
-
-            this.preferences = options.Preferences;
+            this.logger = logger;
+            this.loggerFactory = loggerFactory;
+            this.preferences = preferences;
 
             this.CreateOrUpdateQueues(options.QueueFactory);
-
-            this.ConfigurePlatform(options);
         }
 
         private void CreateOrUpdateQueues(IQueueFactory queueFactory)
@@ -54,11 +52,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (queueFactory != null)
             {
                 // Create new queues
-                this.tokenRefreshQueue = queueFactory.Create<FirebasePushNotificationTokenEventArgs>("tokenRefreshQueue");
-                this.notificationReceivedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationReceivedQueue");
-                this.notificationDeletedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationDeletedQueue");
-                this.notificationOpenedQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationOpenedQueue");
-                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationActionEventArgs>("notificationActionQueue");
+                this.tokenRefreshQueue = queueFactory.Create<FirebasePushNotificationTokenEventArgs>("tokenRefreshQueue", this.loggerFactory);
+                this.notificationReceivedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationReceivedQueue", this.loggerFactory);
+                this.notificationDeletedQueue = queueFactory.Create<FirebasePushNotificationDataEventArgs>("notificationDeletedQueue", this.loggerFactory);
+                this.notificationOpenedQueue = queueFactory.Create<FirebasePushNotificationResponseEventArgs>("notificationOpenedQueue", this.loggerFactory);
+                this.notificationActionQueue = queueFactory.Create<FirebasePushNotificationActionEventArgs>("notificationActionQueue", this.loggerFactory);
             }
             else
             {
@@ -85,17 +83,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.notificationDeletedQueue?.Clear();
             this.notificationOpenedQueue?.Clear();
             this.notificationActionQueue?.Clear();
-        }
-
-        /// <summary>
-        /// Platform-specific additions to <see cref="Configure(FirebasePushNotificationOptions)"/>.
-        /// </summary>
-        protected abstract void ConfigurePlatform(FirebasePushNotificationOptions options);
-
-        /// <inheritdoc cref="IFirebasePushNotification.Logger"/>
-        public ILogger<IFirebasePushNotification> Logger
-        {
-            set => this.logger = value;
         }
 
         /// <inheritdoc cref="IFirebasePushNotification.NotificationHandler"/>
