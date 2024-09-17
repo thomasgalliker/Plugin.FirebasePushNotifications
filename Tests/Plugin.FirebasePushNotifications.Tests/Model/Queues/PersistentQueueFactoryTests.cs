@@ -61,10 +61,11 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
         public void ShouldCreatePersistentQueue()
         {
             // Arrange
+            var loggerFactory = this.autoMocker.Get<ILoggerFactory>();
             var persistentQueueFactory = this.autoMocker.CreateInstance<PersistentQueueFactory>(enablePrivate: true);
 
             // Act
-            var persistentQueue = persistentQueueFactory.Create<TestItem>("key1");
+            var persistentQueue = persistentQueueFactory.Create<TestItem>("key1", loggerFactory);
 
             // Assert
             persistentQueue.Should().NotBeNull();

@@ -6,3 +6,5 @@ using Plugin.FirebasePushNotifications;
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 [assembly: Preserve(typeof(IFirebasePushNotification), AllMembers = true)]
+[assembly: Preserve(typeof(INotificationPermissions), AllMembers = true)]
+[assembly: Preserve(typeof(IFirebasePushNotificationPreferences), AllMembers = true)]
