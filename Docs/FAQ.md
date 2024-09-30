@@ -36,7 +36,12 @@ Common reasons for notification delivery issues include:
 
 ### How can I debug notification issues?
 - Verify your Firebase configuration and ensure that the correct services files are being used.
-- Check log output for any errors related to Plugin.FirebasePushNotifications.
+- Configure your app to use logging (Microsoft.Extensions.Logging) and check the log output for any messages related to Plugin.FirebasePushNotifications.
+
+### Where have the platform-specific methods gone?
+It happened in the past, that iOS- or Android-specific methods from cross-platform interfaces (e.g. IFirebasePushNotification) were missing after a nuget update, which results in build errors.
+- Some code files in .NET MAUI are partial across platforms. You may look at the wrong part of the file.
+- If you cannot find platform-specific code this may be related to .NET workload problems. Make sure you use the latest workloads `dotnet workload update`. If this does not help, try to repair the workloads `dotnet workload repair`.
 
 ### Long path issue on Windows 11
 Issues with the Xamarin.Firebase.iOS.Core package can cause installation failures on Windows due to excessively long file paths, as mentioned in issue [17828](https://github.com/dotnet/maui/issues/17828) of the dotnet/maui repository. To fix this, you need to enable long paths in the registry settings and relocate your local NuGet cache. Additionally, keeping your project path as short as possible is recommended.
