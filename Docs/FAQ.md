@@ -37,3 +37,33 @@ Common reasons for notification delivery issues include:
 ### How can I debug notification issues?
 - Verify your Firebase configuration and ensure that the correct services files are being used.
 - Check log output for any errors related to Plugin.FirebasePushNotifications.
+
+### Long path issue on Windows 11
+Issues with the Xamarin.Firebase.iOS.Core package can cause installation failures on Windows due to excessively long file paths, as mentioned in issue [17828](https://github.com/dotnet/maui/issues/17828) of the dotnet/maui repository. To fix this, you need to enable long paths in the registry settings and relocate your local NuGet cache. Additionally, keeping your project path as short as possible is recommended.
+
+The root cause of the long path issue lies in the XCFramework format, which tends to generate long file names. Unfortunately, Visual Studio on Windows has inherent limitations when handling long file names, and there's nothing this plugin can do to resolve that. Any concerns should be directed to the [Visual Studio team](https://developercommunity.visualstudio.com/t/Allow-building-running-and-debugging-a/351628), though this might not yield immediate results.
+
+It's worth noting that macOS systems do not experience this issue, as they can manage long file names without trouble. While the plugin can still be built in Visual Studio on Windows by running dotnet restore outside the IDE, the archiving process will most likely need to be performed on a Mac.
+
+- **Update registry to support long paths:** Run the following PowerShell script with elevated privileges.
+    ```
+    New-ItemProperty `
+        -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+        -Name "LongPathsEnabled" `
+        -Value 1 `
+        -PropertyType DWORD `
+        -Force
+    ```
+
+- **Use shorts paths for source code:** 
+Move the source code of this repository to a short path location on your local disk, e.g. `C:\src`
+
+- **Change the output directory for your project**: You can use a short path like `C:\bld` as output directory.
+
+- **Use short paths for Nuget cache:**
+Create a folder named `C:\n`. Add an environment variable `NUGET_PACKAGES = C:\n`
+
+- **Install package via CLI:**
+Close Visual Studio. Start a new command line and navigate to the project folder root path. Run the command: `dotnet add package Plugin.FirebasePushNotifications`
+
+- **Use Jetbrains Rider on macOS:** This may not be an option in all cases, and I'm well aware that this may cause further implications, but it's worth mentioning. Download here: [Jetbrains Rider](https://jetbrains.com/rider/).
