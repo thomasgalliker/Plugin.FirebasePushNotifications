@@ -117,18 +117,18 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             var context = Application.Context;
-            var resultIntent = this.CreateActivityLaunchIntent(context);
-            resultIntent.PutExtras(extras);
+            var launchIntent = this.CreateActivityLaunchIntent(context);
+            launchIntent.PutExtras(extras);
 
             if (this.options.Android.NotificationActivityFlags is ActivityFlags activityFlags)
             {
-                resultIntent.SetFlags(activityFlags);
+                launchIntent.SetFlags(activityFlags);
             }
 
             // TODO: Refactor this to avoid collisions!
             var requestCode = Rng.NextInt();
 
-            var pendingIntent = PendingIntent.GetActivity(context, requestCode, resultIntent,
+            var pendingIntent = PendingIntent.GetActivity(context, requestCode, launchIntent,
                 PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
             var notificationImportance = this.GetNotificationImportance(data);
@@ -593,22 +593,18 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private Intent CreateActivityLaunchIntent(Context context)
         {
-            Intent activityIntent;
+            Intent launchIntent;
 
             if (this.options.Android.NotificationActivityType is Type notificationActivityType)
             {
-                activityIntent = new Intent(context, notificationActivityType);
-            }
-            else if (this.options.Android.DefaultNotificationActivityType is Type defaultNotificationActivityType)
-            {
-                activityIntent = new Intent(context, defaultNotificationActivityType);
+                launchIntent = new Intent(context, notificationActivityType);
             }
             else
             {
-                activityIntent = context.PackageManager.GetLaunchIntentForPackage(context.PackageName);
+                launchIntent = context.PackageManager.GetLaunchIntentForPackage(context.PackageName);
             }
 
-            return activityIntent;
+            return launchIntent;
         }
 
         private bool GetShowWhenVisible(IDictionary<string, object> data)

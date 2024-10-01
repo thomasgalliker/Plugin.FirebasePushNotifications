@@ -108,13 +108,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     intent.PutExtra(intentAlreadyHandledKey, true);
                     this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} not present --> Process notification");
 
-                    // TODO: Refactor this! This is for sure not a good behavior!!
-                    this.options.Android.DefaultNotificationActivityType = activityType;
-
-                    var notificationManager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
-
                     if (extras.TryGetInt(Constants.ActionNotificationIdKey, out var notificationId))
                     {
+                        var notificationManager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
                         if (extras.TryGetString(Constants.ActionNotificationTagKey, out var notificationTag))
                         {
                             notificationManager.Cancel(notificationTag, notificationId);

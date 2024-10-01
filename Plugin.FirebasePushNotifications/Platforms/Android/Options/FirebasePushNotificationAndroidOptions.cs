@@ -95,8 +95,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         public ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
 
-        internal Type DefaultNotificationActivityType { get; set; } = null;
-
         public Android.Net.Uri SoundUri { get; set; }
 
         public bool ShouldShowWhen { get; set; } = true;

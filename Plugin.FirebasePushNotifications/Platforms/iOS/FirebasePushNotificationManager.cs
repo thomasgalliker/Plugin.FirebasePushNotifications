@@ -126,7 +126,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 throw new NullReferenceException(sharedInstanceNullErrorMessage);
             }
 
-            firebaseMessaging.AutoInitEnabled = options.AutoInitEnabled;
+            firebaseMessaging.AutoInitEnabled = this.options.AutoInitEnabled;
 
             if (UNUserNotificationCenter.Current.Delegate != null)
             {
