@@ -102,10 +102,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // Long term goal: A developer can use IPushNotificationHandler to intercept all notifications and do some operations on them.
             // All the logic in here should move to the Android-specific implementation of FirebasePushNotificationManager.
 
-            var context = Application.Context;
-
-            var resultIntent = CreateActivityLaunchIntent(context);
-
             var extras = new Bundle();
             foreach (var kvp in data)
             {
@@ -120,9 +116,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 extras.PutString(Constants.ActionNotificationTagKey, tag);
             }
 
+            var context = Application.Context;
+            var resultIntent = this.CreateActivityLaunchIntent(context);
             resultIntent.PutExtras(extras);
 
-            if (FirebasePushNotificationManager.NotificationActivityFlags is ActivityFlags activityFlags)
+            if (this.options.Android.NotificationActivityFlags is ActivityFlags activityFlags)
             {
                 resultIntent.SetFlags(activityFlags);
             }
@@ -256,12 +254,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                             PendingIntent pendingActionIntent;
                             if (notificationAction.Type == NotificationActionType.Foreground)
                             {
-                                actionIntent = CreateActivityLaunchIntent(context);
+                                actionIntent = this.CreateActivityLaunchIntent(context);
                                 actionIntent.PutExtras(extras);
 
-                                if (FirebasePushNotificationManager.NotificationActivityFlags != null)
+                                if (this.options.Android.NotificationActivityFlags is ActivityFlags intentActivityFlags)
                                 {
-                                    actionIntent.SetFlags(FirebasePushNotificationManager.NotificationActivityFlags.Value);
+                                    actionIntent.SetFlags(intentActivityFlags);
                                 }
 
                                 pendingActionIntent = PendingIntent.GetActivity(context, aRequestCode, actionIntent,
@@ -339,7 +337,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private Uri GetSoundUri(IDictionary<string, object> data, Context context)
         {
-            var soundUri = FirebasePushNotificationManager.SoundUri;
+            var soundUri = this.options.Android.SoundUri;
 
             try
             {
@@ -593,19 +591,21 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return metadata;
         }
 
-        private static Intent CreateActivityLaunchIntent(Context context)
+        private Intent CreateActivityLaunchIntent(Context context)
         {
             Intent activityIntent;
 
-            if (typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType))
+            if (this.options.Android.NotificationActivityType is Type notificationActivityType)
             {
-                activityIntent = new Intent(context, FirebasePushNotificationManager.NotificationActivityType);
+                activityIntent = new Intent(context, notificationActivityType);
+            }
+            else if (this.options.Android.DefaultNotificationActivityType is Type defaultNotificationActivityType)
+            {
+                activityIntent = new Intent(context, defaultNotificationActivityType);
             }
             else
             {
-                activityIntent = FirebasePushNotificationManager.DefaultNotificationActivityType == null
-                    ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName)
-                    : new Intent(context, FirebasePushNotificationManager.DefaultNotificationActivityType);
+                activityIntent = context.PackageManager.GetLaunchIntentForPackage(context.PackageName);
             }
 
             return activityIntent;
