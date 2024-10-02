@@ -235,7 +235,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (!string.IsNullOrEmpty(category))
             {
-                var allNotificationCategories = CrossFirebasePushNotification.Current.NotificationCategories;
+                var allNotificationCategories = IFirebasePushNotification.Current.NotificationCategories;
                 if (allNotificationCategories is { Length: > 0 })
                 {
                     var notificationCategory = allNotificationCategories.SingleOrDefault(c =>
