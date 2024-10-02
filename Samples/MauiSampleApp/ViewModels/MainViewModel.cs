@@ -24,6 +24,7 @@ namespace MauiSampleApp.ViewModels
         private readonly IClipboard clipboard;
         private readonly IPreferences preferences;
         private readonly ILauncher launcher;
+        private readonly IAppInfo appInfo;
 
         private AsyncRelayCommand registerForPushNotificationsCommand;
         private AsyncRelayCommand unregisterForPushNotificationsCommand;
@@ -67,7 +68,8 @@ namespace MauiSampleApp.ViewModels
             IShare share,
             IClipboard clipboard,
             IPreferences preferences,
-            ILauncher launcher)
+            ILauncher launcher,
+            IAppInfo appInfo)
         {
             this.logger = logger;
             this.dialogService = dialogService;
@@ -79,6 +81,7 @@ namespace MauiSampleApp.ViewModels
             this.clipboard = clipboard;
             this.preferences = preferences;
             this.launcher = launcher;
+            this.appInfo = appInfo;
         }
 
         public IAsyncRelayCommand AppearingCommand => this.appearingCommand ??= new AsyncRelayCommand(this.OnAppearingAsync);
@@ -329,8 +332,27 @@ namespace MauiSampleApp.ViewModels
 
         private async Task ShareTokenAsync()
         {
-            var shareRequest = new ShareTextRequest(this.Token);
-            await this.share.RequestAsync(shareRequest);
+            try
+            {
+                var fileName = $"fcm_token_{this.appInfo.PackageName}_{DateTime.Now:yyyy-dd-MM_THH-mm-ss}.txt";
+                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), fileName);
+                await File.WriteAllTextAsync(path, this.Token);
+
+                var shareFile = new ShareFile(path);
+                var shareRequest = new ShareFileRequest
+                {
+                    Title = $"FCM Token {this.appInfo.Name}",
+                    File = shareFile
+                };
+                await this.share.RequestAsync(shareRequest);
+
+                File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "ShareTokenAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "ShareTokenAsync failed with exception", "OK");
+            }
         }
 
         public ICommand GetTokenCommand
