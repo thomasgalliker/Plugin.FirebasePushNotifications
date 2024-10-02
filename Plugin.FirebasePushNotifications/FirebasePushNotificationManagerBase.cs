@@ -41,6 +41,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.logger = logger;
             this.loggerFactory = loggerFactory;
             this.options = options;
+            this.NotificationHandler = pushNotificationHandler;
             this.preferences = preferences;
 
             this.CreateOrUpdateQueues(options.QueueFactory);

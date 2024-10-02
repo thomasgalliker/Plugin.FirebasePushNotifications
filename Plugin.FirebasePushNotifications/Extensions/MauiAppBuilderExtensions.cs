@@ -5,7 +5,6 @@ using Plugin.FirebasePushNotifications.Platforms;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 using Plugin.FirebasePushNotifications.Model.Queues;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-
 #endif
 
 #if IOS
@@ -25,7 +24,8 @@ namespace Plugin.FirebasePushNotifications
         /// <param name="builder"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public static MauiAppBuilder UseFirebasePushNotifications(this MauiAppBuilder builder, Action<FirebasePushNotificationOptions> options = null)
+        public static MauiAppBuilder UseFirebasePushNotifications(this MauiAppBuilder builder,
+            Action<FirebasePushNotificationOptions> options = null)
         {
             var defaultOptions = new FirebasePushNotificationOptions();
 
@@ -63,7 +63,10 @@ namespace Plugin.FirebasePushNotifications
                     {
                         // Resolve IPushNotificationHandler (if not already set)
                         var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
-                        firebasePushNotification.NotificationHandler = pushNotificationHandler;
+                        if (pushNotificationHandler != null)
+                        {
+                            firebasePushNotification.NotificationHandler = pushNotificationHandler;
+                        }
                     }
 
                     return true;
@@ -78,11 +81,14 @@ namespace Plugin.FirebasePushNotifications
 
                     var firebasePushNotification = IFirebasePushNotification.Current;
 
-                    // Resolve IPushNotificationHandler (if not already set)
-                    var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
-                    if (pushNotificationHandler != null)
+                    if (firebasePushNotification.NotificationHandler == null)
                     {
-                        firebasePushNotification.NotificationHandler = pushNotificationHandler;
+                        // Resolve IPushNotificationHandler (if not already set)
+                        var pushNotificationHandler = IPlatformApplication.Current.Services.GetService<IPushNotificationHandler>();
+                        if (pushNotificationHandler != null)
+                        {
+                            firebasePushNotification.NotificationHandler = pushNotificationHandler;
+                        }
                     }
 
                     firebasePushNotification.ProcessIntent(activity, activity.Intent);
