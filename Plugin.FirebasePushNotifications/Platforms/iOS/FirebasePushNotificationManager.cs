@@ -1,6 +1,7 @@
 ﻿using Foundation;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
+using Plugin.FirebasePushNotifications.Internals;
 using UIKit;
 using UserNotifications;
 
@@ -17,6 +18,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
 
         private readonly Queue<(string Topic, bool Subscribe)> pendingTopics = new Queue<(string, bool)>();
+        private readonly INotificationRateLimiter willPresentNotificationRateLimiter = new NotificationRateLimiter(TimeSpan.FromMilliseconds(200));
         private bool disposed;
 
         internal FirebasePushNotificationManager(
@@ -247,6 +249,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification, Action<UNNotificationPresentationOptions> completionHandler)
         {
+            if (this.willPresentNotificationRateLimiter.HasReachedLimit(notification.Request.Identifier))
+            {
+                this.logger.LogDebug(
+                    $"WillPresentNotification: notification.Request.Identifier \"{notification.Request.Identifier}\" " +
+                    $"has reached the rate limit");
+                return;
+            }
+
             var data = notification.Request.Content.UserInfo.GetParameters();
             var notificationPresentationOptions = GetNotificationPresentationOptions(data);
             this.logger.LogDebug($"WillPresentNotification: UNNotificationPresentationOptions={notificationPresentationOptions}");
