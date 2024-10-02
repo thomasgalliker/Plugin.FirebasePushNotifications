@@ -1,5 +1,6 @@
 ﻿#if ANDROID
 using Android.App;
+using Android.Content;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 
 namespace Plugin.FirebasePushNotifications.Platforms
@@ -13,6 +14,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// The Activity which handles incoming push notifications.
         /// Typically, this is <c>typeof(MainActivity)</c>.
         /// </summary>
+        /// <exception cref="ArgumentException">If given type is not an Activity.</exception>
         public virtual Type NotificationActivityType
         {
             get => this.notificationActivityType;
@@ -90,6 +92,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public int? DefaultLargeIconResource { get; set; }
 
         public Android.Graphics.Color? DefaultColor { get; set; }
+
+        public ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
+
+        public Android.Net.Uri SoundUri { get; set; }
 
         public bool ShouldShowWhen { get; set; } = true;
 

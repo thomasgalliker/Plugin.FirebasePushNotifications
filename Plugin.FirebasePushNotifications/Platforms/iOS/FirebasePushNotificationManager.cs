@@ -27,7 +27,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             IFirebasePushNotificationPreferences preferences)
            : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
-            this.ConfigurePlatform(options);
+            this.ConfigurePlatform();
         }
 
         /// <inheritdoc />
@@ -111,7 +111,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return notificationActionType;
         }
 
-        private void ConfigurePlatform(FirebasePushNotificationOptions options)
+        private void ConfigurePlatform()
         {
             if (Firebase.Core.App.DefaultInstance == null)
             {
@@ -126,7 +126,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 throw new NullReferenceException(sharedInstanceNullErrorMessage);
             }
 
-            firebaseMessaging.AutoInitEnabled = options.AutoInitEnabled;
+            firebaseMessaging.AutoInitEnabled = this.options.AutoInitEnabled;
 
             if (UNUserNotificationCenter.Current.Delegate != null)
             {

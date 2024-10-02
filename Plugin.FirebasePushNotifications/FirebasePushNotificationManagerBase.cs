@@ -12,6 +12,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private readonly string instanceId = Guid.NewGuid().ToString()[..5];
         protected readonly ILogger logger;
         private readonly ILoggerFactory loggerFactory;
+        protected readonly FirebasePushNotificationOptions options;
         protected readonly IFirebasePushNotificationPreferences preferences;
 
         private string[] subscribedTopics;
@@ -39,6 +40,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger = logger;
             this.loggerFactory = loggerFactory;
+            this.options = options;
+            this.NotificationHandler = pushNotificationHandler;
             this.preferences = preferences;
 
             this.CreateOrUpdateQueues(options.QueueFactory);

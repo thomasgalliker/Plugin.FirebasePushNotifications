@@ -15,18 +15,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [Preserve(AllMembers = true)]
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
-        [Obsolete("Will be move to FirebasePushNotificationOptions.Android soon")]
-        public static Android.Net.Uri SoundUri { get; set; }
-
-        [Obsolete("Will be move to FirebasePushNotificationOptions.Android soon")]
-        public static Type NotificationActivityType { get; set; }
-
-        [Obsolete("Will be move to FirebasePushNotificationOptions.Android soon")]
-        public static ActivityFlags? NotificationActivityFlags { get; set; } = ActivityFlags.ClearTop | ActivityFlags.SingleTop;
-
-        [Obsolete("Will be move to FirebasePushNotificationOptions.Android soon")]
-        internal static Type DefaultNotificationActivityType { get; set; } = null;
-
         internal FirebasePushNotificationManager(
             ILogger<FirebasePushNotificationManager> logger,
             ILoggerFactory loggerFactory,
@@ -37,12 +25,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
             this.NotificationBuilder = notificationBuilder;
-            this.ConfigurePlatform(options);
+            this.ConfigurePlatform();
         }
 
-        private void ConfigurePlatform(FirebasePushNotificationOptions options)
+        private void ConfigurePlatform()
         {
-            if (options.AutoInitEnabled)
+            if (this.options.AutoInitEnabled)
             {
                 try
                 {
@@ -57,13 +45,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            FirebaseMessaging.Instance.AutoInitEnabled = options.AutoInitEnabled;
-
-            NotificationActivityType = options.Android.NotificationActivityType;
+            FirebaseMessaging.Instance.AutoInitEnabled = this.options.AutoInitEnabled;
 
             var notificationChannels = NotificationChannels.Current;
 
-            var notificationChannelRequests = options.Android.NotificationChannels.ToArray();
+            var notificationChannelRequests = this.options.Android.NotificationChannels.ToArray();
             if (notificationChannelRequests.Length == 0)
             {
                 notificationChannelRequests = new[] { Constants.DefaultNotificationChannel };
@@ -86,14 +72,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var activityType = activity.GetType();
 
-            // Initialize NotificationActivityType in case it was left null
-            // in FirebasePushNotificationOptions.Android.NotificationActivityType.
-            if (NotificationActivityType == null && typeof(MauiAppCompatActivity).IsAssignableFrom(activityType))
+            if (this.options.Android.NotificationActivityType == null && typeof(MauiAppCompatActivity).IsAssignableFrom(activityType))
             {
-                NotificationActivityType = activityType;
+                // Initialize NotificationActivityType in case it was left null
+                // in FirebasePushNotificationAndroidOptions.NotificationActivityType.
+                this.options.Android.NotificationActivityType = activityType;
             }
 
-            if (NotificationActivityType != activityType)
+            if (this.options.Android.NotificationActivityType != activityType)
             {
                 return;
             }
@@ -116,19 +102,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (extras.Any())
             {
                 // Don't process old/historic intents which are recycled for whatever reason
-                var intentAlreadyHandledKey = Constants.ExtraFirebaseProcessIntentHandled;
+                const string intentAlreadyHandledKey = Constants.ExtraFirebaseProcessIntentHandled;
                 if (!intent.GetBooleanExtra(intentAlreadyHandledKey, false))
                 {
                     intent.PutExtra(intentAlreadyHandledKey, true);
                     this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} not present --> Process notification");
 
-                    // TODO: Refactor this! This is for sure not a good behavior..
-                    DefaultNotificationActivityType = activityType;
-
-                    var notificationManager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
-
                     if (extras.TryGetInt(Constants.ActionNotificationIdKey, out var notificationId))
                     {
+                        var notificationManager = Application.Context.GetSystemService(Context.NotificationService) as NotificationManager;
                         if (extras.TryGetString(Constants.ActionNotificationTagKey, out var notificationTag))
                         {
                             notificationManager.Cancel(notificationTag, notificationId);

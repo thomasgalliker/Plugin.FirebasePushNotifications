@@ -37,7 +37,10 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>2.4
+		<PackageReleaseNotes>2.5
+- Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions
+      
+2.4
 - Refactor instanciation of IFirebasePushNotification.
 - Refactor startup procedure of platform-specific services.
 - Add singleton instance INotificationPermissions.Current.
