@@ -18,7 +18,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound;
 
         private readonly Queue<(string Topic, bool Subscribe)> pendingTopics = new Queue<(string, bool)>();
-        private readonly INotificationRateLimiter willPresentNotificationRateLimiter = new NotificationRateLimiter(TimeSpan.FromMilliseconds(200));
+        private readonly NotificationRateLimiter willPresentNotificationRateLimiter = new NotificationRateLimiter();
         private bool disposed;
 
         internal FirebasePushNotificationManager(
@@ -27,7 +27,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             FirebasePushNotificationOptions options,
             IPushNotificationHandler pushNotificationHandler,
             IFirebasePushNotificationPreferences preferences)
-           : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
+            : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
             this.ConfigurePlatform();
         }
@@ -225,7 +225,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        public void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler)
+        public void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo,
+            Action<UIBackgroundFetchResult> completionHandler)
         {
             this.logger.LogDebug("DidReceiveRemoteNotification(UIApplication, NSDictionary, Action<UIBackgroundFetchResult>)");
 
@@ -247,19 +248,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.HandleNotificationReceived(data);
         }
 
-        private void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification, Action<UNNotificationPresentationOptions> completionHandler)
+        private void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification,
+            Action<UNNotificationPresentationOptions> completionHandler)
         {
-            if (this.willPresentNotificationRateLimiter.HasReachedLimit(notification.Request.Identifier))
+            if (OperatingSystem.IsIOSVersionAtLeast(18))
             {
-                this.logger.LogDebug(
-                    $"WillPresentNotification: notification.Request.Identifier \"{notification.Request.Identifier}\" " +
-                    $"has reached the rate limit");
-                return;
+                if (this.options.iOS.iOS18Workaround.Enabled &&
+                    this.willPresentNotificationRateLimiter.HasReachedLimit(notification.Request.Identifier,
+                        this.options.iOS.iOS18Workaround.WillPresentNotificationExpirationTime))
+                {
+                    this.logger.LogDebug(
+                        $"WillPresentNotification: UNNotification.Request.Identifier \"{notification.Request.Identifier}\" " +
+                        $"has reached the rate limit");
+                    return;
+                }
             }
 
             var data = notification.Request.Content.UserInfo.GetParameters();
             var notificationPresentationOptions = GetNotificationPresentationOptions(data);
-            this.logger.LogDebug($"WillPresentNotification: UNNotificationPresentationOptions={notificationPresentationOptions}");
+            this.logger.LogDebug(
+                $"WillPresentNotification: UNNotification.Request.Identifier \"{notification.Request.Identifier}\", " +
+                $"UNNotificationPresentationOptions={notificationPresentationOptions}");
 
             this.HandleNotificationReceived(data);
 
@@ -276,9 +285,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner))
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List |
+                                                                     UNNotificationPresentationOptions.Banner))
                         {
-                            notificationPresentationOptions |= UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                            notificationPresentationOptions |=
+                                UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
                         }
                     }
                     else
@@ -293,9 +304,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner))
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List |
+                                                                     UNNotificationPresentationOptions.Banner))
                         {
-                            notificationPresentationOptions &= UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                            notificationPresentationOptions &=
+                                UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
                         }
                     }
                     else
@@ -420,7 +433,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private void DidReceiveNotificationResponse(UNUserNotificationCenter center, UNNotificationResponse response, Action completionHandler)
+        private void DidReceiveNotificationResponse(UNUserNotificationCenter center, UNNotificationResponse response,
+            Action completionHandler)
         {
             this.logger.LogDebug("DidReceiveNotificationResponse");
 
@@ -440,10 +454,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 notificationCategoryType = NotificationCategoryType.Default;
             }
+
             const string defaultActionIdentifier = "com.apple.UNNotificationDefaultActionIdentifier";
-            var actionIdentifier = string.Equals(response.ActionIdentifier, defaultActionIdentifier, StringComparison.InvariantCultureIgnoreCase)
-                ? null
-                : response.ActionIdentifier;
+            var actionIdentifier =
+                string.Equals(response.ActionIdentifier, defaultActionIdentifier, StringComparison.InvariantCultureIgnoreCase)
+                    ? null
+                    : response.ActionIdentifier;
 
             if (string.IsNullOrEmpty(actionIdentifier))
             {

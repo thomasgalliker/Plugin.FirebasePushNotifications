@@ -19,12 +19,12 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
         public async Task HasReachedLimit_ShouldReturnFalse_WhenIdentifierHasExpired()
         {
             // Arrange
-            var rateLimiter = new NotificationRateLimiter(this.expirationPeriod);
+            var rateLimiter = new NotificationRateLimiter();
 
             // Act
-            var result1 = rateLimiter.HasReachedLimit("identifier1");
+            var result1 = rateLimiter.HasReachedLimit("identifier1", this.expirationPeriod);
             await Task.Delay(this.expirationPeriod);
-            var result2 = rateLimiter.HasReachedLimit("identifier1");
+            var result2 = rateLimiter.HasReachedLimit("identifier1", this.expirationPeriod);
 
             // Assert
             result1.Should().BeFalse();
@@ -36,11 +36,11 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
         public void HasReachedLimit_ShouldReturnFalse_WhenNewIdentifierIsAdded()
         {
             // Arrange
-            var rateLimiter = new NotificationRateLimiter(this.expirationPeriod);
+            var rateLimiter = new NotificationRateLimiter();
 
             // Act
-            var result1 = rateLimiter.HasReachedLimit("identifier1");
-            var result2 = rateLimiter.HasReachedLimit("identifier2");
+            var result1 = rateLimiter.HasReachedLimit("identifier1", this.expirationPeriod);
+            var result2 = rateLimiter.HasReachedLimit("identifier2", this.expirationPeriod);
 
             // Assert
             result1.Should().BeFalse();
@@ -51,11 +51,11 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
         public void HasReachedLimit_ShouldReturnTrue_WhenIdentifierIsNotExpired()
         {
             // Arrange
-            var rateLimiter = new NotificationRateLimiter(this.expirationPeriod);
+            var rateLimiter = new NotificationRateLimiter();
 
             // Act
-            var result1 = rateLimiter.HasReachedLimit("identifier1");
-            var result2 = rateLimiter.HasReachedLimit("identifier1");
+            var result1 = rateLimiter.HasReachedLimit("identifier1", this.expirationPeriod);
+            var result2 = rateLimiter.HasReachedLimit("identifier1", this.expirationPeriod);
 
             // Assert
             result1.Should().BeFalse();

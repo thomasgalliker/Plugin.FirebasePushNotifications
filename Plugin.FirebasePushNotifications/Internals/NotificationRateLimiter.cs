@@ -2,28 +2,17 @@ using System.Collections.Concurrent;
 
 namespace Plugin.FirebasePushNotifications.Internals
 {
-    internal interface INotificationRateLimiter
-    {
-        bool HasReachedLimit(string identifier);
-    }
-
-    internal class NotificationRateLimiter : INotificationRateLimiter
+    internal class NotificationRateLimiter
     {
         private readonly ConcurrentDictionary<string, DateTime> cache = new();
-        private readonly TimeSpan expirationPeriod;
 
-        public NotificationRateLimiter(TimeSpan expirationPeriod)
-        {
-            this.expirationPeriod = expirationPeriod;
-        }
-
-        public bool HasReachedLimit(string identifier)
+        public bool HasReachedLimit(string identifier, TimeSpan expirationTime)
         {
             var utcNow = DateTime.UtcNow;
 
-            if (this.cache.TryGetValue(identifier, out var expirationTime))
+            if (this.cache.TryGetValue(identifier, out var existingExpirationTime))
             {
-                if (expirationTime > utcNow)
+                if (existingExpirationTime > utcNow)
                 {
                     return true;
                 }
@@ -37,7 +26,7 @@ namespace Plugin.FirebasePushNotifications.Internals
                 }
             }
 
-            this.cache[identifier] = utcNow.Add(this.expirationPeriod);
+            this.cache[identifier] = utcNow.Add(expirationTime);
             return false;
         }
 
