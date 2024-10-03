@@ -6,11 +6,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// Workaround for
         /// https://github.com/thomasgalliker/Plugin.FirebasePushNotifications/issues/70
         /// </summary>
-        public iOS18Workaround iOS18Workaround { get; set; } = new iOS18Workaround
-        {
-            Enabled = true,
-            WillPresentNotificationExpirationTime = TimeSpan.FromMilliseconds(1000)
-        };
+        public iOS18Workaround iOS18Workaround { get; private set; } = new iOS18Workaround();
     }
 
     /// <summary>
@@ -19,8 +15,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
     /// </summary>
     public class iOS18Workaround
     {
-        public bool Enabled { get; set; }
+        /// <summary>
+        /// Enables/disables the workaround for duplicate notifications on iOS 18.
+        /// </summary>
+        public bool Enabled { get; set; } = true;
 
-        public TimeSpan WillPresentNotificationExpirationTime { get; set; }
+        /// <summary>
+        /// Defines the interval between identical UNNotification.Request.Identifiers,
+        /// treating them as duplicates if they occur within this time frame.
+        /// </summary>
+        public TimeSpan WillPresentNotificationExpirationTime { get; set; } = TimeSpan.FromSeconds(3);
     }
 }
