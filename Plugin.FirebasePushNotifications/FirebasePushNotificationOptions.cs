@@ -1,8 +1,5 @@
 ﻿using Plugin.FirebasePushNotifications.Model.Queues;
-
-#if ANDROID
 using Plugin.FirebasePushNotifications.Platforms;
-#endif
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -25,6 +22,8 @@ namespace Plugin.FirebasePushNotifications
 
 #if ANDROID
         public virtual FirebasePushNotificationAndroidOptions Android { get; set; } = new FirebasePushNotificationAndroidOptions();
+#elif IOS
+        public virtual FirebasePushNotificationiOSOptions iOS { get; set; } = new FirebasePushNotificationiOSOptions();
 #endif
 
         public override string ToString()

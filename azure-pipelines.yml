@@ -21,20 +21,12 @@ trigger:
     exclude:
     - Docs/*
 
-schedules:
-- cron: "0 0 1 * *"
-  displayName: At 00:00 on day-of-month 1
-  branches:
-    include:
-    - develop
-  always: true
-
 variables:
   solution: 'Plugin.FirebasePushNotifications.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   majorVersion: 2
-  minorVersion: 4
+  minorVersion: 5
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
     # Versioning: 1.0.0
@@ -173,7 +165,7 @@ steps:
 
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
      
-- task: PublishCodeCoverageResults@1
+- task: PublishCodeCoverageResults@2
   displayName: 'Publish code coverage'
   inputs:
     codeCoverageTool: Cobertura

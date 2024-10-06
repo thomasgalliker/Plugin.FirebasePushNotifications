@@ -26,14 +26,14 @@ namespace MauiSampleApp
         [BindingImpl(BindingImplOptions.GeneratedCode | BindingImplOptions.Optimizable)]
         public void RegisteredForRemoteNotifications(UIApplication application, NSData deviceToken)
         {
-            CrossFirebasePushNotification.Current.RegisteredForRemoteNotifications(deviceToken);
+            IFirebasePushNotification.Current.RegisteredForRemoteNotifications(deviceToken);
         }
 
         [Export("application:didFailToRegisterForRemoteNotificationsWithError:")]
         [BindingImpl(BindingImplOptions.GeneratedCode | BindingImplOptions.Optimizable)]
         public void FailedToRegisterForRemoteNotifications(UIApplication application, NSError error)
         {
-            CrossFirebasePushNotification.Current.FailedToRegisterForRemoteNotifications(error);
+            IFirebasePushNotification.Current.FailedToRegisterForRemoteNotifications(error);
         }
 
         [Export("application:didReceiveRemoteNotification:fetchCompletionHandler:")]

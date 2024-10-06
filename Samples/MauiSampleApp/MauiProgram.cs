@@ -11,6 +11,7 @@ using NLog.Extensions.Logging;
 #if ANDROID
 using MauiSampleApp.Platforms.Notifications;
 #endif
+
 namespace MauiSampleApp
 {
     public static class MauiProgram
@@ -29,6 +30,8 @@ namespace MauiSampleApp
                     // o.Android.NotificationActivityType = typeof(MainActivity);
                     // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
                     // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
+#elif IOS
+                    // o.iOS.iOS18Workaround...
 #endif
                 })
                 .ConfigureFonts(fonts =>

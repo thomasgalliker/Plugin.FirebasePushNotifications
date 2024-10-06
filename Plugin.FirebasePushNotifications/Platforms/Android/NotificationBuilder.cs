@@ -102,10 +102,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             // Long term goal: A developer can use IPushNotificationHandler to intercept all notifications and do some operations on them.
             // All the logic in here should move to the Android-specific implementation of FirebasePushNotificationManager.
 
-            var context = Application.Context;
-
-            var resultIntent = CreateActivityLaunchIntent(context);
-
             var extras = new Bundle();
             foreach (var kvp in data)
             {
@@ -120,17 +116,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 extras.PutString(Constants.ActionNotificationTagKey, tag);
             }
 
-            resultIntent.PutExtras(extras);
+            var context = Application.Context;
+            var launchIntent = this.CreateActivityLaunchIntent(context);
+            launchIntent.PutExtras(extras);
 
-            if (FirebasePushNotificationManager.NotificationActivityFlags is ActivityFlags activityFlags)
+            if (this.options.Android.NotificationActivityFlags is ActivityFlags activityFlags)
             {
-                resultIntent.SetFlags(activityFlags);
+                launchIntent.SetFlags(activityFlags);
             }
 
             // TODO: Refactor this to avoid collisions!
             var requestCode = Rng.NextInt();
 
-            var pendingIntent = PendingIntent.GetActivity(context, requestCode, resultIntent,
+            var pendingIntent = PendingIntent.GetActivity(context, requestCode, launchIntent,
                 PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
             var notificationImportance = this.GetNotificationImportance(data);
@@ -237,7 +235,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (!string.IsNullOrEmpty(category))
             {
-                var allNotificationCategories = CrossFirebasePushNotification.Current.NotificationCategories;
+                var allNotificationCategories = IFirebasePushNotification.Current.NotificationCategories;
                 if (allNotificationCategories is { Length: > 0 })
                 {
                     var notificationCategory = allNotificationCategories.SingleOrDefault(c =>
@@ -256,12 +254,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                             PendingIntent pendingActionIntent;
                             if (notificationAction.Type == NotificationActionType.Foreground)
                             {
-                                actionIntent = CreateActivityLaunchIntent(context);
+                                actionIntent = this.CreateActivityLaunchIntent(context);
                                 actionIntent.PutExtras(extras);
 
-                                if (FirebasePushNotificationManager.NotificationActivityFlags != null)
+                                if (this.options.Android.NotificationActivityFlags is ActivityFlags intentActivityFlags)
                                 {
-                                    actionIntent.SetFlags(FirebasePushNotificationManager.NotificationActivityFlags.Value);
+                                    actionIntent.SetFlags(intentActivityFlags);
                                 }
 
                                 pendingActionIntent = PendingIntent.GetActivity(context, aRequestCode, actionIntent,
@@ -339,7 +337,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private Uri GetSoundUri(IDictionary<string, object> data, Context context)
         {
-            var soundUri = FirebasePushNotificationManager.SoundUri;
+            var soundUri = this.options.Android.SoundUri;
 
             try
             {
@@ -593,22 +591,20 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return metadata;
         }
 
-        private static Intent CreateActivityLaunchIntent(Context context)
+        private Intent CreateActivityLaunchIntent(Context context)
         {
-            Intent activityIntent;
+            Intent launchIntent;
 
-            if (typeof(Activity).IsAssignableFrom(FirebasePushNotificationManager.NotificationActivityType))
+            if (this.options.Android.NotificationActivityType is Type notificationActivityType)
             {
-                activityIntent = new Intent(context, FirebasePushNotificationManager.NotificationActivityType);
+                launchIntent = new Intent(context, notificationActivityType);
             }
             else
             {
-                activityIntent = FirebasePushNotificationManager.DefaultNotificationActivityType == null
-                    ? context.PackageManager.GetLaunchIntentForPackage(context.PackageName)
-                    : new Intent(context, FirebasePushNotificationManager.DefaultNotificationActivityType);
+                launchIntent = context.PackageManager.GetLaunchIntentForPackage(context.PackageName);
             }
 
-            return activityIntent;
+            return launchIntent;
         }
 
         private bool GetShowWhenVisible(IDictionary<string, object> data)

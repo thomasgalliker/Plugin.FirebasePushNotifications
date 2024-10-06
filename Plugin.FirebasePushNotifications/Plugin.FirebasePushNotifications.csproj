@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net7.0-android;net7.0-ios;net8.0;net8.0-android;net8.0-ios</TargetFrameworks>
+		<TargetFrameworks>net7.0;net7.0-android33.0;net7.0-ios16.0;net8.0;net8.0-android34.0;net8.0-ios17.0</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<UseMaui>true</UseMaui>
 		<MauiVersion Condition="$(TargetFramework.Contains('net8.0'))">8.0.3</MauiVersion>
@@ -37,7 +37,10 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>2.4
+		<PackageReleaseNotes>2.5
+- Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions
+      
+2.4
 - Refactor instanciation of IFirebasePushNotification.
 - Refactor startup procedure of platform-specific services.
 - Add singleton instance INotificationPermissions.Current.

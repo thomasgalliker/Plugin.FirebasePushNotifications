@@ -155,13 +155,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            var firebasePushNotification = CrossFirebasePushNotification.Current;
+            var firebasePushNotification = IFirebasePushNotification.Current;
             firebasePushNotification.HandleNotificationReceived(data);
         }
 
         public override void OnNewToken(string refreshedToken)
         {
-            var firebasePushNotification = CrossFirebasePushNotification.Current;
+            var firebasePushNotification = IFirebasePushNotification.Current;
             firebasePushNotification.HandleTokenRefresh(refreshedToken);
         }
     }
