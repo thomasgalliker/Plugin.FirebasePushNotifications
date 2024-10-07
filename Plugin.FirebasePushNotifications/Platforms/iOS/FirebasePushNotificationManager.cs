@@ -279,7 +279,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             var notificationPresentationOptions = UNNotificationPresentationOptions.None;
 
-            if (data.TryGetValue("priority", out var p) && $"{p}".ToLower() is string priority)
+            if (data.TryGetValue(Constants.PriorityKey, out var p) && $"{p}".ToLower() is string priority)
             {
                 if (priority is "high" or "max")
                 {

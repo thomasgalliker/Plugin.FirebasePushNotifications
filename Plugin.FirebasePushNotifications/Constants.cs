@@ -8,6 +8,7 @@
         internal const string GcmNotificationBodyKey = "gcm.notification.body";
         internal const string NotificationTagKey = "tag";
         internal const string NotificationDataKey = "data";
+        internal const string PriorityKey = "priority";
 
         internal const string SuppressedString = "{suppressed}";
 
