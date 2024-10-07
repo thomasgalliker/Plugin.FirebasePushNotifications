@@ -62,7 +62,10 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand deleteNotificationChannelsCommand;
         private AsyncRelayCommand createNotificationChannelsCommand;
         private IAsyncRelayCommand<string> openUrlCommand;
+
+#if IOS
         private UNNotificationPresentationOptions[] presentationOptions;
+#endif
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
@@ -643,6 +646,10 @@ namespace MauiSampleApp.ViewModels
             get => this.firebasePushNotificationOptions.iOS.PresentationOptions;
             set => this.firebasePushNotificationOptions.iOS.PresentationOptions = value;
         }
+#else
+        public string SelectedPresentationOptions { get; set; }
+
+        public string[] PresentationOptions { get; set; }
 #endif
 
         public ICommand NavigateToQueuesPageCommand =>
