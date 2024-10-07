@@ -7,6 +7,10 @@ using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Model;
 
+#if IOS
+using UserNotifications;
+#endif
+
 namespace MauiSampleApp.ViewModels
 {
     public class MainViewModel : ObservableObject
@@ -20,6 +24,7 @@ namespace MauiSampleApp.ViewModels
         private readonly IFirebasePushNotification firebasePushNotification;
         private readonly INotificationChannels notificationChannels;
         private readonly INotificationPermissions notificationPermissions;
+        private readonly FirebasePushNotificationOptions firebasePushNotificationOptions;
         private readonly IShare share;
         private readonly IClipboard clipboard;
         private readonly IPreferences preferences;
@@ -57,6 +62,7 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand deleteNotificationChannelsCommand;
         private AsyncRelayCommand createNotificationChannelsCommand;
         private IAsyncRelayCommand<string> openUrlCommand;
+        private UNNotificationPresentationOptions[] presentationOptions;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
@@ -65,6 +71,7 @@ namespace MauiSampleApp.ViewModels
             IFirebasePushNotification firebasePushNotification,
             INotificationChannels notificationChannels,
             INotificationPermissions notificationPermissions,
+            FirebasePushNotificationOptions firebasePushNotificationOptions,
             IShare share,
             IClipboard clipboard,
             IPreferences preferences,
@@ -77,6 +84,7 @@ namespace MauiSampleApp.ViewModels
             this.firebasePushNotification = firebasePushNotification;
             this.notificationChannels = notificationChannels;
             this.notificationPermissions = notificationPermissions;
+            this.firebasePushNotificationOptions = firebasePushNotificationOptions;
             this.share = share;
             this.clipboard = clipboard;
             this.preferences = preferences;
@@ -115,6 +123,16 @@ namespace MauiSampleApp.ViewModels
                 await this.GetNotificationChannelsAsync();
                 await this.GetSubscribedTopicsAsync();
                 await this.GetNotificationCategoriesAsync();
+
+#if IOS
+                this.PresentationOptions = Enum.GetValues<UNNotificationPresentationOptions>()
+                    .Concat(new[]
+                    {
+                        UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner,
+                        UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner | UNNotificationPresentationOptions.Sound,
+                    })
+                    .ToArray();
+#endif
             }
             catch (Exception ex)
             {
@@ -252,8 +270,8 @@ namespace MauiSampleApp.ViewModels
         public IAsyncRelayCommand UnsubscribeEventsCommand
         {
             get => this.unsubscribeEventsCommand ??= new AsyncRelayCommand(
-                    execute: this.UnsubscribeEventsAsync,
-                    canExecute: () => this.IsSubscribedToEvents);
+                execute: this.UnsubscribeEventsAsync,
+                canExecute: () => this.IsSubscribedToEvents);
         }
 
         private async Task UnsubscribeEventsAsync()
@@ -339,11 +357,7 @@ namespace MauiSampleApp.ViewModels
                 await File.WriteAllTextAsync(path, this.Token);
 
                 var shareFile = new ShareFile(path);
-                var shareRequest = new ShareFileRequest
-                {
-                    Title = $"FCM Token {this.appInfo.Name}",
-                    File = shareFile
-                };
+                var shareRequest = new ShareFileRequest { Title = $"FCM Token {this.appInfo.Name}", File = shareFile };
                 await this.share.RequestAsync(shareRequest);
 
                 File.Delete(path);
@@ -610,6 +624,26 @@ namespace MauiSampleApp.ViewModels
                 await this.dialogService.ShowDialogAsync("Error", "Clearing notification categories failed with exception", "OK");
             }
         }
+
+#if IOS
+        public UNNotificationPresentationOptions[] PresentationOptions
+        {
+            get => this.presentationOptions;
+            private set
+            {
+                if (this.SetProperty(ref this.presentationOptions, value))
+                {
+                    this.OnPropertyChanged(nameof(this.SelectedPresentationOptions));
+                }
+            }
+        }
+
+        public UNNotificationPresentationOptions SelectedPresentationOptions
+        {
+            get => this.firebasePushNotificationOptions.iOS.PresentationOptions;
+            set => this.firebasePushNotificationOptions.iOS.PresentationOptions = value;
+        }
+#endif
 
         public ICommand NavigateToQueuesPageCommand =>
             this.navigateToQueuesPageCommand ??= new AsyncRelayCommand(this.NavigateToQueuesPageAsync);
