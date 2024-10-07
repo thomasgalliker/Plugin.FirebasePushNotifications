@@ -6,7 +6,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
     public class FirebasePushNotificationiOSOptions
     {
         /// <summary>
-        /// The default presentation options used.
+        /// The default presentation options used if app runs in foreground mode
+        /// and the notification message does not contain the priority flag.
         /// </summary>
         public UNNotificationPresentationOptions PresentationOptions { get; set; } = UNNotificationPresentationOptions.None;
 

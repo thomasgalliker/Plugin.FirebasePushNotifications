@@ -275,45 +275,59 @@ namespace Plugin.FirebasePushNotifications.Platforms
             completionHandler(notificationPresentationOptions);
         }
 
-        private static readonly UNNotificationPresentationOptions ListOrBanner =
-            UIDevice.CurrentDevice.CheckSystemVersion(14, 0)
-                ? UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner
-                : UNNotificationPresentationOptions.Alert;
-
         private static UNNotificationPresentationOptions GetNotificationPresentationOptions(
             IDictionary<string, object> data,
             UNNotificationPresentationOptions defaultNotificationPresentationOptions)
         {
-            var notificationPresentationOptions = UNNotificationPresentationOptions.None;
+            var notificationPresentationOptions = defaultNotificationPresentationOptions;
 
             if (data.TryGetValue(Constants.PriorityKey, out var p) && $"{p}".ToLower() is string priority)
             {
                 if (priority is "high" or "max")
                 {
-                    if (!notificationPresentationOptions.HasFlag(ListOrBanner))
+                    if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        notificationPresentationOptions |= ListOrBanner;
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List))
+                        {
+                            notificationPresentationOptions |= UNNotificationPresentationOptions.List;
+                        }
+
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Banner))
+                        {
+                            notificationPresentationOptions |= UNNotificationPresentationOptions.Banner;
+                        }
+                    }
+                    else
+                    {
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                        {
+                            notificationPresentationOptions |= UNNotificationPresentationOptions.Alert;
+                        }
                     }
                 }
                 else if (priority is "default" or "low" or "min")
                 {
-                    if (!notificationPresentationOptions.HasFlag(ListOrBanner))
+                    if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        notificationPresentationOptions &= ListOrBanner;
+                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List))
+                        {
+                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.List;
+                        }
+
+                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Banner))
+                        {
+                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.Banner;
+                        }
+                    }
+                    else
+                    {
+                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                        {
+                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.Alert;
+                        }
                     }
                 }
             }
-
-            if (!notificationPresentationOptions.HasFlag(defaultNotificationPresentationOptions))
-            {
-                notificationPresentationOptions |= defaultNotificationPresentationOptions;
-            }
-
-            // TODO: Should we also provide a way to remove presentation options?
-            // if (notificationPresentationOptions.HasFlag(defaultNotificationPresentationOptions))
-            // {
-            //     notificationPresentationOptions &= defaultNotificationPresentationOptions;
-            // }
 
             return notificationPresentationOptions;
         }
