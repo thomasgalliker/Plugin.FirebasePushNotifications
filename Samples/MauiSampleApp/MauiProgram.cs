@@ -7,10 +7,11 @@ using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Model.Queues;
 using MauiSampleApp.Services.Logging;
 using NLog.Extensions.Logging;
-using UserNotifications;
 
 #if ANDROID
 using MauiSampleApp.Platforms.Notifications;
+#elif IOS
+using UserNotifications;
 #endif
 
 namespace MauiSampleApp
@@ -32,7 +33,7 @@ namespace MauiSampleApp
                     // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
                     // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
 #elif IOS
-                    o.iOS.PresentationOptions = UNNotificationPresentationOptions.Banner;
+                    // o.iOS.PresentationOptions = UNNotificationPresentationOptions.Banner;
                     // o.iOS.iOS18Workaround.Enable = true;
 #endif
                 })
