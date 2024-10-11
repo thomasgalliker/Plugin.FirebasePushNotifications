@@ -45,7 +45,8 @@ namespace MauiSampleApp
                 b.ClearProviders();
                 b.SetMinimumLevel(LogLevel.Trace);
                 b.AddDebug();
-                b.AddNLog();
+                b.AddNLog(NLogLoggerConfiguration.GetLoggingConfiguration());
+                b.AddSentry(SentryConfiguration.Configure);
             });
 
 #if ANDROID

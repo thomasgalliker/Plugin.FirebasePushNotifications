@@ -4,12 +4,11 @@ using NLog.Targets;
 
 namespace MauiSampleApp.Services.Logging
 {
-    public static class NLogLoggerConfiguration
+   public static class NLogLoggerConfiguration
     {
         static NLogLoggerConfiguration()
         {
             LogFilePath = CreateLogFile();
-            LogManager.Configuration = GetLoggingConfiguration(LogFilePath);
         }
 
         public static string LogFilePath { get; }
@@ -32,42 +31,34 @@ namespace MauiSampleApp.Services.Logging
             return filePath;
         }
 
-        private static LoggingConfiguration GetLoggingConfiguration(string logFilePath)
+        public static LoggingConfiguration GetLoggingConfiguration()
         {
             var config = new LoggingConfiguration();
             var layout = "${longdate:universalTime=True}|${level}|${logger}|${message}|${exception:format=tostring}[EOL]";
 
             // Console Target
-            var consoleTarget = new ConsoleTarget();
+            var consoleTarget = new ConsoleTarget("console");
             consoleTarget.Layout = layout;
-            config.AddTarget("console", consoleTarget);
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, consoleTarget);
 
-            var consoleRule = new LoggingRule("*", LogLevel.Trace, consoleTarget);
-            config.LoggingRules.Add(consoleRule);
-            
             // Debug Target
-            var debugTarget = new DebugTarget();
+            var debugTarget = new DebugTarget("debug");
             debugTarget.Layout = layout;
-            config.AddTarget("debug", debugTarget);
-
-            var debugRule = new LoggingRule("*", LogLevel.Trace, debugTarget);
-            config.LoggingRules.Add(debugRule);
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, consoleTarget);
 
             // File Target
             var fileTarget = new FileTarget();
-            fileTarget.FileName = logFilePath;
+            fileTarget.FileName = LogFilePath;
             fileTarget.Layout = layout;
             fileTarget.MaxArchiveFiles = 1;
             fileTarget.ArchiveNumbering = ArchiveNumberingMode.Rolling;
-            fileTarget.ArchiveAboveSize = 10485760; // 10MB
+            fileTarget.ArchiveAboveSize = 1048576; // 1MB
             fileTarget.ConcurrentWrites = true;
             fileTarget.KeepFileOpen = false;
             config.AddTarget("file", fileTarget);
 
             var fileRule = new LoggingRule("*", LogLevel.Trace, fileTarget);
             config.LoggingRules.Add(fileRule);
-
-            LogManager.Configuration = config;
 
             return config;
         }
