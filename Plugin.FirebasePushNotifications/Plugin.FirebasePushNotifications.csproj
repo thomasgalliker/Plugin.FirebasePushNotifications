@@ -37,8 +37,12 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>2.5
-- Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions
+		<PackageReleaseNotes>3.0
+- Update firebase-ios-sdk by replacing nuget package Xamarin.Firebase.iOS.CloudMessaging with AdamE.Firebase.iOS.CloudMessaging.
+
+2.5
+- Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions.
+- Bug fixes and code cleanup.
       
 2.4
 - Refactor instanciation of IFirebasePushNotification.
