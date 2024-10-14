@@ -96,7 +96,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
-		<PackageReference Include="Xamarin.Firebase.iOS.CloudMessaging" Version="8.10.0.3" />
+    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="10.27.0" />
 	</ItemGroup>
 
 </Project>
