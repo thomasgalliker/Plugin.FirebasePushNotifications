@@ -25,9 +25,9 @@ namespace Plugin.FirebasePushNotifications
         void UpdateChannels(NotificationChannelRequest[] notificationChannelRequests);
 
         /// <summary>
-        /// Delete Android notification channels from given <paramref name="notificationChannelRequests"/>.
+        /// Delete Android notification channels from given <paramref name="channelIds"/>.
         /// </summary>
-        /// <param name="notificationChannelRequests">The notification channel requests.</param>
+        /// <param name="channelIds">The notification channel identifiers.</param>
         void DeleteChannels(string[] channelIds);
 
         /// <summary>
