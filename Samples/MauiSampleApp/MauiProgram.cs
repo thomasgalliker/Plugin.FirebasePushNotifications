@@ -10,6 +10,8 @@ using NLog.Extensions.Logging;
 
 #if ANDROID
 using MauiSampleApp.Platforms.Notifications;
+#elif IOS
+using UserNotifications;
 #endif
 
 namespace MauiSampleApp
@@ -31,7 +33,8 @@ namespace MauiSampleApp
                     // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
                     // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
 #elif IOS
-                    // o.iOS.iOS18Workaround...
+                    // o.iOS.PresentationOptions = UNNotificationPresentationOptions.Banner;
+                    // o.iOS.iOS18Workaround.Enable = true;
 #endif
                 })
                 .ConfigureFonts(fonts =>
