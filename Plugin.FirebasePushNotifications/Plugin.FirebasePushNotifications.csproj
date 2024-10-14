@@ -42,7 +42,8 @@
 
 2.5
 - Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions.
-- Bug fixes and code cleanup.
+- iOS 18 workaround for duplicate notifications in foreground mode.
+- iOS options to override default UNNotificationPresentationOptions for notifications received in foreground mode.
       
 2.4
 - Refactor instanciation of IFirebasePushNotification.
@@ -100,7 +101,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
-    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="10.27.0" />
+		<PackageReference Include="Xamarin.Firebase.iOS.CloudMessaging" Version="8.10.0.3" />
 	</ItemGroup>
 
 </Project>

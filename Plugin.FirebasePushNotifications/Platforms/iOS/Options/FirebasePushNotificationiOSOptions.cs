@@ -1,7 +1,16 @@
+using System.Diagnostics;
+using UserNotifications;
+
 namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class FirebasePushNotificationiOSOptions
     {
+        /// <summary>
+        /// The default presentation options used if app runs in foreground mode
+        /// and the notification message does not contain the priority flag.
+        /// </summary>
+        public UNNotificationPresentationOptions PresentationOptions { get; set; } = UNNotificationPresentationOptions.None;
+
         /// <summary>
         /// Workaround for
         /// https://github.com/thomasgalliker/Plugin.FirebasePushNotifications/issues/70
@@ -23,7 +32,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// <summary>
         /// Defines the interval between identical UNNotification.Request.Identifiers,
         /// treating them as duplicates if they occur within this time frame.
+        /// Default: 3 seconds
         /// </summary>
-        public TimeSpan WillPresentNotificationExpirationTime { get; set; } = TimeSpan.FromSeconds(3);
+        public TimeSpan WillPresentNotificationExpirationTime { get; set; }
+            = Debugger.IsAttached ? TimeSpan.FromMinutes(1) : TimeSpan.FromSeconds(3);
     }
 }

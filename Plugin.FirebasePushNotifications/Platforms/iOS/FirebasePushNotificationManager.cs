@@ -265,7 +265,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             var data = notification.Request.Content.UserInfo.GetParameters();
-            var notificationPresentationOptions = GetNotificationPresentationOptions(data);
+            var notificationPresentationOptions = GetNotificationPresentationOptions(data, this.options.iOS.PresentationOptions);
             this.logger.LogDebug(
                 $"WillPresentNotification: UNNotification.Request.Identifier \"{notification.Request.Identifier}\", " +
                 $"UNNotificationPresentationOptions={notificationPresentationOptions}");
@@ -275,21 +275,26 @@ namespace Plugin.FirebasePushNotifications.Platforms
             completionHandler(notificationPresentationOptions);
         }
 
-        private static UNNotificationPresentationOptions GetNotificationPresentationOptions(IDictionary<string, object> data)
+        private static UNNotificationPresentationOptions GetNotificationPresentationOptions(
+            IDictionary<string, object> data,
+            UNNotificationPresentationOptions defaultNotificationPresentationOptions)
         {
-            var notificationPresentationOptions = UNNotificationPresentationOptions.None;
+            var notificationPresentationOptions = defaultNotificationPresentationOptions;
 
-            if (data.TryGetValue("priority", out var p) && $"{p}".ToLower() is string priority)
+            if (data.TryGetValue(Constants.PriorityKey, out var p) && $"{p}".ToLower() is string priority)
             {
                 if (priority is "high" or "max")
                 {
                     if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List |
-                                                                     UNNotificationPresentationOptions.Banner))
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List))
                         {
-                            notificationPresentationOptions |=
-                                UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                            notificationPresentationOptions |= UNNotificationPresentationOptions.List;
+                        }
+
+                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Banner))
+                        {
+                            notificationPresentationOptions |= UNNotificationPresentationOptions.Banner;
                         }
                     }
                     else
@@ -304,18 +309,21 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List |
-                                                                     UNNotificationPresentationOptions.Banner))
+                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List))
                         {
-                            notificationPresentationOptions &=
-                                UNNotificationPresentationOptions.List | UNNotificationPresentationOptions.Banner;
+                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.List;
+                        }
+
+                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Banner))
+                        {
+                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.Banner;
                         }
                     }
                     else
                     {
-                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
                         {
-                            notificationPresentationOptions &= UNNotificationPresentationOptions.Alert;
+                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.Alert;
                         }
                     }
                 }
