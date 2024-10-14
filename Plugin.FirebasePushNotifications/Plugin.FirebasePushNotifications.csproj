@@ -37,7 +37,10 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>2.5
+		<PackageReleaseNotes>3.0
+- Update firebase-ios-sdk by replacing nuget package Xamarin.Firebase.iOS.CloudMessaging with AdamE.Firebase.iOS.CloudMessaging.
+
+2.5
 - Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions.
 - iOS 18 workaround for duplicate notifications in foreground mode.
 - iOS options to override default UNNotificationPresentationOptions for notifications received in foreground mode.
