@@ -23,7 +23,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
 
             // Act
             var result1 = rateLimiter.HasReachedLimit("identifier1", this.expirationPeriod);
-            await Task.Delay(this.expirationPeriod);
+            await Task.Delay(this.expirationPeriod * 1.5);
             var result2 = rateLimiter.HasReachedLimit("identifier1", this.expirationPeriod);
 
             // Assert

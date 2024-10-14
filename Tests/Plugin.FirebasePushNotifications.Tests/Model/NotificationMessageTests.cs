@@ -97,8 +97,8 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
 
             // Assert
             toString.Should().Be(
-                "{title, Title},\r\n" +
-                "{body, Body},\r\n" +
+                $"{{title, Title}},{Environment.NewLine}" +
+                $"{{body, Body}},{Environment.NewLine}" +
                 "{nullProperty, null}");
         }
     }

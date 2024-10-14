@@ -37,7 +37,6 @@ namespace Plugin.FirebasePushNotifications
         public const string IconKey = "icon";
         public const string LargeIconKey = "large_icon";
         public const string SoundKey = "sound";
-        public const string PriorityKey = "priority";
         public const string ChannelIdKey = "channel_id";
         public const string ShowWhenKey = "show_when";
         public const string BigTextStyleKey = "bigtextstyle";
