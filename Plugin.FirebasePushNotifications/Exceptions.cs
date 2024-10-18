@@ -8,5 +8,19 @@
                 "This functionality is not implemented for the current platform. " +
                 "You should reference the NuGet package from your main application project in order to reference the platform-specific implementation.");
         }
+
+        internal static Exception FailedToInitializeFirebaseApp()
+        {
+#if ANDROID
+            return new InvalidOperationException(
+                "FirebaseApp.InitializeApp failed with exception. " +
+                "Make sure the google-services.json file is present and marked as GoogleServicesJson.");
+#elif IOS
+            return new InvalidOperationException(
+                "Firebase.Core.App.Configure failed with exception. " +
+                "Make sure the GoogleService-Info.plist file is present and marked as BundleResource.");
+#endif
+            return NotImplementedInReferenceAssembly();
+        }
     }
 }
