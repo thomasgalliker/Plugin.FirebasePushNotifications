@@ -72,13 +72,11 @@ namespace Plugin.FirebasePushNotifications
                     return true;
                 }));
 #elif ANDROID
-                // events.AddAndroid(android => android.OnApplicationCreate(d =>
+                // events.AddAndroid(android => android.OnApplicationCreate(application =>
                 // {
                 // }));
                 events.AddAndroid(android => android.OnCreate((activity, intent) =>
                 {
-                    //Firebase.FirebaseApp.InitializeApp(activity);
-
                     var firebasePushNotification = IFirebasePushNotification.Current;
 
                     if (firebasePushNotification.NotificationHandler == null)
@@ -103,8 +101,8 @@ namespace Plugin.FirebasePushNotifications
 
             // Service registrations
 #if ANDROID || IOS
-            builder.Services.AddSingleton(c => CrossFirebasePushNotification.Current);
-            builder.Services.AddSingleton(c => CrossNotificationPermissions.Current);
+            builder.Services.AddSingleton(c => IFirebasePushNotification.Current);
+            builder.Services.AddSingleton(c => INotificationPermissions.Current);
             builder.Services.TryAddSingleton<IFirebasePushNotificationPreferences, FirebasePushNotificationPreferences>();
             builder.Services.TryAddSingleton<IPreferences>(_ => Preferences.Default);
             builder.Services.AddSingleton(defaultOptions);

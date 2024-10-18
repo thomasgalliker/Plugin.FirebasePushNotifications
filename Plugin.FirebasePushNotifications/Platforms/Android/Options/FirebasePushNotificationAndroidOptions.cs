@@ -1,6 +1,7 @@
 ﻿#if ANDROID
 using Android.App;
 using Android.Content;
+using Firebase;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 
 namespace Plugin.FirebasePushNotifications.Platforms
@@ -9,6 +10,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         private NotificationChannelRequest[] notificationChannels = Array.Empty<NotificationChannelRequest>();
         private Type notificationActivityType;
+
+        /// <summary>
+        /// This property can be used to configure Firebase programmatically.
+        /// By default, this property is <c>null</c> which means,
+        /// the google-services.json file with build action GoogleServicesJson
+        /// is used to configure Firebase.
+        /// </summary>
+        public FirebaseOptions FirebaseOptions { get; set; }
 
         /// <summary>
         /// The Activity which handles incoming push notifications.

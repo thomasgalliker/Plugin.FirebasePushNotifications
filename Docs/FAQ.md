@@ -72,3 +72,15 @@ Create a folder named `C:\n`. Add an environment variable `NUGET_PACKAGES = C:\n
 Close Visual Studio. Start a new command line and navigate to the project folder root path. Run the command: `dotnet add package Plugin.FirebasePushNotifications`
 
 - **Use Jetbrains Rider on macOS:** This may not be an option in all cases, and I'm well aware that this may cause further implications, but it's worth mentioning. Download here: [Jetbrains Rider](https://jetbrains.com/rider/).
+
+### Why is there no GoogleService-Info.plist and google-services.json in the sample app?
+Two reasons: The files contain trustworthy API keys and they would not be of any help for you.
+If you want to try the sample app, you'll need to create your own Firebase service files in your own Firebase project.
+Otherwise, you'd not be able to send any push notifications to the sample app.
+
+### I added GoogleService-Info.plist and google-services.json, but they are not recognized?
+- Mark the GoogleService-Info.plist as BundleResource and Link it properly (see readme.md and sample app).
+- Mark the google-services.json as GoogleServicesJson and Link it properly (see readme.md and sample app)
+- Clean the whole solution using clean.bat (Windows) or clean.sh (macOS).
+- Do a full solution rebuild after you've added the Google service files.
+

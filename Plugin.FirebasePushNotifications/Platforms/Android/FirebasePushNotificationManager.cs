@@ -1,5 +1,6 @@
 using Android.App;
 using Android.Content;
+using Firebase;
 using Firebase.Messaging;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
@@ -28,20 +29,35 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.ConfigurePlatform();
         }
 
-        private void ConfigurePlatform()
+        private async void ConfigurePlatform()
         {
-            if (this.options.AutoInitEnabled)
+            var context = await Platform.WaitForActivityAsync();
+
+            var isFirebaseAppInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context);
+
+            if (this.logger.IsEnabled(LogLevel.Debug))
             {
-                try
+                this.logger.LogDebug($"ConfigurePlatform: " +
+                                     $"isFirebaseAppInitialized={isFirebaseAppInitialized}, " +
+                                     $"apps={{{string.Join(",", FirebaseApp.GetApps(context).Select(a => a.Name))}}}");
+            }
+
+            if (isFirebaseAppInitialized)
+            {
+                if (this.options.Android.FirebaseOptions != null)
                 {
-                    var context = Platform.CurrentActivity;
-                    Firebase.FirebaseApp.InitializeApp(context);
+                    this.logger.LogWarning("Firebase is already configured; Android.FirebaseOptions is not used!");
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                if (this.options.Android.FirebaseOptions is not FirebaseOptions firebaseOptions)
                 {
-                    this.logger.LogError(ex, "FirebaseApp.InitializeApp failed with exception. " +
-                                             "Make sure the google-services.json file is present and marked as GoogleServicesJson.");
-                    throw;
+                    this.InitializeFirebaseAppFromServiceFile(context);
+                }
+                else
+                {
+                    this.InitializeFirebaseAppFromFirebaseOptions(context, firebaseOptions);
                 }
             }
 
@@ -56,6 +72,46 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             notificationChannels.CreateChannels(notificationChannelRequests);
+        }
+
+        private void InitializeFirebaseAppFromServiceFile(Activity context)
+        {
+            this.logger.LogDebug("InitializeFirebaseAppFromServiceFile");
+
+            try
+            {
+                // Try to initialize Firebase from google-services.json
+                // if this doesn't work, it throws an exception
+                var firebaseApp = FirebaseApp.InitializeApp(context);
+
+                var failedToInitialize = firebaseApp == null ||
+                                         !FirebaseAppHelper.IsFirebaseAppInitialized(context) ||
+                                         FirebaseApp.Instance == null;
+
+                if (failedToInitialize)
+                {
+                    throw Exceptions.FailedToInitializeFirebaseApp();
+                }
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "InitializeFirebaseAppFromServiceFile failed with exception");
+                throw;
+            }
+        }
+
+        private void InitializeFirebaseAppFromFirebaseOptions(Activity context, FirebaseOptions firebaseOptions)
+        {
+            this.logger.LogDebug("InitializeFirebaseAppFromFirebaseOptions");
+
+            // var options = new FirebaseOptions.Builder()
+            //     .SetApplicationId(config.AppId)
+            //     .SetProjectId(config.ProjectId)
+            //     .SetApiKey(config.ApiKey)
+            //     .SetGcmSenderId(config.SenderId)
+            //     .Build();
+
+            FirebaseApp.InitializeApp(context, firebaseOptions);
         }
 
         protected override void OnNotificationReceived(IDictionary<string, object> data)
@@ -90,7 +146,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             var extras = intent.GetExtrasDict();
-            this.logger.LogDebug($"ProcessIntent: activity.Type={activityType.Name}, intent.Flags=[{intent.Flags}], intent.Extras=[{extras.ToDebugString()}]");
+            this.logger.LogDebug(
+                $"ProcessIntent: activity.Type={activityType.Name}, intent.Flags=[{intent.Flags}], intent.Extras=[{extras.ToDebugString()}]");
 
             var launchedFromHistory = intent.Flags.HasFlag(ActivityFlags.LaunchedFromHistory);
             if (launchedFromHistory)
@@ -130,7 +187,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     else
                     {
                         var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
-                        this.HandleNotificationAction(extras, notificationCategoryId, notificationActionId, NotificationCategoryType.Default);
+                        this.HandleNotificationAction(extras, notificationCategoryId, notificationActionId,
+                            NotificationCategoryType.Default);
                     }
                 }
                 else
