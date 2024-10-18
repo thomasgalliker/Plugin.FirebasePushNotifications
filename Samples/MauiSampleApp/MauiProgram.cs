@@ -45,6 +45,8 @@ namespace MauiSampleApp
                     //     .Build();
 #elif IOS
                     // You can configure iOS-specific options under o.iOS:
+                    // o.iOS.FirebaseOptions = new Firebase.Core.Options("appId", "senderId");
+
                     // o.iOS.PresentationOptions = UNNotificationPresentationOptions.Banner;
                     // o.iOS.iOS18Workaround.Enable = true;
 #endif

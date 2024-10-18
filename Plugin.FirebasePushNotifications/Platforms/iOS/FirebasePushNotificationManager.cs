@@ -115,9 +115,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void ConfigurePlatform()
         {
-            if (Firebase.Core.App.DefaultInstance == null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            var isFirebaseAppInitialized = Firebase.Core.App.DefaultInstance != null;
+
+            if (this.logger.IsEnabled(LogLevel.Debug))
             {
-                Firebase.Core.App.Configure();
+                this.logger.LogDebug($"ConfigurePlatform: isFirebaseAppInitialized={isFirebaseAppInitialized}");
+            }
+
+            if (!isFirebaseAppInitialized)
+            {
+                if (this.options.iOS.FirebaseOptions is not Firebase.Core.Options firebaseOptions)
+                {
+                    this.InitializeFirebaseAppFromServiceFile();
+                }
+                else
+                {
+                    this.InitializeFirebaseAppFromFirebaseOptions(firebaseOptions);
+                }
             }
 
             var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
@@ -148,6 +163,36 @@ namespace Plugin.FirebasePushNotifications.Platforms
             else
             {
                 firebaseMessaging.Delegate = new MessagingDelegateImpl((_, fcmToken) => this.DidReceiveRegistrationToken(fcmToken));
+            }
+        }
+
+        private void InitializeFirebaseAppFromServiceFile()
+        {
+            this.logger.LogDebug("InitializeFirebaseAppFromServiceFile");
+
+            try
+            {
+                Firebase.Core.App.Configure();
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "InitializeFirebaseAppFromServiceFile failed with exception");
+                throw;
+            }
+        }
+
+        private void InitializeFirebaseAppFromFirebaseOptions(Firebase.Core.Options firebaseOptions)
+        {
+            this.logger.LogDebug("InitializeFirebaseAppFromFirebaseOptions");
+
+            try
+            {
+                Firebase.Core.App.Configure(firebaseOptions);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "InitializeFirebaseAppFromFirebaseOptions failed with exception");
+                throw;
             }
         }
 
