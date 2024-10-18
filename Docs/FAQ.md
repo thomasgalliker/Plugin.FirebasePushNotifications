@@ -8,6 +8,11 @@ Firebase Push Notifications are a service provided by Firebase Cloud Messaging (
 ### How do Firebase Push Notifications work?
 Firebase Push Notifications work by sending messages from your server or Firebase console to your app users via Firebase Cloud Messaging. The notifications can be triggered based on various conditions like user behavior or data changes.
 
+### Why is there no GoogleService-Info.plist and google-services.json in the sample app?
+Two reasons: The files contain trustworthy API keys and they would not be of any help for you.
+If you want to try the sample app, you'll need to create your own Firebase service files in your own Firebase project.
+Otherwise, you'd not be able to send any push notifications to the sample app.
+
 ## Technical Questions
 
 ### What are the message types supported by Firebase Cloud Messaging?
