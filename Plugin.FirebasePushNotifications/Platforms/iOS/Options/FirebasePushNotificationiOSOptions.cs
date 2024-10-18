@@ -6,6 +6,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class FirebasePushNotificationiOSOptions
     {
+        /// <summary>
+        /// This property can be used to configure Firebase programmatically.
+        /// By default, this property is <c>null</c> which means,
+        /// the GoogleService-Info.plist file with build action BundleResource
+        /// is used to configure Firebase.
+        /// </summary>
         public Firebase.Core.Options FirebaseOptions { get; set; }
 
         /// <summary>
