@@ -162,17 +162,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private void CheckIfFirebaseAppInitialized()
-        {
-            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
-            if (firebaseMessaging == null)
-            {
-                var exception = Exceptions.FailedToInitializeFirebaseApp();
-                this.logger.LogError(exception, "CheckIfFirebaseAppInitialized");
-                throw exception;
-            }
-        }
-
         private void InitializeFirebaseAppFromServiceFile()
         {
             this.logger.LogDebug("InitializeFirebaseAppFromServiceFile");
@@ -202,6 +191,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 var exception = Exceptions.FailedToInitializeFirebaseApp(ex);
                 this.logger.LogError(exception, "InitializeFirebaseAppFromFirebaseOptions failed with exception");
                 throw;
+            }
+        }
+
+        private void CheckIfFirebaseAppInitialized()
+        {
+            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
+            if (firebaseMessaging == null)
+            {
+                var exception = Exceptions.FailedToInitializeFirebaseApp();
+                this.logger.LogError(exception, "CheckIfFirebaseAppInitialized");
+                throw exception;
             }
         }
 
