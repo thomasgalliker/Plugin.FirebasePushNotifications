@@ -9,18 +9,28 @@
                 "You should reference the NuGet package from your main application project in order to reference the platform-specific implementation.");
         }
 
-        internal static Exception FailedToInitializeFirebaseApp()
+        internal static FirebaseAppInitializationException FailedToInitializeFirebaseApp(Exception innerException = null)
         {
 #if ANDROID
-            return new InvalidOperationException(
+            return new FirebaseAppInitializationException(
                 "FirebaseApp.InitializeApp failed with exception. " +
-                "Make sure the google-services.json file is present and marked as GoogleServicesJson.");
+                "Make sure the google-services.json file is present and marked as GoogleServicesJson.",
+                innerException);
 #elif IOS
-            return new InvalidOperationException(
+            return new FirebaseAppInitializationException(
                 "Firebase.Core.App.Configure failed with exception. " +
-                "Make sure the GoogleService-Info.plist file is present and marked as BundleResource.");
+                "Make sure the GoogleService-Info.plist file is present and marked as BundleResource.",
+                innerException);
 #endif
-            return NotImplementedInReferenceAssembly();
+            return new FirebaseAppInitializationException(null, NotImplementedInReferenceAssembly());
+        }
+    }
+
+    public class FirebaseAppInitializationException : Exception
+    {
+        public FirebaseAppInitializationException(string message, Exception innerException)
+            : base(message, innerException)
+        {
         }
     }
 }

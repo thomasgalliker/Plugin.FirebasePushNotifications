@@ -61,6 +61,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
+            this.CheckIfFirebaseAppInitialized(context);
+
             FirebaseMessaging.Instance.AutoInitEnabled = this.options.AutoInitEnabled;
 
             var notificationChannels = NotificationChannels.Current;
@@ -80,23 +82,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             try
             {
-                // Try to initialize Firebase from google-services.json
-                // if this doesn't work, it throws an exception
-                var firebaseApp = FirebaseApp.InitializeApp(context);
-
-                var failedToInitialize = firebaseApp == null ||
-                                         !FirebaseAppHelper.IsFirebaseAppInitialized(context) ||
-                                         FirebaseApp.Instance == null;
-
-                if (failedToInitialize)
-                {
-                    throw Exceptions.FailedToInitializeFirebaseApp();
-                }
+                // Try to initialize Firebase from google-services.json.
+                FirebaseApp.InitializeApp(context);
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex, "InitializeFirebaseAppFromServiceFile failed with exception");
+                var exception = Exceptions.FailedToInitializeFirebaseApp(ex);
+                this.logger.LogError(exception, "InitializeFirebaseAppFromServiceFile failed with exception");
                 throw;
+            }
+        }
+
+        private void CheckIfFirebaseAppInitialized(Activity context)
+        {
+            var isInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context) &&
+                                FirebaseApp.Instance != null;
+            if (isInitialized)
+            {
+                throw Exceptions.FailedToInitializeFirebaseApp();
             }
         }
 
@@ -104,14 +107,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("InitializeFirebaseAppFromFirebaseOptions");
 
-            // var options = new FirebaseOptions.Builder()
-            //     .SetApplicationId(config.AppId)
-            //     .SetProjectId(config.ProjectId)
-            //     .SetApiKey(config.ApiKey)
-            //     .SetGcmSenderId(config.SenderId)
-            //     .Build();
-
-            FirebaseApp.InitializeApp(context, firebaseOptions);
+            try
+            {
+                FirebaseApp.InitializeApp(context, firebaseOptions);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "InitializeFirebaseAppFromFirebaseOptions failed with exception");
+                throw;
+            }
         }
 
         protected override void OnNotificationReceived(IDictionary<string, object> data)

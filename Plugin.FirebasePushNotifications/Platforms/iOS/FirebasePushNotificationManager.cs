@@ -1,4 +1,5 @@
-﻿using Foundation;
+﻿using Firebase.CloudMessaging;
+using Foundation;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Internals;
@@ -135,14 +136,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
-            if (firebaseMessaging == null)
-            {
-                var sharedInstanceNullErrorMessage = "Firebase.CloudMessaging.Messaging.SharedInstance is null";
-                this.logger.LogError(sharedInstanceNullErrorMessage);
-                throw new NullReferenceException(sharedInstanceNullErrorMessage);
-            }
+            this.CheckIfFirebaseAppInitialized();
 
+            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
             firebaseMessaging.AutoInitEnabled = this.options.AutoInitEnabled;
 
             if (UNUserNotificationCenter.Current.Delegate != null)
@@ -163,6 +159,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
             else
             {
                 firebaseMessaging.Delegate = new MessagingDelegateImpl((_, fcmToken) => this.DidReceiveRegistrationToken(fcmToken));
+            }
+        }
+
+        private void CheckIfFirebaseAppInitialized()
+        {
+            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
+            if (firebaseMessaging == null)
+            {
+                var exception = Exceptions.FailedToInitializeFirebaseApp();
+                this.logger.LogError(exception, "CheckIfFirebaseAppInitialized");
+                throw exception;
             }
         }
 
@@ -187,11 +194,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             try
             {
+                // Try to initialize Firebase from GoogleService-Info.plist.
                 Firebase.Core.App.Configure(firebaseOptions);
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex, "InitializeFirebaseAppFromFirebaseOptions failed with exception");
+                var exception = Exceptions.FailedToInitializeFirebaseApp(ex);
+                this.logger.LogError(exception, "InitializeFirebaseAppFromFirebaseOptions failed with exception");
                 throw;
             }
         }
