@@ -85,23 +85,12 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.0,)" />
 	</ItemGroup>
 	
-	<!--Platform-specific package references--> 
-	<ItemGroup Condition="$(TargetFramework.Contains('-android'))">
-		<PackageReference Include="Xamarin.Firebase.Messaging">
-			<Version>123.1.2.2</Version>
-		</PackageReference>
-		<PackageReference Include="Xamarin.GooglePlayServices.Tasks">
-			<Version>118.0.2.3</Version>
-		</PackageReference>
-		<PackageReference Include="Xamarin.Firebase.Common" Version="120.3.3.1" />
+	<!--Platform-specific package references-->
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <PackageReference Include="Xamarin.Firebase.Messaging" Version="123.4.1.1" />
+  </ItemGroup>
 
-		<!--Temporary workaround for issue in AndroidX: https://github.com/xamarin/AndroidX/issues/742-->
-		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2.1" />
-		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2.1" />
-	</ItemGroup>
-
-	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
-		<PackageReference Include="Xamarin.Firebase.iOS.CloudMessaging" Version="8.10.0.3" />
-	</ItemGroup>
-
+  <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
+    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="10.29.0.1" />
+  </ItemGroup>
 </Project>
