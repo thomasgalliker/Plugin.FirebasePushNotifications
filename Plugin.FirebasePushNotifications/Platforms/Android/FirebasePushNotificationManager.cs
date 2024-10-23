@@ -97,7 +97,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             var isInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context) &&
                                 FirebaseApp.Instance != null;
-            if (isInitialized)
+            if (!isInitialized)
             {
                 throw Exceptions.FailedToInitializeFirebaseApp();
             }
