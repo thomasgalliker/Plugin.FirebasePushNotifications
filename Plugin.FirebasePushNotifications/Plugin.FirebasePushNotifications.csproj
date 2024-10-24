@@ -41,6 +41,7 @@
 - Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions.
 - iOS 18 workaround for duplicate notifications in foreground mode.
 - iOS options to override default UNNotificationPresentationOptions for notifications received in foreground mode.
+- Handle gcm.notification.click_action payload as click_action in Android.
       
 2.4
 - Refactor instanciation of IFirebasePushNotification.

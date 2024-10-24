@@ -40,7 +40,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return false;
             }
 
-            if (data.ContainsKey(Constants.ClickActionKey) || data.ContainsKey(Constants.CategoryKey))
+            if (data.ContainsKey(Constants.ClickActionKey) ||
+                data.ContainsKey(Constants.CategoryKey) ||
+                data.ContainsKey(Constants.GcmNotificationClickActionKey))
             {
                 // If we received a "click_action" or "category"
                 // we need to show a local notification with action buttons.
@@ -80,10 +82,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return false;
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="data"></param>
         void INotificationBuilder.OnNotificationReceived(IDictionary<string, object> data)
         {
             if (!this.ShouldHandleNotificationReceived(data))
@@ -94,6 +92,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.OnNotificationReceived(data);
         }
 
+        /// <summary>
+        /// This method is called if we have to build our own, custom notification using NotificationCompat.Builder.
+        /// </summary>
+        /// <param name="data">The notification payload.</param>
+        /// <remarks>
+        /// This method is only called if <see cref="ShouldHandleNotificationReceived"/>
+        /// returns <c>true</c>.
+        /// </remarks>
         public virtual void OnNotificationReceived(IDictionary<string, object> data)
         {
             this.logger.LogDebug("OnNotificationReceived");
@@ -767,6 +773,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             else if (data.TryGetString(Constants.CategoryKey, out var categoryValue))
             {
                 category = categoryValue;
+            }
+            else if (data.TryGetString(Constants.GcmNotificationClickActionKey, out var gcmNotificationClickAction))
+            {
+                category = gcmNotificationClickAction;
             }
             else
             {
