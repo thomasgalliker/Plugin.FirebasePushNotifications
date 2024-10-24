@@ -39,22 +39,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 // we don't display any local notification.
                 return false;
             }
-
-            if (data.ContainsKey(Constants.ClickActionKey) ||
-                data.ContainsKey(Constants.CategoryKey) ||
-                data.ContainsKey(Constants.GcmNotificationClickActionKey))
-            {
-                // If we received a "click_action" or "category"
-                // we need to show a local notification with action buttons.
-                return true;
-            }
-
+            
             var notificationImportance = this.GetNotificationImportance(data);
             if (notificationImportance >= NotificationImportance.High)
             {
                 // In case we receive a notification with priority >= high
                 // we show it in a local notification popup.
                 return true;
+            }
+
+            if (data.ContainsKey(Constants.ClickActionKey) ||
+                data.ContainsKey(Constants.CategoryKey) ||
+                data.ContainsKey(Constants.GcmNotificationClickActionKey))
+            {
+                var isInForeground = IsInForeground();
+                if (isInForeground == false)
+                {
+                    // If we received a "click_action" or "category"
+                    // and we run in background mode
+                    // we need to show a local notification with action buttons.
+                    return true;
+                }
             }
 
             var notificationChannel = GetChannel(data);
@@ -72,12 +77,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 // we need to show a local notification with SetLargeIcon
                 return true;
             }
-
-            //var isInForeground = IsInForeground();
-            //if (isInForeground == false)
-            //{
-            //    // There is currently no special handling for apps that run in background mode
-            //}
 
             return false;
         }

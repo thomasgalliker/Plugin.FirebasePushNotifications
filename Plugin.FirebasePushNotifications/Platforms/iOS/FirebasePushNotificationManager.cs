@@ -335,7 +335,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             var notificationPresentationOptions = defaultNotificationPresentationOptions;
 
-            if (data.TryGetValue(Constants.PriorityKey, out var p) && $"{p}".ToLower() is string priority)
+            var priority = GetPriorityValue(data);
+            if (!string.IsNullOrEmpty(priority))
             {
                 if (priority is "high" or "max")
                 {
@@ -384,6 +385,23 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             return notificationPresentationOptions;
+        }
+
+        private static string GetPriorityValue(IDictionary<string,object> data)
+        {
+            if (data.TryGetString(Constants.PriorityKey, out var priorityValue))
+            {
+            }
+            else if (data.TryGetString(Constants.ApsPriorityKey, out priorityValue))
+            {
+            }
+
+            if (!string.IsNullOrEmpty(priorityValue))
+            {
+                return priorityValue.ToLowerInvariant();
+            }
+
+            return null;
         }
 
         /// <inheritdoc />
