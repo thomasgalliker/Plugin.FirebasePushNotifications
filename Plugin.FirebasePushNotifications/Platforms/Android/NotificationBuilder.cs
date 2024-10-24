@@ -40,7 +40,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return false;
             }
 
-            if (data.ContainsKey(Constants.ClickActionKey) || data.ContainsKey(Constants.CategoryKey))
+            if (data.ContainsKey(Constants.ClickActionKey) ||
+                data.ContainsKey(Constants.CategoryKey) ||
+                data.ContainsKey(Constants.GcmNotificationClickActionKey))
             {
                 // If we received a "click_action" or "category"
                 // we need to show a local notification with action buttons.
