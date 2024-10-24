@@ -225,6 +225,8 @@
                     Placeholder="New topic name"
                     Text="{Binding Topic}"
                     Keyboard="Url"
+                    IsTextPredictionEnabled="False"
+                    IsSpellCheckEnabled="False"
                     FontFamily="{StaticResource FontFamilyMonospace}" />
                 <Button
                     Command="{Binding SubscribeToTopicCommand}"
