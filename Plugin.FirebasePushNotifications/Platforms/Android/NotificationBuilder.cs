@@ -772,6 +772,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 category = categoryValue;
             }
+            else if (data.TryGetString(Constants.GcmNotificationClickActionKey, out var gcmNotificationClickAction))
+            {
+                category = gcmNotificationClickAction;
+            }
             else
             {
                 category = null;

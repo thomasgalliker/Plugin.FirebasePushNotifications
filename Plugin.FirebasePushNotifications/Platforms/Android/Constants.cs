@@ -19,12 +19,15 @@ namespace Plugin.FirebasePushNotifications
         public const string MetadataIconKey = "com.google.firebase.messaging.default_notification_icon";
         public const string MetadataColorKey = "com.google.firebase.messaging.default_notification_color";
 
-        public const string CategoryKey = "category";
+        public const string GcmNotificationTitleKey = "gcm.notification.title";
+        public const string GcmNotificationBodyKey = "gcm.notification.body";
+        public const string GcmNotificationClickActionKey = "gcm.notification.click_action";
         public const string TextKey = "text";
         public const string SubtitleKey = "subtitle";
         public const string MessageKey = "message";
         public const string AlertKey = "alert";
         public const string IdKey = "id";
+        public const string CategoryKey = "category";
         public const string ClickActionKey = "click_action";
         public const string NotificationCategoryKey = "notification_category";
         public const string UseFullIntentKey = "use_full_intent";
