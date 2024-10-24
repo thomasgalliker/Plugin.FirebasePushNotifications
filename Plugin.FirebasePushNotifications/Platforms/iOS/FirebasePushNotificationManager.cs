@@ -1,4 +1,5 @@
-﻿using Foundation;
+﻿using Firebase.CloudMessaging;
+using Foundation;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
 using Plugin.FirebasePushNotifications.Internals;
@@ -115,19 +116,29 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void ConfigurePlatform()
         {
-            if (Firebase.Core.App.DefaultInstance == null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            var isFirebaseAppInitialized = Firebase.Core.App.DefaultInstance != null;
+
+            if (this.logger.IsEnabled(LogLevel.Debug))
             {
-                Firebase.Core.App.Configure();
+                this.logger.LogDebug($"ConfigurePlatform: isFirebaseAppInitialized={isFirebaseAppInitialized}");
             }
+
+            if (!isFirebaseAppInitialized)
+            {
+                if (this.options.iOS.FirebaseOptions is not Firebase.Core.Options firebaseOptions)
+                {
+                    this.InitializeFirebaseAppFromServiceFile();
+                }
+                else
+                {
+                    this.InitializeFirebaseAppFromFirebaseOptions(firebaseOptions);
+                }
+            }
+
+            this.CheckIfFirebaseAppInitialized();
 
             var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
-            if (firebaseMessaging == null)
-            {
-                var sharedInstanceNullErrorMessage = "Firebase.CloudMessaging.Messaging.SharedInstance is null";
-                this.logger.LogError(sharedInstanceNullErrorMessage);
-                throw new NullReferenceException(sharedInstanceNullErrorMessage);
-            }
-
             firebaseMessaging.AutoInitEnabled = this.options.AutoInitEnabled;
 
             if (UNUserNotificationCenter.Current.Delegate != null)
@@ -148,6 +159,49 @@ namespace Plugin.FirebasePushNotifications.Platforms
             else
             {
                 firebaseMessaging.Delegate = new MessagingDelegateImpl((_, fcmToken) => this.DidReceiveRegistrationToken(fcmToken));
+            }
+        }
+
+        private void InitializeFirebaseAppFromServiceFile()
+        {
+            this.logger.LogDebug("InitializeFirebaseAppFromServiceFile");
+
+            try
+            {
+                Firebase.Core.App.Configure();
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "InitializeFirebaseAppFromServiceFile failed with exception");
+                throw;
+            }
+        }
+
+        private void InitializeFirebaseAppFromFirebaseOptions(Firebase.Core.Options firebaseOptions)
+        {
+            this.logger.LogDebug("InitializeFirebaseAppFromFirebaseOptions");
+
+            try
+            {
+                // Try to initialize Firebase from GoogleService-Info.plist.
+                Firebase.Core.App.Configure(firebaseOptions);
+            }
+            catch (Exception ex)
+            {
+                var exception = Exceptions.FailedToInitializeFirebaseApp(ex);
+                this.logger.LogError(exception, "InitializeFirebaseAppFromFirebaseOptions failed with exception");
+                throw;
+            }
+        }
+
+        private void CheckIfFirebaseAppInitialized()
+        {
+            var firebaseMessaging = Firebase.CloudMessaging.Messaging.SharedInstance;
+            if (firebaseMessaging == null)
+            {
+                var exception = Exceptions.FailedToInitializeFirebaseApp();
+                this.logger.LogError(exception, "CheckIfFirebaseAppInitialized");
+                throw exception;
             }
         }
 
