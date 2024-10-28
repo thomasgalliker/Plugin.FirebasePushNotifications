@@ -39,20 +39,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 // we don't display any local notification.
                 return false;
             }
-
-            if (data.ContainsKey(Constants.ClickActionKey) || data.ContainsKey(Constants.CategoryKey))
-            {
-                // If we received a "click_action" or "category"
-                // we need to show a local notification with action buttons.
-                return true;
-            }
-
+            
             var notificationImportance = this.GetNotificationImportance(data);
             if (notificationImportance >= NotificationImportance.High)
             {
                 // In case we receive a notification with priority >= high
                 // we show it in a local notification popup.
                 return true;
+            }
+
+            if (data.ContainsKey(Constants.ClickActionKey) ||
+                data.ContainsKey(Constants.CategoryKey) ||
+                data.ContainsKey(Constants.GcmNotificationClickActionKey))
+            {
+                var isInForeground = IsInForeground();
+                if (isInForeground == false)
+                {
+                    // If we received a "click_action" or "category"
+                    // and we run in background mode
+                    // we need to show a local notification with action buttons.
+                    return true;
+                }
             }
 
             var notificationChannel = GetChannel(data);
@@ -71,19 +78,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return true;
             }
 
-            //var isInForeground = IsInForeground();
-            //if (isInForeground == false)
-            //{
-            //    // There is currently no special handling for apps that run in background mode
-            //}
-
             return false;
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="data"></param>
         void INotificationBuilder.OnNotificationReceived(IDictionary<string, object> data)
         {
             if (!this.ShouldHandleNotificationReceived(data))
@@ -94,6 +91,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.OnNotificationReceived(data);
         }
 
+        /// <summary>
+        /// This method is called if we have to build our own, custom notification using NotificationCompat.Builder.
+        /// </summary>
+        /// <param name="data">The notification payload.</param>
+        /// <remarks>
+        /// This method is only called if <see cref="ShouldHandleNotificationReceived"/>
+        /// returns <c>true</c>.
+        /// </remarks>
         public virtual void OnNotificationReceived(IDictionary<string, object> data)
         {
             this.logger.LogDebug("OnNotificationReceived");
@@ -767,6 +772,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             else if (data.TryGetString(Constants.CategoryKey, out var categoryValue))
             {
                 category = categoryValue;
+            }
+            else if (data.TryGetString(Constants.GcmNotificationClickActionKey, out var gcmNotificationClickAction))
+            {
+                category = gcmNotificationClickAction;
             }
             else
             {

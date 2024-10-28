@@ -9,7 +9,10 @@ using MauiSampleApp.Services.Logging;
 using NLog.Extensions.Logging;
 
 #if ANDROID
+using Firebase;
 using MauiSampleApp.Platforms.Notifications;
+#elif IOS
+using UserNotifications;
 #endif
 
 namespace MauiSampleApp
@@ -27,11 +30,25 @@ namespace MauiSampleApp
                     o.AutoInitEnabled = false;
                     o.QueueFactory = new PersistentQueueFactory();
 #if ANDROID
+                    // You can configure Android-specific options under o.Android:
                     // o.Android.NotificationActivityType = typeof(MainActivity);
                     // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
                     // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
+
+                    // If you don't want to use the google-services.json file,
+                    // you can configure Firebase programmatically
+                    // o.Android.FirebaseOptions = new FirebaseOptions.Builder()
+                    //     .SetApplicationId("appId")
+                    //     .SetProjectId("projectId")
+                    //     .SetApiKey("apiKey")
+                    //     .SetGcmSenderId("senderId")
+                    //     .Build();
 #elif IOS
-                    // o.iOS.iOS18Workaround...
+                    // You can configure iOS-specific options under o.iOS:
+                    // o.iOS.FirebaseOptions = new Firebase.Core.Options("appId", "senderId");
+
+                    // o.iOS.PresentationOptions = UNNotificationPresentationOptions.Banner;
+                    // o.iOS.iOS18Workaround.Enable = true;
 #endif
                 })
                 .ConfigureFonts(fonts =>
@@ -45,7 +62,8 @@ namespace MauiSampleApp
                 b.ClearProviders();
                 b.SetMinimumLevel(LogLevel.Trace);
                 b.AddDebug();
-                b.AddNLog();
+                b.AddNLog(NLogLoggerConfiguration.GetLoggingConfiguration());
+                b.AddSentry(SentryConfiguration.Configure);
             });
 
 #if ANDROID

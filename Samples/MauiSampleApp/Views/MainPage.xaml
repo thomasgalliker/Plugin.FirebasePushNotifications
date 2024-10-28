@@ -1,4 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -55,7 +56,7 @@
                                 <Span.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding OpenUrlCommand}"
-                                        CommandParameter="https://www.nuget.org/packages/Plugin.FirebasePushNotifications"/>
+                                        CommandParameter="https://www.nuget.org/packages/Plugin.FirebasePushNotifications" />
                                 </Span.GestureRecognizers>
                             </Span>
                             <Span
@@ -92,7 +93,7 @@
                 Style="{StaticResource Heading2LabelStyle}"
                 Text="INotificationChannels"
                 IsVisible="{OnPlatform Android=True, Default=False}" />
-            <VerticalStackLayout 
+            <VerticalStackLayout
                 Spacing="8"
                 IsVisible="{OnPlatform Android=True, Default=False}">
                 <Button
@@ -110,7 +111,7 @@
                     Text="Create sample notification channels"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
-                <VerticalStackLayout 
+                <VerticalStackLayout
                     BindableLayout.ItemTemplate="{StaticResource NotificationChannelItemTemplate}"
                     BindableLayout.ItemsSource="{Binding Channels}" />
             </VerticalStackLayout>
@@ -216,7 +217,7 @@
                     Text="Get subscribed topics"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
-                <VerticalStackLayout 
+                <VerticalStackLayout
                     BindableLayout.ItemTemplate="{StaticResource SubscribedTopicItemTemplate}"
                     BindableLayout.ItemsSource="{Binding SubscribedTopics}" />
 
@@ -224,6 +225,8 @@
                     Placeholder="New topic name"
                     Text="{Binding Topic}"
                     Keyboard="Url"
+                    IsTextPredictionEnabled="False"
+                    IsSpellCheckEnabled="False"
                     FontFamily="{StaticResource FontFamilyMonospace}" />
                 <Button
                     Command="{Binding SubscribeToTopicCommand}"
@@ -254,7 +257,7 @@
                     Text="Get notification categories"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
-                <VerticalStackLayout 
+                <VerticalStackLayout
                     BindableLayout.ItemTemplate="{StaticResource NotificationCategoryItemTemplate}"
                     BindableLayout.ItemsSource="{Binding NotificationCategories}" />
                 <Button
@@ -262,6 +265,30 @@
                     Text="Clear"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
+            </VerticalStackLayout>
+
+            <controls:DividerLine />
+
+            <Label
+                Style="{StaticResource Heading2LabelStyle}"
+                Text="FirebasePushNotificationOptions"
+                IsVisible="{OnPlatform iOS=True, Default=False}" />
+            <VerticalStackLayout
+                Spacing="8"
+                IsVisible="{OnPlatform iOS=True, Default=False}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                    <Label
+                        Grid.Column="0"
+                        Text="PresentationOptions:"
+                        VerticalOptions="Center"/>
+                    <Picker
+                        Grid.Column="1"
+                        ItemsSource="{Binding PresentationOptions}"
+                        SelectedItem="{Binding SelectedPresentationOptions}"
+                        ItemDisplayBinding="{Binding .}"
+                        Title="UNNotificationPresentationOptions"
+                        HorizontalOptions="Fill" />
+                </Grid>
             </VerticalStackLayout>
 
             <controls:DividerLine />
@@ -284,7 +311,8 @@
             <Label
                 Style="{StaticResource Heading2LabelStyle}"
                 Text="Interaction Checks" />
-            <Label Text="MediaPicker uses a separate Activity on Android to take photos. This interacts with the ProcessIntent method of IFirebasePushNotification" />
+            <Label
+                Text="MediaPicker uses a separate Activity on Android to take photos. This interacts with the ProcessIntent method of IFirebasePushNotification" />
             <Button
                 Command="{Binding CapturePhotoCommand}"
                 Text="MediaPicker.CapturePhotoAsync"
