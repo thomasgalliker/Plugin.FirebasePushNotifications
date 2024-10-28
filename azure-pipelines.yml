@@ -46,7 +46,7 @@ steps:
     targetType: 'inline'
     script: 'env | sort'
    
-- task: Assembly-Info-NetCore@2
+- task: Assembly-Info-NetCore@3
   displayName: 'Update Assembly Info'
   inputs:
     Path: '$(Build.SourcesDirectory)'
