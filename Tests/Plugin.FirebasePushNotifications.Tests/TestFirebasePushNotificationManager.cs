@@ -19,6 +19,8 @@ namespace Plugin.FirebasePushNotifications.Tests
         {
         }
 
+        public string SdkVersion { get; } = "1.0.0-test";
+
         public string Token { get; }
 
         public Task RegisterForPushNotificationsAsync()
