@@ -31,37 +31,39 @@ namespace MauiSampleApp.ViewModels
         private readonly ILauncher launcher;
         private readonly IAppInfo appInfo;
 
-        private AsyncRelayCommand registerForPushNotificationsCommand;
-        private AsyncRelayCommand unregisterForPushNotificationsCommand;
-        private AsyncRelayCommand subscribeEventsCommand;
-        private AsyncRelayCommand unsubscribeEventsCommand;
-        private AsyncRelayCommand navigateToQueuesPageCommand;
-        private AsyncRelayCommand navigateToLogPageCommand;
-        private AsyncRelayCommand capturePhotoCommand;
-        private AsyncRelayCommand shareTokenCommand;
-        private AsyncRelayCommand getTokenCommand;
-        private AsyncRelayCommand subscribeToTopicCommand;
-        private AsyncRelayCommand requestNotificationPermissionsCommand;
+        private IAsyncRelayCommand registerForPushNotificationsCommand;
+        private IAsyncRelayCommand unregisterForPushNotificationsCommand;
+        private IAsyncRelayCommand subscribeEventsCommand;
+        private IAsyncRelayCommand unsubscribeEventsCommand;
+        private IAsyncRelayCommand navigateToQueuesPageCommand;
+        private IAsyncRelayCommand navigateToLogPageCommand;
+        private IAsyncRelayCommand capturePhotoCommand;
+        private IAsyncRelayCommand shareTokenCommand;
+        private IAsyncRelayCommand getTokenCommand;
+        private IAsyncRelayCommand subscribeToTopicCommand;
+        private IAsyncRelayCommand requestNotificationPermissionsCommand;
         private AuthorizationStatus authorizationStatus;
         private string token;
         private string topic;
-        private AsyncRelayCommand unsubscribeAllTopicsCommand;
+        private IAsyncRelayCommand unsubscribeAllTopicsCommand;
         private SubscribedTopicViewModel[] subscribedTopics;
-        private AsyncRelayCommand getSubscribedTopicsCommand;
+        private IAsyncRelayCommand getSubscribedTopicsCommand;
         private bool subscribeEventsAtStartup;
         private bool isSubscribedToEvents;
-        private AsyncRelayCommand appearingCommand;
+        private IAsyncRelayCommand appearingCommand;
         private bool isInitialized;
-        private AsyncRelayCommand registerNotificationCategoriesCommand;
-        private AsyncRelayCommand getNotificationCategoriesCommand;
-        private AsyncRelayCommand clearNotificationCategoriesCommand;
+        private IAsyncRelayCommand registerNotificationCategoriesCommand;
+        private IAsyncRelayCommand getNotificationCategoriesCommand;
+        private IAsyncRelayCommand clearNotificationCategoriesCommand;
         private NotificationCategoryViewModel[] notificationCategories;
-        private AsyncRelayCommand getNotificationChannelsCommand;
+        private IAsyncRelayCommand getNotificationChannelsCommand;
         private string[] channels;
-        private AsyncRelayCommand copyTokenCommand;
-        private AsyncRelayCommand deleteNotificationChannelsCommand;
-        private AsyncRelayCommand createNotificationChannelsCommand;
+        private IAsyncRelayCommand copyTokenCommand;
+        private IAsyncRelayCommand deleteNotificationChannelsCommand;
+        private IAsyncRelayCommand createNotificationChannelsCommand;
         private IAsyncRelayCommand<string> openUrlCommand;
+        private IAsyncRelayCommand createNotificationChannelGroupsCommand;
+        private IAsyncRelayCommand deleteNotificationChannelGroupsCommand;
 
 #if IOS
         private UNNotificationPresentationOptions[] presentationOptions;
@@ -406,6 +408,50 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
+        public ICommand CreateNotificationChannelGroupsCommand
+        {
+            get => this.createNotificationChannelGroupsCommand ??= new AsyncRelayCommand(this.CreateNotificationChannelGroupsAsync);
+        }
+
+        private async Task CreateNotificationChannelGroupsAsync()
+        {
+            try
+            {
+#if ANDROID
+                var notificationChannelGroupRequests = MauiSampleApp.Platforms.Notifications.NotificationChannelGroupSamples.GetAll().ToArray();
+                this.notificationChannels.CreateNotificationChannelGroups(notificationChannelGroupRequests);
+#endif
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "CreateNotificationChannelGroupsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Create notification channel groups failed with exception", "OK");
+            }
+        }
+
+        public ICommand DeleteNotificationChannelGroupsCommand
+        {
+            get => this.deleteNotificationChannelGroupsCommand ??= new AsyncRelayCommand(this.DeleteNotificationChannelGroupsAsync);
+        }
+
+        private async Task DeleteNotificationChannelGroupsAsync()
+        {
+            try
+            {
+#if ANDROID
+                var notificationChannelGroupIds = MauiSampleApp.Platforms.Notifications.NotificationChannelGroupSamples.GetAll()
+                    .Select(g => g.GroupId)
+                    .ToArray();
+                this.notificationChannels.DeleteNotificationChannelGroups(notificationChannelGroupIds);
+#endif
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "DeleteNotificationChannelGroupsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Delete notification channel groups failed with exception", "OK");
+            }
+        }
+
         public string[] Channels
         {
             get => this.channels;
@@ -425,7 +471,7 @@ namespace MauiSampleApp.ViewModels
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex, "UpdateNotificationChannelsAsync failed with exception");
+                this.logger.LogError(ex, "GetNotificationChannelsAsync failed with exception");
                 await this.dialogService.ShowDialogAsync("Error", "Get notification channels failed with exception", "OK");
             }
         }
@@ -440,7 +486,10 @@ namespace MauiSampleApp.ViewModels
             try
             {
 #if ANDROID
-                this.notificationChannels.DeleteAllChannels();
+                var notificationChannelIds = MauiSampleApp.Platforms.Notifications.NotificationChannelSamples.GetAll()
+                    .Select(g => g.ChannelId)
+                    .ToArray();
+                this.notificationChannels.DeleteChannels(notificationChannelIds);
                 this.UpdateNotificationChannels();
 #endif
             }

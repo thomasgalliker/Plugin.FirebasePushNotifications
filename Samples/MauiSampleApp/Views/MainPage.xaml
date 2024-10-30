@@ -97,18 +97,28 @@
                 Spacing="8"
                 IsVisible="{OnPlatform Android=True, Default=False}">
                 <Button
+                    Command="{Binding CreateNotificationChannelGroupsCommand}"
+                    Text="Create notification channel groups"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding DeleteNotificationChannelGroupsCommand}"
+                    Text="Delete notification channel groups"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
                     Command="{Binding GetNotificationChannelsCommand}"
                     Text="Get notification channels"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
                 <Button
-                    Command="{Binding DeleteNotificationChannelsCommand}"
-                    Text="Delete notification channels"
+                    Command="{Binding CreateNotificationChannelsCommand}"
+                    Text="Create sample notification channels"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
                 <Button
-                    Command="{Binding CreateNotificationChannelsCommand}"
-                    Text="Create sample notification channels"
+                    Command="{Binding DeleteNotificationChannelsCommand}"
+                    Text="Delete all notification channels"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
                 <VerticalStackLayout
