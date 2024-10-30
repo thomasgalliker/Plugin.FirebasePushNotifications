@@ -31,6 +31,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private async void ConfigurePlatform()
         {
+            this.InitializeNotificationChannels();
+
             var context = await Platform.WaitForActivityAsync();
 
             var isFirebaseAppInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context);
@@ -64,7 +66,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.CheckIfFirebaseAppInitialized(context);
 
             FirebaseMessaging.Instance.AutoInitEnabled = this.options.AutoInitEnabled;
+        }
 
+        private void InitializeNotificationChannels()
+        {
             var notificationChannels = NotificationChannels.Current;
 
             var notificationChannelRequests = this.options.Android.NotificationChannels.ToArray();
