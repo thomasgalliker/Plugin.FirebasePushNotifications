@@ -16,7 +16,7 @@ namespace MauiSampleApp.Platforms.Notifications
                 Importance = NotificationImportance.High,
                 IsDefault = true,
             };
-            
+
             yield return new NotificationChannelRequest
             {
                 ChannelId = "test_channel_1",
@@ -31,6 +31,18 @@ namespace MauiSampleApp.Platforms.Notifications
                 ChannelId = "test_channel_2",
                 ChannelName = "Test Channel 2",
                 Description = "Description for test channel 2",
+                Group = NotificationChannelGroupSamples.TestGroup1.GroupId,
+                LockscreenVisibility = NotificationVisibility.Public,
+                Importance = NotificationImportance.High,
+                IsActive = false,
+            };
+
+            yield return new NotificationChannelRequest
+            {
+                ChannelId = "test_channel_3",
+                ChannelName = "Test Channel 3",
+                Description = "Description for test channel 3",
+                Group = NotificationChannelGroupSamples.TestGroup1.GroupId,
                 LockscreenVisibility = NotificationVisibility.Public,
                 Importance = NotificationImportance.High,
                 IsActive = false,

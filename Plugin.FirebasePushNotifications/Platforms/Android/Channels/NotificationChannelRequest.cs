@@ -51,7 +51,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         public bool IsActive { get; set; } = true;
 
         /// <summary>
-        /// Sets or gets, what group this channel belongs to.
+        /// The group ID this channel belongs to.
         /// </summary>
         public string Group { get; set; }
 
