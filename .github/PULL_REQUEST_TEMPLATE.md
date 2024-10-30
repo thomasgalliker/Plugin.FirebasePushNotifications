@@ -23,6 +23,7 @@
 - [ ] Documentation
   * In-code comments are meaningful or replaced by self-explanatory code.
   * Changes to interfaces are documented in `readme.md`.
+  * Updated the release notes under `<PackageReleaseNotes>`.
 - [ ] Security and Data Protection
   * Sensitive data is not unintentionally logged or stored.
   * User inputs have been validated.
