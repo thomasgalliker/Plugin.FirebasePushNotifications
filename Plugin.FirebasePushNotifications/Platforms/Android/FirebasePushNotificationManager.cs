@@ -27,7 +27,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.NotificationBuilder = notificationBuilder;
             this.ConfigurePlatform();
+
+            // There are several different versions in firebase-android-sdk.
+            // We return the Firebase Cloud Messaging version here.
+            this.SdkVersion = Firebase.Messaging.BuildConfig.VersionName;
         }
+
+        /// <inheritdoc />
+        public string SdkVersion { get; }
 
         private async void ConfigurePlatform()
         {

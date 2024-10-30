@@ -48,7 +48,7 @@ namespace Plugin.FirebasePushNotifications
         void DeleteNotificationChannelGroups(string[] groupIds);
 
         /// <summary>
-        /// Deletes all notification channel groups />.
+        /// Deletes all notification channel groups which are configured in <see cref="Channels"/>.
         /// </summary>
         void DeleteAllNotificationChannelGroups();
 
@@ -67,11 +67,11 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Deletes notification channels with identifiers <paramref name="channelIds"/>.
         /// </summary>
-        /// <param name="channelIds">The notification channel identifiers.</param>
+        /// <param name="channelIds">The notification channel requests.</param>
         void DeleteChannels(string[] channelIds);
 
         /// <summary>
-        /// Deletes all existing notification channels.
+        /// Deletes all existing notification channels which are configured in <see cref="Channels"/>.
         /// </summary>
         void DeleteAllChannels();
     }

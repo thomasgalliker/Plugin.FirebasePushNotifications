@@ -8,6 +8,16 @@ namespace Plugin.FirebasePushNotifications.Internals
 
         public bool HasReachedLimit(string identifier, TimeSpan expirationTime)
         {
+            if (identifier == null)
+            {
+                throw new ArgumentNullException(nameof(identifier), $"Parameter {nameof(identifier)} must not be null.");
+            }
+
+            if (expirationTime <= TimeSpan.Zero)
+            {
+                throw new ArgumentException($"Parameter {nameof(expirationTime)} must be greater than zero.", nameof(expirationTime));
+            }
+
             var utcNow = DateTime.UtcNow;
 
             if (this.cache.TryGetValue(identifier, out var existingExpirationTime))
