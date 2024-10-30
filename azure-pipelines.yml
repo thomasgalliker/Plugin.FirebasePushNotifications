@@ -25,8 +25,8 @@ variables:
   solution: 'Plugin.FirebasePushNotifications.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  majorVersion: 2
-  minorVersion: 5
+  majorVersion: 3
+  minorVersion: 0
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
     # Versioning: 1.0.0
@@ -46,7 +46,7 @@ steps:
     targetType: 'inline'
     script: 'env | sort'
    
-- task: Assembly-Info-NetCore@2
+- task: Assembly-Info-NetCore@3
   displayName: 'Update Assembly Info'
   inputs:
     Path: '$(Build.SourcesDirectory)'

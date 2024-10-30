@@ -22,6 +22,11 @@ namespace Plugin.FirebasePushNotifications
         public static IFirebasePushNotification Current { get; set; } = CrossFirebasePushNotification.Current;
 
         /// <summary>
+        /// Gets the version of the underlying Firebase SDK.
+        /// </summary>
+        string SdkVersion { get; }
+
+        /// <summary>
         /// Clears all queues (if any exist).
         /// </summary>
         /// <remarks>

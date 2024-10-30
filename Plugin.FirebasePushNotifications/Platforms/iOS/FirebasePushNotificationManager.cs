@@ -31,7 +31,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
             this.ConfigurePlatform();
+            this.SdkVersion = Firebase.Core.App.FirebaseVersion;
         }
+
+        /// <inheritdoc />
+        public string SdkVersion { get; }
 
         /// <inheritdoc />
         public string Token

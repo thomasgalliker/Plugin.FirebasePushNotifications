@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net7.0-android33.0;net7.0-ios16.0;net8.0;net8.0-android34.0;net8.0-ios17.0</TargetFrameworks>
+		<TargetFrameworks>net7.0;net7.0-android33.0;net7.0-ios;net8.0;net8.0-android34.0;net8.0-ios17.0</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<UseMaui>true</UseMaui>
 		<MauiVersion Condition="$(TargetFramework.Contains('net8.0'))">8.0.3</MauiVersion>
@@ -37,7 +37,10 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>2.5
+		<PackageReleaseNotes>3.0
+- Update firebase-ios-sdk by replacing nuget package Xamarin.Firebase.iOS.CloudMessaging with AdamE.Firebase.iOS.CloudMessaging.
+
+2.5
 - Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions.
 - iOS 18 workaround for duplicate notifications in foreground mode.
 - iOS options to override default UNNotificationPresentationOptions for notifications received in foreground mode.
@@ -82,24 +85,19 @@
 	<ItemGroup Condition="$(TargetFramework.Contains('net8.0'))">
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.0,)" />
 	</ItemGroup>
-	
-	<!--Platform-specific package references--> 
-	<ItemGroup Condition="$(TargetFramework.Contains('-android'))">
-		<PackageReference Include="Xamarin.Firebase.Messaging">
-			<Version>123.1.2.2</Version>
-		</PackageReference>
-		<PackageReference Include="Xamarin.GooglePlayServices.Tasks">
-			<Version>118.0.2.3</Version>
-		</PackageReference>
-		<PackageReference Include="Xamarin.Firebase.Common" Version="120.3.3.1" />
 
-		<!--Temporary workaround for issue in AndroidX: https://github.com/xamarin/AndroidX/issues/742-->
-		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2.1" />
-		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2.1" />
-	</ItemGroup>
+  <!--Platform-specific package references-->
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <PackageReference Include="Xamarin.Firebase.Messaging" Version="123.1.2.2" />
+    <PackageReference Include="Xamarin.Firebase.Common" Version="120.3.3.1" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Tasks" Version="118.0.2.3" />
 
-	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
-		<PackageReference Include="Xamarin.Firebase.iOS.CloudMessaging" Version="8.10.0.3" />
-	</ItemGroup>
+    <!--Temporary workaround for issue in AndroidX: https://github.com/xamarin/AndroidX/issues/742-->
+    <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2.1" />
+    <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2.1" />
+  </ItemGroup>
 
+  <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
+    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="10.29.0.1" />
+  </ItemGroup>
 </Project>
