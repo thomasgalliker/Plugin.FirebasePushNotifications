@@ -16,15 +16,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [Preserve(AllMembers = true)]
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
+        private readonly INotificationChannels notificationChannels;
+
         internal FirebasePushNotificationManager(
             ILogger<FirebasePushNotificationManager> logger,
             ILoggerFactory loggerFactory,
             FirebasePushNotificationOptions options,
             IPushNotificationHandler pushNotificationHandler,
             IFirebasePushNotificationPreferences preferences,
+            INotificationChannels notificationChannels,
             INotificationBuilder notificationBuilder)
             : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
+            this.notificationChannels = notificationChannels;
             this.NotificationBuilder = notificationBuilder;
             this.ConfigurePlatform();
 
@@ -38,7 +42,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private async void ConfigurePlatform()
         {
-            this.InitializeNotificationChannels();
+            this.notificationChannels.SetNotificationChannelGroups(this.options.Android.NotificationChannelGroups);
+            this.notificationChannels.SetNotificationChannels(this.options.Android.NotificationChannels);
 
             var context = await Platform.WaitForActivityAsync();
 
@@ -73,19 +78,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.CheckIfFirebaseAppInitialized(context);
 
             FirebaseMessaging.Instance.AutoInitEnabled = this.options.AutoInitEnabled;
-        }
-
-        private void InitializeNotificationChannels()
-        {
-            var notificationChannels = NotificationChannels.Current;
-
-            var notificationChannelRequests = this.options.Android.NotificationChannels.ToArray();
-            if (notificationChannelRequests.Length == 0)
-            {
-                notificationChannelRequests = new[] { Constants.DefaultNotificationChannel };
-            }
-
-            notificationChannels.CreateChannels(notificationChannelRequests);
         }
 
         private void InitializeFirebaseAppFromServiceFile(Activity context)

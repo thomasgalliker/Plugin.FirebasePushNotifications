@@ -1,11 +1,12 @@
-﻿using Plugin.FirebasePushNotifications.Platforms.Channels;
+﻿using Android.App;
+using Plugin.FirebasePushNotifications.Platforms.Channels;
 
 namespace Plugin.FirebasePushNotifications
 {
     /// <summary>
     /// Android-specific interface to handle notification channels.
     /// </summary>
-    public partial interface INotificationChannels
+    public interface INotificationChannels
     {
         /// <summary>
         /// Gets the singleton instance of <see cref="INotificationChannels"/>.
@@ -15,16 +16,12 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Gets the list of configured notification channels.
         /// </summary>
-        IEnumerable<NotificationChannelRequest> Channels { get; }
+        IEnumerable<NotificationChannel> Channels { get; }
 
         /// <summary>
-        /// Creates a notification channel group.
+        /// Gets the list of configured notification channel groups.
         /// </summary>
-        /// <remarks>
-        /// Important: Create notification channel groups before you create notification channels!
-        /// </remarks>
-        /// <param name="notificationChannelGroupRequest">The notification channel group request.</param>
-        void CreateNotificationChannelGroup(NotificationChannelGroupRequest notificationChannelGroupRequest);
+        IEnumerable<NotificationChannelGroup> ChannelGroups { get; }
 
         /// <summary>
         /// Creates notification channel groups.
@@ -34,6 +31,8 @@ namespace Plugin.FirebasePushNotifications
         /// </remarks>
         /// <param name="notificationChannelGroupRequests">The notification channel group requests.</param>
         void CreateNotificationChannelGroups(NotificationChannelGroupRequest[] notificationChannelGroupRequests);
+
+        void SetNotificationChannelGroups(NotificationChannelGroupRequest[] notificationChannelGroupRequests);
 
         /// <summary>
         /// Deletes the notification channel group with <paramref name="groupId"/>.
@@ -55,24 +54,36 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Creates notification channels from given <paramref name="notificationChannelRequests"/>.
         /// </summary>
+        /// <remarks>
+        /// If the <paramref name="notificationChannelRequests"/> already exist, they're updated.
+        /// </remarks>
         /// <param name="notificationChannelRequests">The notification channel requests.</param>
-        void CreateChannels(NotificationChannelRequest[] notificationChannelRequests);
+        void CreateNotificationChannels(NotificationChannelRequest[] notificationChannelRequests);
 
         /// <summary>
-        /// Updates notification channels from given <paramref name="notificationChannelRequests"/>.
+        /// Sets notification channels from given <paramref name="notificationChannelRequests"/>.
         /// </summary>
+        /// <remarks>
+        /// If the <paramref name="notificationChannelRequests"/> already exist, they're updated.
+        /// </remarks>
         /// <param name="notificationChannelRequests">The notification channel requests.</param>
-        void UpdateChannels(NotificationChannelRequest[] notificationChannelRequests);
+        void SetNotificationChannels(NotificationChannelRequest[] notificationChannelRequests);
 
         /// <summary>
         /// Deletes notification channels with identifiers <paramref name="channelIds"/>.
         /// </summary>
         /// <param name="channelIds">The notification channel requests.</param>
-        void DeleteChannels(string[] channelIds);
+        void DeleteNotificationChannels(string[] channelIds);
 
         /// <summary>
         /// Deletes all existing notification channels which are configured in <see cref="Channels"/>.
         /// </summary>
-        void DeleteAllChannels();
+        void DeleteAllNotificationChannels();
+
+        /// <summary>
+        /// Opens the notification channel settings for <paramref name="channelId"/>.
+        /// </summary>
+        /// <param name="channelId">The notification channel identifier.</param>
+        void OpenNotificationChannelSettings(string channelId);
     }
 }

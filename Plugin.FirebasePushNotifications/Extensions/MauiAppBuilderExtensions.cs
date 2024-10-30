@@ -2,9 +2,12 @@
 
 #if ANDROID || IOS
 using Plugin.FirebasePushNotifications.Platforms;
-using Plugin.FirebasePushNotifications.Platforms.Channels;
 using Plugin.FirebasePushNotifications.Model.Queues;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+#endif
+
+#if ANDROID
+using Plugin.FirebasePushNotifications.Platforms.Channels;
 #endif
 
 #if IOS
@@ -112,7 +115,7 @@ namespace Plugin.FirebasePushNotifications
             builder.Services.AddSingleton(c => NotificationChannels.Current);
             builder.Services.TryAddSingleton<INotificationBuilder, NotificationBuilder>();
 #elif IOS
-            builder.Services.AddSingleton<INotificationChannels, NotificationChannels>();
+            // Register iOS-specific services here
 #endif
             return builder;
         }

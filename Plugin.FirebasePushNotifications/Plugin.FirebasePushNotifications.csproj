@@ -37,7 +37,11 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>3.0
+		<PackageReleaseNotes>3.1
+- Add API to manage notification channel groups in INotificationChannels.
+- Internal refactoring of INotificationChannels implementation.
+
+3.0
 - Update firebase-ios-sdk by replacing nuget package Xamarin.Firebase.iOS.CloudMessaging with AdamE.Firebase.iOS.CloudMessaging.
 
 2.5

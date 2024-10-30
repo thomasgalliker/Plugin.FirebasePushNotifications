@@ -5,17 +5,18 @@ namespace MauiSampleApp.Platforms.Notifications
 {
     public static class NotificationChannelSamples
     {
+        public static NotificationChannelRequest Default { get; } = new NotificationChannelRequest
+        {
+            ChannelId = "default_channel_id",
+            ChannelName = "Default Channel",
+            Description = "The default notification channel",
+            LockscreenVisibility = NotificationVisibility.Public,
+            Importance = NotificationImportance.High,
+        };
+
         public static IEnumerable<NotificationChannelRequest> GetAll()
         {
-            yield return new NotificationChannelRequest
-            {
-                ChannelId = "default_channel_id",
-                ChannelName = "Default Channel",
-                Description = "The default notification channel",
-                LockscreenVisibility = NotificationVisibility.Public,
-                Importance = NotificationImportance.High,
-                IsDefault = true,
-            };
+            yield return Default;
 
             yield return new NotificationChannelRequest
             {
@@ -34,7 +35,6 @@ namespace MauiSampleApp.Platforms.Notifications
                 Group = NotificationChannelGroupSamples.TestGroup1.GroupId,
                 LockscreenVisibility = NotificationVisibility.Public,
                 Importance = NotificationImportance.High,
-                IsActive = false,
             };
 
             yield return new NotificationChannelRequest
@@ -45,7 +45,6 @@ namespace MauiSampleApp.Platforms.Notifications
                 Group = NotificationChannelGroupSamples.TestGroup1.GroupId,
                 LockscreenVisibility = NotificationVisibility.Public,
                 Importance = NotificationImportance.High,
-                IsActive = false,
             };
         }
     }

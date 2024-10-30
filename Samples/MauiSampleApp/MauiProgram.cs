@@ -32,7 +32,10 @@ namespace MauiSampleApp
 #if ANDROID
                     // You can configure Android-specific options under o.Android:
                     // o.Android.NotificationActivityType = typeof(MainActivity);
+                    // o.Android.NotificationChannelGroups = NotificationChannelGroupSamples.GetAll().ToArray();
                     // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
+                    o.Android.NotificationChannels = new [] { NotificationChannelSamples.Default };
+                    o.Android.DefaultNotificationChannelId = NotificationChannelSamples.Default.ChannelId;
                     // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
 
                     // If you don't want to use the google-services.json file,

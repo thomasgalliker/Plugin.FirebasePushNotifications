@@ -2,6 +2,7 @@
 using Android.Content;
 using Firebase.Messaging;
 using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Utils;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -11,36 +12,30 @@ namespace Plugin.FirebasePushNotifications.Platforms
     {
         private readonly ILogger logger;
         private readonly INotificationBuilder notificationBuilder;
+        private readonly IFirebasePushNotification firebasePushNotification;
 
         public PNFirebaseMessagingService()
         {
             this.logger = IPlatformApplication.Current.Services.GetService<ILogger<PNFirebaseMessagingService>>();
+
+            this.firebasePushNotification = IFirebasePushNotification.Current;
             this.notificationBuilder = IPlatformApplication.Current.Services.GetService<INotificationBuilder>();
         }
 
         public override void HandleIntent(Intent intent)
         {
-            this.logger.LogDebug("HandleIntent");
+            this.logger.LogDebug($"HandleIntent: Action={intent.Action}");
 
             // HandleIntent calls OnMessageReceived because - for some reason - plain notification messages
             // are not forwarded to OnMessageReceived. Only data messages arrive in OnMessageReceived which makes it impossible to
             // send a notification message with click_action/category content.
 
-            // TODO: HandleIntent seems no longer used in firebase 11.8.0 and later.
-
             try
             {
-                if (intent.Extras != null)
+                if (intent.Action == "com.google.android.c2dm.intent.RECEIVE")
                 {
                     var data = intent.GetExtrasDict();
-                    if (this.notificationBuilder.ShouldHandleNotificationReceived(data))
-                    {
-                        this.notificationBuilder.OnNotificationReceived(data);
-                    }
-                    else
-                    {
-                        base.HandleIntent(intent);
-                    }
+                    this.firebasePushNotification.HandleNotificationReceived(data);
                 }
                 else
                 {
@@ -52,6 +47,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 this.logger.LogError(ex, "HandleIntent failed with exception");
                 base.HandleIntent(intent);
             }
+
         }
 
         public override void OnMessageReceived(RemoteMessage remoteMessage)
@@ -155,14 +151,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            var firebasePushNotification = IFirebasePushNotification.Current;
-            firebasePushNotification.HandleNotificationReceived(data);
+            this.firebasePushNotification.HandleNotificationReceived(data);
         }
 
         public override void OnNewToken(string refreshedToken)
         {
-            var firebasePushNotification = IFirebasePushNotification.Current;
-            firebasePushNotification.HandleTokenRefresh(refreshedToken);
+            this.firebasePushNotification.HandleTokenRefresh(refreshedToken);
         }
     }
 }

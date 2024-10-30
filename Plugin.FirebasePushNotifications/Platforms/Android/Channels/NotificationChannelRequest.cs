@@ -34,23 +34,6 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         public string Description { get; set; }
 
         /// <summary>
-        /// Marks this channel as the default notification channel.
-        /// </summary>
-        /// <remarks>
-        /// Exactly one notification channel has to be marked with IsDefault=true.
-        /// </remarks>
-        public bool IsDefault { get; set; }
-
-        /// <summary>
-        /// Determines if the current notification channel is active.
-        /// Default: <c>true</c>
-        /// </summary>
-        /// <remarks>
-        /// Inactive notification channels will be removed at app startup.
-        /// </remarks>
-        public bool IsActive { get; set; } = true;
-
-        /// <summary>
         /// The group ID this channel belongs to.
         /// </summary>
         public string Group { get; set; }

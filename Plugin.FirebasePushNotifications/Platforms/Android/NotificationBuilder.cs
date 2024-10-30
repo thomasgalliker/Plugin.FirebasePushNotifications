@@ -8,7 +8,7 @@ using AndroidX.Core.App;
 using Java.Util;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
-using Plugin.FirebasePushNotifications.Platforms.Channels;
+using Plugin.FirebasePushNotifications.Utils;
 using Application = Android.App.Application;
 using Color = Android.Graphics.Color;
 using Uri = Android.Net.Uri;
@@ -21,13 +21,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private static readonly Java.Util.Random Rng = new Java.Util.Random();
 
         private readonly ILogger logger;
+        private readonly INotificationChannels notificationChannels;
         private readonly FirebasePushNotificationOptions options;
 
         public NotificationBuilder(
             ILogger<NotificationBuilder> logger,
+            INotificationChannels notificationChannels,
             FirebasePushNotificationOptions options)
         {
             this.logger = logger;
+            this.notificationChannels = notificationChannels;
             this.options = options;
         }
 
@@ -39,7 +42,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 // we don't display any local notification.
                 return false;
             }
-            
+
             var notificationImportance = this.GetNotificationImportance(data);
             if (notificationImportance >= NotificationImportance.High)
             {
@@ -52,7 +55,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 data.ContainsKey(Constants.CategoryKey) ||
                 data.ContainsKey(Constants.GcmNotificationClickActionKey))
             {
-                var isInForeground = IsInForeground();
+                var isInForeground = AppHelper.IsInForeground();
                 if (isInForeground == false)
                 {
                     // If we received a "click_action" or "category"
@@ -62,7 +65,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
             }
 
-            var notificationChannel = GetChannel(data);
+            var notificationChannel = this.GetNotificationChannel(data);
             if (notificationChannel is { Importance: >= NotificationImportance.High })
             {
                 // In case we receive a notification which targets a specific notification channel
@@ -138,25 +141,26 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             var notificationImportance = this.GetNotificationImportance(data);
 
-            var notificationChannel = GetChannelOrDefault(data);
+            var notificationChannel = this.GetNotificationChannelOrDefault(data);
             if (notificationChannel == null)
             {
                 this.logger.LogError(
                     $"NotificationCompat.Builder requires a notification channel to work properly. " +
-                    $"Use {nameof(INotificationChannels)}.{nameof(INotificationChannels.CreateChannels)} to create at least one notification channel.");
+                    $"Use {nameof(INotificationChannels)}.{nameof(INotificationChannels.CreateNotificationChannels)} to create at least one notification channel.");
+
                 return;
             }
 
             if (notificationChannel.Importance < notificationImportance)
             {
                 this.logger.LogWarning(
-                    $"Notification channel '{notificationChannel.ChannelId}' has importance '{notificationChannel.Importance}' " +
+                    $"Notification channel '{notificationChannel.Id}' has importance '{notificationChannel.Importance}' " +
                     $"which is lower than notification importance '{notificationImportance}'");
             }
 
             var smallIconResource = this.GetSmallIconResource(data, context);
 
-            var notificationBuilder = new NotificationCompat.Builder(context, notificationChannel.ChannelId)
+            var notificationBuilder = new NotificationCompat.Builder(context, notificationChannel.Id)
                 .SetSmallIcon(smallIconResource)
                 .SetAutoCancel(true)
                 .SetWhen(Java.Lang.JavaSystem.CurrentTimeMillis())
@@ -627,28 +631,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return showWhenVisible;
         }
 
-        private static NotificationChannelRequest GetChannelOrDefault(IDictionary<string, object> data)
+        private NotificationChannel GetNotificationChannelOrDefault(IDictionary<string,object> data)
         {
-            var notificationChannel = GetChannel(data);
+            var notificationChannel = this.GetNotificationChannel(data);
 
-            if (notificationChannel == null)
+            if (notificationChannel == null &&
+                this.options.Android.DefaultNotificationChannelId is string defaultNotificationChannelId)
             {
-                var notificationChannels = NotificationChannels.Current.Channels;
-                notificationChannel = notificationChannels.SingleOrDefault(c => c.IsDefault);
+                notificationChannel = this.notificationChannels.Channels.SingleOrDefault(c => c.Id == defaultNotificationChannelId);
             }
 
             return notificationChannel;
         }
 
-        private static NotificationChannelRequest GetChannel(IDictionary<string, object> data)
+        private NotificationChannel GetNotificationChannel(IDictionary<string, object> data)
         {
-            NotificationChannelRequest notificationChannel = null;
+            NotificationChannel notificationChannel = null;
 
             if (data.TryGetString(Constants.ChannelIdKey, out var channelId))
             {
-                var notificationChannels = NotificationChannels.Current.Channels;
-                notificationChannel = notificationChannels.SingleOrDefault(c =>
-                    string.Equals(c.ChannelId, channelId, StringComparison.InvariantCultureIgnoreCase));
+                notificationChannel = this.notificationChannels.Channels.SingleOrDefault(c =>
+                    string.Equals(c.Id, channelId, StringComparison.InvariantCultureIgnoreCase));
             }
 
             return notificationChannel;
@@ -871,14 +874,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public virtual void OnBuildNotification(NotificationCompat.Builder notificationBuilder,
             IDictionary<string, object> data)
         {
-        }
-
-        private static bool IsInForeground()
-        {
-            var myProcess = new ActivityManager.RunningAppProcessInfo();
-            ActivityManager.GetMyMemoryState(myProcess);
-            var isInForeground = myProcess.Importance == Android.App.Importance.Foreground;
-            return isInForeground;
         }
     }
 }

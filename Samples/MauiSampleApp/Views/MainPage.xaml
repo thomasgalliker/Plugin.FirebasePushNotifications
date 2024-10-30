@@ -13,6 +13,9 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
+            <DataTemplate x:Key="NotificationChannelGroupItemTemplate">
+                <itemTemplates:NotificationChannelGroupItemTemplate />
+            </DataTemplate>
             <DataTemplate x:Key="NotificationChannelItemTemplate">
                 <itemTemplates:NotificationChannelItemTemplate />
             </DataTemplate>
@@ -96,16 +99,27 @@
             <VerticalStackLayout
                 Spacing="8"
                 IsVisible="{OnPlatform Android=True, Default=False}">
+                <!-- Notification channel groups -->
+                <Button
+                    Command="{Binding GetNotificationChannelGroupsCommand}"
+                    Text="Get notification channel groups"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
                 <Button
                     Command="{Binding CreateNotificationChannelGroupsCommand}"
-                    Text="Create notification channel groups"
+                    Text="Create sample notification channel groups"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
                 <Button
                     Command="{Binding DeleteNotificationChannelGroupsCommand}"
-                    Text="Delete notification channel groups"
+                    Text="Delete all notification channel groups"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
+                <VerticalStackLayout
+                    BindableLayout.ItemTemplate="{StaticResource NotificationChannelGroupItemTemplate}"
+                    BindableLayout.ItemsSource="{Binding ChannelGroups}" />
+                
+                <!-- Notification channels -->
                 <Button
                     Command="{Binding GetNotificationChannelsCommand}"
                     Text="Get notification channels"

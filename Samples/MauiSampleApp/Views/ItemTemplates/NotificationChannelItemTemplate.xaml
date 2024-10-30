@@ -2,21 +2,80 @@
 <ContentView
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
     x:Class="MauiSampleApp.Views.ItemTemplates.NotificationChannelItemTemplate"
-    x:DataType="x:String">
+    x:DataType="vm:NotificationChannelViewModel">
 
     <Grid
         Padding="4"
-        ColumnDefinitions="Auto, *"
-        ColumnSpacing="4">
+        ColumnDefinitions="1*, 2*"
+        ColumnSpacing="4"
+        RowDefinitions="*">
+
         <Label
             Grid.Column="0"
-            Text="ChannelId: "
-            VerticalOptions="Center" />
-        <Label
+            Grid.Row="0"
+            FontAttributes="Bold"
+            Text="{Binding ChannelId}"
+            VerticalOptions="Start" />
+        
+        <Grid
             Grid.Column="1"
-            Text="{Binding .}"
-            FontFamily="{StaticResource FontFamilyMonospace}"
-            VerticalOptions="Center" />
+            Grid.Row="0"
+            ColumnDefinitions="Auto, *"
+            ColumnSpacing="4"
+            RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+
+            <Label
+                Grid.Column="0"
+                Grid.Row="0"
+                Text="ChannelName:" />
+            <Label
+                Grid.Column="1"
+                Grid.Row="0"
+                Text="{Binding ChannelName}"
+                FontFamily="{StaticResource FontFamilyMonospace}"  />
+            
+            <Label
+                Grid.Column="0"
+                Grid.Row="1"
+                Text="Description:" />
+            <Label
+                Grid.Column="1"
+                Grid.Row="1"
+                Text="{Binding Description}"
+                LineBreakMode="TailTruncation"
+                FontFamily="{StaticResource FontFamilyMonospace}"  />
+            
+            <Label
+                Grid.Column="0"
+                Grid.Row="2"
+                Text="IsActive:" />
+            <Label
+                Grid.Column="1"
+                Grid.Row="2"
+                Text="{Binding LockscreenVisibility}"
+                FontFamily="{StaticResource FontFamilyMonospace}"  />
+            
+            <Label
+                Grid.Column="0"
+                Grid.Row="3"
+                Text="Group:" />
+            <Label
+                Grid.Column="1"
+                Grid.Row="3"
+                Text="{Binding Group}"
+                FontFamily="{StaticResource FontFamilyMonospace}" />
+            
+            <Label
+                Grid.Column="0"
+                Grid.Row="4"
+                Text="Importance:" />
+            <Label
+                Grid.Column="1"
+                Grid.Row="4"
+                Text="{Binding Importance}"
+                FontFamily="{StaticResource FontFamilyMonospace}" />
+        </Grid>
     </Grid>
 </ContentView>
