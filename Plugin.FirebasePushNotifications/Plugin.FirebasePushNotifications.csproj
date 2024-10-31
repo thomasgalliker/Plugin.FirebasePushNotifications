@@ -38,8 +38,10 @@
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageReleaseNotes>3.1
-- Add API to manage notification channel groups in INotificationChannels.
+- Extend INotificationChannels to manage notification channel groups.
 - Internal refactoring of INotificationChannels implementation.
+- Removed properties IsActive and IsDefault from NotificationChannelRequest. Set the default notification channel via UseFirebasePushNotifications(o => o.Android.DefaultNotificationChannelId = ...).
+- Configure initial list of notification channels via o.Android.NotificationChannels and notification groups via o.Android.NotificationChannelGroups.
 
 3.0
 - Update firebase-ios-sdk by replacing nuget package Xamarin.Firebase.iOS.CloudMessaging with AdamE.Firebase.iOS.CloudMessaging.
