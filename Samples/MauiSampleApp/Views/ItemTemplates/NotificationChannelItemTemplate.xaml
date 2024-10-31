@@ -50,7 +50,7 @@
             <Label
                 Grid.Column="0"
                 Grid.Row="2"
-                Text="IsActive:" />
+                Text="LockscreenVisibility:" />
             <Label
                 Grid.Column="1"
                 Grid.Row="2"
