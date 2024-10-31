@@ -13,14 +13,14 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
     public class NotificationChannels : INotificationChannels
     {
         private static readonly Lazy<INotificationChannels> Implementation =
-            new Lazy<INotificationChannels>(CreateNotificationChannels, LazyThreadSafetyMode.PublicationOnly);
+            new Lazy<INotificationChannels>(CreateNotificationChannelsInstance, LazyThreadSafetyMode.PublicationOnly);
 
         public static INotificationChannels Current
         {
             get => Implementation.Value;
         }
 
-        private static INotificationChannels CreateNotificationChannels()
+        private static INotificationChannels CreateNotificationChannelsInstance()
         {
 #if ANDROID
             var logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<NotificationChannels>>();
@@ -176,18 +176,20 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 
             this.logger.LogDebug($"SetNotificationChannels: notificationChannelRequests=[{string.Join(",", channelIds)}]");
 
-            if (channelIds.Length == 0)
+            var notificationChannelsToDelete = this.Channels;
+
+            if (channelIds.Length > 0)
             {
-                return;
+                notificationChannelsToDelete = notificationChannelsToDelete
+                    .Where(c => !channelIds.Contains(c.Id));
             }
 
-            var notificationChannelIdsToDelete = this.Channels
-                .Where(c => !channelIds.Contains(c.Id))
+            var notificationChannelIdsToDelete = notificationChannelsToDelete
                 .Select(c => c.Id)
                 .ToArray();
 
             this.DeleteNotificationChannels(notificationChannelIdsToDelete);
-            this.CreateNotificationChannelsInternal(notificationChannelRequests);
+            this.CreateNotificationChannels(notificationChannelRequests);
         }
 
         /// <inheritdoc />
@@ -198,15 +200,10 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 throw new ArgumentNullException(nameof(notificationChannelRequests));
             }
 
-            this.logger.LogDebug(
-                $"CreateNotificationChannels: " +
-                $"notificationChannelRequests=[{string.Join(",", notificationChannelRequests.Select(c => c.ChannelId))}]");
+            var channelIds = notificationChannelRequests.Select(c => c.ChannelId);
 
-            this.CreateNotificationChannelsInternal(notificationChannelRequests);
-        }
+            this.logger.LogDebug($"CreateNotificationChannels: notificationChannelRequests=[{string.Join(",", channelIds)}]");
 
-        private void CreateNotificationChannelsInternal(NotificationChannelRequest[] notificationChannelRequests)
-        {
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
                 return;

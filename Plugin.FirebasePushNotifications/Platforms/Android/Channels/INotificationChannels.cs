@@ -1,4 +1,5 @@
-﻿using Android.App;
+﻿using System.Diagnostics.CodeAnalysis;
+using Android.App;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 
 namespace Plugin.FirebasePushNotifications
@@ -58,7 +59,7 @@ namespace Plugin.FirebasePushNotifications
         /// If the <paramref name="notificationChannelRequests"/> already exist, they're updated.
         /// </remarks>
         /// <param name="notificationChannelRequests">The notification channel requests.</param>
-        void CreateNotificationChannels(NotificationChannelRequest[] notificationChannelRequests);
+        void CreateNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests);
 
         /// <summary>
         /// Sets notification channels from given <paramref name="notificationChannelRequests"/>.
