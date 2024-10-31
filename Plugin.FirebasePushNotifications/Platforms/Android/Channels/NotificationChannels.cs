@@ -104,14 +104,16 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 
             this.logger.LogDebug($"SetNotificationChannelGroups: notificationChannelGroupRequests=[{string.Join(",", groupIds)}]");
 
-            if (notificationChannelGroupRequests.Length == 0)
+            var notificationChannelGroupsToDelete = this.ChannelGroups;
+
+            if (groupIds.Length > 0)
             {
-                return;
+                notificationChannelGroupsToDelete = notificationChannelGroupsToDelete
+                    .Where(c => !groupIds.Contains(c.Id));
             }
 
-            var notificationChannelGroupIdsToDelete = this.ChannelGroups
-                .Where(g => !groupIds.Contains(g.Id))
-                .Select(g => g.Id)
+            var notificationChannelGroupIdsToDelete = notificationChannelGroupsToDelete
+                .Select(c => c.Id)
                 .ToArray();
 
             this.DeleteNotificationChannelGroups(notificationChannelGroupIdsToDelete);
