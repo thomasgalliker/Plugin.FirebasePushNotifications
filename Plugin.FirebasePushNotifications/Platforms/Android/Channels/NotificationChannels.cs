@@ -125,7 +125,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         }
 
         /// <inheritdoc />
-        public void DeleteAllNotificationChannelGroups() // TODO: Fix inconsistent naming
+        public void DeleteAllNotificationChannelGroups()
         {
             this.logger.LogDebug("DeleteAllNotificationChannelGroups");
 
@@ -199,7 +199,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             }
 
             this.logger.LogDebug(
-                $"CreateChannels: " +
+                $"CreateNotificationChannels: " +
                 $"notificationChannelRequests=[{string.Join(",", notificationChannelRequests.Select(c => c.ChannelId))}]");
 
             this.CreateNotificationChannelsInternal(notificationChannelRequests);
@@ -259,6 +259,8 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void DeleteAllNotificationChannels()
         {
+            this.logger.LogDebug("DeleteAllNotificationChannels");
+
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
                 return;
@@ -276,7 +278,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 throw new ArgumentNullException(nameof(channelIds));
             }
 
-            this.logger.LogDebug($"DeleteChannels: channelIds=[{string.Join(",", channelIds)}]");
+            this.logger.LogDebug($"DeleteNotificationChannels: channelIds=[{string.Join(",", channelIds)}]");
 
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
@@ -301,6 +303,8 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 
         public void OpenNotificationChannelSettings([NotNull] string channelId)
         {
+            this.logger.LogDebug($"OpenNotificationChannelSettings: channelId={channelId}");
+
             if (channelId == null)
             {
                 throw new ArgumentNullException(nameof(channelId));
