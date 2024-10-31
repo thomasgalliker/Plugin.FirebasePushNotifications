@@ -42,6 +42,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private async void ConfigurePlatform()
         {
+            this.logger.LogDebug("ConfigurePlatform");
+
             this.notificationChannels.SetNotificationChannelGroups(this.options.Android.NotificationChannelGroups);
             this.notificationChannels.SetNotificationChannels(this.options.Android.NotificationChannels);
 
@@ -60,7 +62,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 if (this.options.Android.FirebaseOptions != null)
                 {
-                    this.logger.LogWarning("Firebase is already configured; Android.FirebaseOptions is not used!");
+                    this.logger.LogWarning("ConfigurePlatform: Firebase is already configured; Android.FirebaseOptions is not used!");
                 }
             }
             else
