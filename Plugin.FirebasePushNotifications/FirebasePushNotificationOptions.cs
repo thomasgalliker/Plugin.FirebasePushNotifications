@@ -21,9 +21,9 @@ namespace Plugin.FirebasePushNotifications
         public virtual IQueueFactory QueueFactory { get; set; }
 
 #if ANDROID
-        public virtual FirebasePushNotificationAndroidOptions Android { get; set; } = new FirebasePushNotificationAndroidOptions();
+        public virtual FirebasePushNotificationAndroidOptions Android { get; } = new FirebasePushNotificationAndroidOptions();
 #elif IOS
-        public virtual FirebasePushNotificationiOSOptions iOS { get; set; } = new FirebasePushNotificationiOSOptions();
+        public virtual FirebasePushNotificationiOSOptions iOS { get; } = new FirebasePushNotificationiOSOptions();
 #endif
 
         public override string ToString()
