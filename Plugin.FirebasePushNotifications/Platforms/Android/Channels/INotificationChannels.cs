@@ -81,6 +81,11 @@ namespace Plugin.FirebasePushNotifications
         void DeleteAllNotificationChannels();
 
         /// <summary>
+        /// Open the notification settings.
+        /// </summary>
+        void OpenNotificationSettings();
+
+        /// <summary>
         /// Opens the notification channel settings for <paramref name="channelId"/>.
         /// </summary>
         /// <param name="channelId">The notification channel identifier.</param>

@@ -121,6 +121,16 @@
                 
                 <!-- Notification channels -->
                 <Button
+                    Command="{Binding OpenNotificationSettingsCommand}"
+                    Text="Open notification settings"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding OpenNotificationChannelSettingsCommand}"
+                    Text="Open notification channel settings"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
                     Command="{Binding GetNotificationChannelsCommand}"
                     Text="Get notification channels"
                     HorizontalOptions="Fill"

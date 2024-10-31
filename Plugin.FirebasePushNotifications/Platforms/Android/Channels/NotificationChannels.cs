@@ -301,6 +301,24 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             }
         }
 
+        public void OpenNotificationSettings()
+        {
+            this.logger.LogDebug("OpenNotificationSettings");
+
+            try
+            {
+                var context = Android.App.Application.Context;
+                var newIntent = new Intent(Settings.ActionAppNotificationSettings);
+                newIntent.SetFlags(ActivityFlags.NewTask);
+                newIntent.PutExtra(Settings.ExtraAppPackage, context.PackageName);
+                context.StartActivity(newIntent);
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError(e, "OpenNotificationSettings failed with exception");
+            }
+        }
+
         public void OpenNotificationChannelSettings([NotNull] string channelId)
         {
             this.logger.LogDebug($"OpenNotificationChannelSettings: channelId={channelId}");
@@ -314,13 +332,14 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             {
                 var context = Android.App.Application.Context;
                 var newIntent = new Intent(Settings.ActionChannelNotificationSettings);
+                newIntent.SetFlags(ActivityFlags.NewTask);
                 newIntent.PutExtra(Settings.ExtraAppPackage, context.PackageName);
                 newIntent.PutExtra(Settings.ExtraChannelId, channelId);
                 context.StartActivity(newIntent);
             }
             catch (Exception e)
             {
-                this.logger.LogError(e, "OpenSettings failed with exception");
+                this.logger.LogError(e, "OpenNotificationChannelSettings failed with exception");
             }
         }
     }

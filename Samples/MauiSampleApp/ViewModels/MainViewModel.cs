@@ -72,6 +72,8 @@ namespace MauiSampleApp.ViewModels
         private IAsyncRelayCommand deleteNotificationChannelGroupsCommand;
         private string sdkVersion;
         private IAsyncRelayCommand getNotificationChannelGroupsCommand;
+        private IAsyncRelayCommand openNotificationSettingsCommand;
+        private IAsyncRelayCommand openNotificationChannelSettingsCommand;
 
 #if IOS
         private UNNotificationPresentationOptions[] presentationOptions;
@@ -481,9 +483,6 @@ namespace MauiSampleApp.ViewModels
             try
             {
 #if ANDROID
-                // var notificationChannelGroupIds = NotificationChannelGroupSamples.GetAll()
-                //     .Select(g => g.GroupId)
-                //     .ToArray();
                 this.notificationChannels.DeleteAllNotificationChannelGroups();
                 this.UpdateNotificationChannelGroups();
                 this.UpdateNotificationChannels();
@@ -500,6 +499,47 @@ namespace MauiSampleApp.ViewModels
         {
             get => this.channels;
             private set => this.SetProperty(ref this.channels, value);
+        }
+
+        public ICommand OpenNotificationSettingsCommand
+        {
+            get => this.openNotificationSettingsCommand ??= new AsyncRelayCommand(this.OpenNotificationSettingsAsync);
+        }
+
+        private async Task OpenNotificationSettingsAsync()
+        {
+            try
+            {
+#if ANDROID
+                this.notificationChannels.OpenNotificationSettings();
+#endif
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "OpenNotificationSettingsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Open notification settings failed with exception", "OK");
+            }
+        }
+
+        public ICommand OpenNotificationChannelSettingsCommand
+        {
+            get => this.openNotificationChannelSettingsCommand ??= new AsyncRelayCommand(this.OpenNotificationChannelSettingsAsync);
+        }
+
+        private async Task OpenNotificationChannelSettingsAsync()
+        {
+            try
+            {
+#if ANDROID
+                var defaultNotificationChannel = NotificationChannelSamples.Default;
+                this.notificationChannels.OpenNotificationChannelSettings(defaultNotificationChannel.ChannelId);
+#endif
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "OpenNotificationChannelSettingsAsync failed with exception");
+                await this.dialogService.ShowDialogAsync("Error", "Open notification channel settings failed with exception", "OK");
+            }
         }
 
         public ICommand GetNotificationChannelsCommand
@@ -530,9 +570,6 @@ namespace MauiSampleApp.ViewModels
             try
             {
 #if ANDROID
-                // var notificationChannelIds = NotificationChannelSamples.GetAll()
-                //     .Select(g => g.ChannelId)
-                //     .ToArray();
                 this.notificationChannels.DeleteAllNotificationChannels();
                 this.UpdateNotificationChannels();
 #endif
