@@ -6,7 +6,7 @@ namespace Plugin.FirebasePushNotifications
     /// <summary>
     /// Android-specific interface to handle notification channels.
     /// </summary>
-    public interface INotificationChannels
+    public partial interface INotificationChannels
     {
         /// <summary>
         /// Gets the singleton instance of <see cref="INotificationChannels"/>.

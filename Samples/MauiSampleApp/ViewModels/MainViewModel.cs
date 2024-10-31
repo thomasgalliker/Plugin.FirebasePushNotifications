@@ -10,9 +10,6 @@ using Plugin.FirebasePushNotifications.Model;
 #if ANDROID
 using NotificationChannelSamples = MauiSampleApp.Platforms.Notifications.NotificationChannelSamples;
 using NotificationChannelGroupSamples = MauiSampleApp.Platforms.Notifications.NotificationChannelGroupSamples;
-using INotificationChannels = Plugin.FirebasePushNotifications.INotificationChannels;
-#else
-using INotificationChannels = object;
 #endif
 
 #if IOS
