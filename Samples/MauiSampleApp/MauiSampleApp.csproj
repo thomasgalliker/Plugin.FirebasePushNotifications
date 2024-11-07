@@ -134,13 +134,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.1" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
-		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.11" />
+		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.14" />
 		<PackageReference Include="Sentry.Maui" Version="4.12.1" />
-		<PackageReference Include="ValueConverters.MAUI" Version="3.0.26" />
+		<PackageReference Include="ValueConverters.MAUI" Version="3.1.22" />
     
     <!--To avoid silly build errors... incredible!-->
 		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />

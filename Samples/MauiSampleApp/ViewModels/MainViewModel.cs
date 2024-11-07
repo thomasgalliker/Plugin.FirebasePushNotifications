@@ -62,6 +62,7 @@ namespace MauiSampleApp.ViewModels
         private AsyncRelayCommand deleteNotificationChannelsCommand;
         private AsyncRelayCommand createNotificationChannelsCommand;
         private IAsyncRelayCommand<string> openUrlCommand;
+        private string sdkVersion;
 
 #if IOS
         private UNNotificationPresentationOptions[] presentationOptions;
@@ -110,6 +111,8 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
+                this.SdkVersion = this.firebasePushNotification.SdkVersion;
+
                 await this.UpdateAuthorizationStatusAsync();
                 this.UpdateToken();
 
@@ -142,6 +145,12 @@ namespace MauiSampleApp.ViewModels
                 this.logger.LogError(ex, "InitializeAsync failed with exception");
                 await this.dialogService.ShowDialogAsync("Error", "Initialization failed", "OK");
             }
+        }
+
+        public string SdkVersion
+        {
+            get => this.sdkVersion;
+            private set => this.SetProperty(ref this.sdkVersion, value);
         }
 
         private async Task UpdateAuthorizationStatusAsync()

@@ -267,7 +267,8 @@
                     VerticalOptions="Start" />
             </VerticalStackLayout>
 
-            <controls:DividerLine />
+            <controls:DividerLine 
+                IsVisible="{OnPlatform iOS=True, Default=False}" />
 
             <Label
                 Style="{StaticResource Heading2LabelStyle}"
@@ -297,6 +298,14 @@
                 Style="{StaticResource Heading2LabelStyle}"
                 Text="Internals" />
 
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="SdkVersion: " />
+                        <Span Text="{Binding SdkVersion}" FontAttributes="Bold" FontFamily="{StaticResource FontFamilyMonospace}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
             <Button
                 Command="{Binding NavigateToQueuesPageCommand}"
                 Text="Queues"

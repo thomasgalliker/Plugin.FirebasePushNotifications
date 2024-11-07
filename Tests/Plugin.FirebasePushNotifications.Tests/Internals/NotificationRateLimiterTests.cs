@@ -16,6 +16,20 @@ namespace Plugin.FirebasePushNotifications.Tests.Internals
         }
 
         [Fact]
+        public void HasReachedLimit_WithNullIdentifier_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            var rateLimiter = new NotificationRateLimiter();
+
+            // Act
+            Action action = () => rateLimiter.HasReachedLimit(null, this.expirationPeriod);
+
+            // Assert
+            action.Should().Throw<ArgumentNullException>();
+            rateLimiter.Count.Should().Be(0);
+        }
+
+        [Fact]
         public async Task HasReachedLimit_ShouldReturnFalse_WhenIdentifierHasExpired()
         {
             // Arrange
