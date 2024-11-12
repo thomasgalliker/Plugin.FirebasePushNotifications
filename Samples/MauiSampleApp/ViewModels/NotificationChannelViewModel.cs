@@ -18,9 +18,9 @@ namespace MauiSampleApp.ViewModels
             this.ChannelId = notificationChannel.Id;
             this.ChannelName = notificationChannel.Name;
             this.Description = notificationChannel.Description;
-            this.LockscreenVisibility = notificationChannel.LockscreenVisibility;
-            this.Group = notificationChannel.Group;
-            this.Importance = notificationChannel.Importance;
+            this.LockscreenVisibility = Enum.GetName(notificationChannel.LockscreenVisibility) ?? $"{notificationChannel.LockscreenVisibility}";
+            this.Group = notificationChannel.Group ?? "-";
+            this.Importance = Enum.GetName(notificationChannel.Importance);
         }
 #endif
 
@@ -30,10 +30,10 @@ namespace MauiSampleApp.ViewModels
 
         public string Description { get; }
 
-        public NotificationVisibility LockscreenVisibility { get; }
+        public string LockscreenVisibility { get; }
 
         public string Group { get; }
 
-        public NotificationImportance Importance { get; }
+        public string Importance { get; }
     }
 }
