@@ -5,7 +5,11 @@ namespace Plugin.FirebasePushNotifications
 {
     public class FirebasePushNotificationOptions
     {
-        public virtual bool AutoInitEnabled { get; set; }
+        /// <summary>
+        /// Indicates if the underlying Firebase library should be initialized automatically.
+        /// Default: <c>true</c>
+        /// </summary>
+        public virtual bool AutoInitEnabled { get; set; } = true;
 
         /// <summary>
         /// The factory used to create new queues to intercept push notification events.
@@ -21,8 +25,14 @@ namespace Plugin.FirebasePushNotifications
         public virtual IQueueFactory QueueFactory { get; set; }
 
 #if ANDROID
+        /// <summary>
+        /// Android-specific options.
+        /// </summary>
         public virtual FirebasePushNotificationAndroidOptions Android { get; } = new FirebasePushNotificationAndroidOptions();
 #elif IOS
+        /// <summary>
+        /// iOS-specific options.
+        /// </summary>
         public virtual FirebasePushNotificationiOSOptions iOS { get; } = new FirebasePushNotificationiOSOptions();
 #endif
 
