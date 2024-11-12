@@ -47,6 +47,7 @@ namespace Plugin.FirebasePushNotifications
             var preferences = IPlatformApplication.Current.Services.GetService<IFirebasePushNotificationPreferences>();
 
 #if ANDROID
+            var notificationChannels = IPlatformApplication.Current.Services.GetService<INotificationChannels>();
             var notificationBuilder = IPlatformApplication.Current.Services.GetService<INotificationBuilder>();
 #endif
 
@@ -58,6 +59,7 @@ namespace Plugin.FirebasePushNotifications
                 preferences
 #if ANDROID
                 ,
+                notificationChannels,
                 notificationBuilder
 #endif
                 );
