@@ -120,6 +120,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void ConfigurePlatform()
         {
+            this.logger.LogDebug("ConfigurePlatform");
+
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             var isFirebaseAppInitialized = Firebase.Core.App.DefaultInstance != null;
 

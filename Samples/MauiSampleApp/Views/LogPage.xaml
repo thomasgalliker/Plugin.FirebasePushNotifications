@@ -32,8 +32,8 @@
 
             <ScrollView Grid.Row="1">
                 <Label
-                    FontFamily="{StaticResource FontFamilyMonospace}"
-                    FontSize="Micro"
+                    FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+                    FontSize="{StaticResource FontSize.XSmall}"
                     Text="{Binding LogContent}" />
             </ScrollView>
 
