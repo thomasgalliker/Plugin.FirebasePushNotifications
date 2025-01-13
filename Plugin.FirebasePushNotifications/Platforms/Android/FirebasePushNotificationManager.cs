@@ -36,9 +36,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// <inheritdoc />
         public string SdkVersion { get; }
 
-        private async void ConfigurePlatform()
+        private void ConfigurePlatform()
         {
-            var context = await Platform.WaitForActivityAsync();
+            this.logger.LogDebug("XXXXXXXXXXXXXXX ConfigurePlatform --> before WaitForActivityAsync");
+            var context = Application.Context;
+            this.logger.LogDebug("XXXXXXXXXXXXXXX ConfigurePlatform --> after WaitForActivityAsync");
 
             var isFirebaseAppInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context);
 
@@ -83,7 +85,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             notificationChannels.CreateChannels(notificationChannelRequests);
         }
 
-        private void InitializeFirebaseAppFromServiceFile(Activity context)
+        private void InitializeFirebaseAppFromServiceFile(Context context)
         {
             this.logger.LogDebug("InitializeFirebaseAppFromServiceFile");
 
@@ -100,7 +102,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private void CheckIfFirebaseAppInitialized(Activity context)
+        private void CheckIfFirebaseAppInitialized(Context context)
         {
             var isInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context) &&
                                 FirebaseApp.Instance != null;
@@ -110,7 +112,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private void InitializeFirebaseAppFromFirebaseOptions(Activity context, FirebaseOptions firebaseOptions)
+        private void InitializeFirebaseAppFromFirebaseOptions(Context context, FirebaseOptions firebaseOptions)
         {
             this.logger.LogDebug("InitializeFirebaseAppFromFirebaseOptions");
 
