@@ -56,8 +56,9 @@ namespace MauiSampleApp
                 })
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("IBMPlexSans-Regular.ttf", "IBMPlexSans");
+                    fonts.AddFont("IBMPlexSans-Bold.ttf", "IBMPlexSansBold");
+                    fonts.AddFont("IBMPlexMono-Regular.ttf", "IBMPlexMonoRegular");
                 });
 
             builder.Services.AddLogging(b =>

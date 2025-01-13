@@ -13,69 +13,69 @@
         RowDefinitions="*">
 
         <Label
-            Grid.Column="0"
             Grid.Row="0"
+            Grid.Column="0"
             FontAttributes="Bold"
             Text="{Binding ChannelId}"
             VerticalOptions="Start" />
-        
+
         <Grid
-            Grid.Column="1"
             Grid.Row="0"
+            Grid.Column="1"
             ColumnDefinitions="Auto, *"
             ColumnSpacing="4"
             RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 
             <Label
-                Grid.Column="0"
                 Grid.Row="0"
+                Grid.Column="0"
                 Text="ChannelName:" />
             <Label
-                Grid.Column="1"
                 Grid.Row="0"
-                Text="{Binding ChannelName}"
-                FontFamily="{StaticResource FontFamilyMonospace}"  />
-            
+                Grid.Column="1"
+                FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+                Text="{Binding ChannelName}" />
+
             <Label
-                Grid.Column="0"
                 Grid.Row="1"
+                Grid.Column="0"
                 Text="Description:" />
             <Label
-                Grid.Column="1"
                 Grid.Row="1"
-                Text="{Binding Description}"
+                Grid.Column="1"
+                FontFamily="{StaticResource FontFamily.Monospace.Regular}"
                 LineBreakMode="TailTruncation"
-                FontFamily="{StaticResource FontFamilyMonospace}"  />
-            
+                Text="{Binding Description}" />
+
             <Label
-                Grid.Column="0"
                 Grid.Row="2"
+                Grid.Column="0"
                 Text="LockscreenVisibility:" />
             <Label
-                Grid.Column="1"
                 Grid.Row="2"
-                Text="{Binding LockscreenVisibility}"
-                FontFamily="{StaticResource FontFamilyMonospace}"  />
-            
+                Grid.Column="1"
+                FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+                Text="{Binding LockscreenVisibility}" />
+
             <Label
-                Grid.Column="0"
                 Grid.Row="3"
+                Grid.Column="0"
                 Text="Group:" />
             <Label
-                Grid.Column="1"
                 Grid.Row="3"
-                Text="{Binding Group}"
-                FontFamily="{StaticResource FontFamilyMonospace}" />
-            
+                Grid.Column="1"
+                FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+                Text="{Binding Group}" />
+
             <Label
-                Grid.Column="0"
                 Grid.Row="4"
+                Grid.Column="0"
                 Text="Importance:" />
             <Label
-                Grid.Column="1"
                 Grid.Row="4"
-                Text="{Binding Importance}"
-                FontFamily="{StaticResource FontFamilyMonospace}" />
+                Grid.Column="1"
+                FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+                Text="{Binding Importance}" />
         </Grid>
     </Grid>
 </ContentView>

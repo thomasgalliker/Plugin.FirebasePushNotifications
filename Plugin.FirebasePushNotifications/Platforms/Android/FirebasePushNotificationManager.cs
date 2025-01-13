@@ -40,15 +40,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
         /// <inheritdoc />
         public string SdkVersion { get; }
 
-        private async void ConfigurePlatform()
+        private void ConfigurePlatform()
         {
             this.logger.LogDebug("ConfigurePlatform");
 
             this.notificationChannels.SetNotificationChannelGroups(this.options.Android.NotificationChannelGroups);
             this.notificationChannels.SetNotificationChannels(this.options.Android.NotificationChannels);
 
-            var context = await Platform.WaitForActivityAsync();
-
+            var context = Application.Context;
             var isFirebaseAppInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context);
 
             if (this.logger.IsEnabled(LogLevel.Debug))
@@ -82,7 +81,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             FirebaseMessaging.Instance.AutoInitEnabled = this.options.AutoInitEnabled;
         }
 
-        private void InitializeFirebaseAppFromServiceFile(Activity context)
+        private void InitializeFirebaseAppFromServiceFile(Context context)
         {
             this.logger.LogDebug("InitializeFirebaseAppFromServiceFile");
 
@@ -99,7 +98,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private void CheckIfFirebaseAppInitialized(Activity context)
+        private void CheckIfFirebaseAppInitialized(Context context)
         {
             var isInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context) &&
                                 FirebaseApp.Instance != null;
@@ -109,7 +108,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        private void InitializeFirebaseAppFromFirebaseOptions(Activity context, FirebaseOptions firebaseOptions)
+        private void InitializeFirebaseAppFromFirebaseOptions(Context context, FirebaseOptions firebaseOptions)
         {
             this.logger.LogDebug("InitializeFirebaseAppFromFirebaseOptions");
 
