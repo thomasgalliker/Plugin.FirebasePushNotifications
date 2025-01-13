@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -44,23 +44,20 @@
                     Grid.Column="0"
                     Source="logo.png"
                     HeightRequest="100" />
-                <Label
-                    Grid.Column="1">
+                <Label Grid.Column="1">
                     <Label.FormattedText>
                         <FormattedString>
+                            <Span Text="MAUI sample app for Firebase push notifications. This sample app is used to demonstrate and test the main features of the nuget package " />
                             <Span
-                                Text="MAUI sample app for Firebase push notifications. This sample app is used to demonstrate and test the main features of the nuget package " />
-                            <Span
-                                Text="Plugin.FirebasePushNotifications"
-                                Style="{StaticResource HyperlinkSpanStyle}">
+                                Style="{StaticResource HyperlinkSpanStyle}"
+                                Text="Plugin.FirebasePushNotifications">
                                 <Span.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding OpenUrlCommand}"
                                         CommandParameter="https://www.nuget.org/packages/Plugin.FirebasePushNotifications" />
                                 </Span.GestureRecognizers>
                             </Span>
-                            <Span
-                                Text="." />
+                            <Span Text="." />
                         </FormattedString>
                     </Label.FormattedText>
                 </Label>
@@ -90,12 +87,14 @@
             <controls:DividerLine IsVisible="{OnPlatform Android=True, Default=False}" />
 
             <Label
+                IsVisible="{OnPlatform Android=True,
+                                       Default=False}"
                 Style="{StaticResource Heading2LabelStyle}"
-                Text="INotificationChannels"
-                IsVisible="{OnPlatform Android=True, Default=False}" />
+                Text="INotificationChannels" />
             <VerticalStackLayout
-                Spacing="8"
-                IsVisible="{OnPlatform Android=True, Default=False}">
+                IsVisible="{OnPlatform Android=True,
+                                       Default=False}"
+                Spacing="8">
                 <Button
                     Command="{Binding GetNotificationChannelsCommand}"
                     Text="Get notification channels"
@@ -150,7 +149,7 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     AutoSize="TextChanges"
-                    FontFamily="{StaticResource FontFamilyMonospace}"
+                    FontFamily="{StaticResource FontFamily.Monospace.Regular}"
                     Text="{Binding Token, Mode=OneWay}" />
                 <Grid
                     Grid.Row="1"
@@ -222,12 +221,12 @@
                     BindableLayout.ItemsSource="{Binding SubscribedTopics}" />
 
                 <Entry
-                    Placeholder="New topic name"
-                    Text="{Binding Topic}"
-                    Keyboard="Url"
-                    IsTextPredictionEnabled="False"
+                    FontFamily="{StaticResource FontFamily.Monospace.Regular}"
                     IsSpellCheckEnabled="False"
-                    FontFamily="{StaticResource FontFamilyMonospace}" />
+                    IsTextPredictionEnabled="False"
+                    Keyboard="Url"
+                    Placeholder="New topic name"
+                    Text="{Binding Topic}" />
                 <Button
                     Command="{Binding SubscribeToTopicCommand}"
                     Text="Subscribe to topic"
@@ -267,27 +266,30 @@
                     VerticalOptions="Start" />
             </VerticalStackLayout>
 
-            <controls:DividerLine 
-                IsVisible="{OnPlatform iOS=True, Default=False}" />
+            <controls:DividerLine IsVisible="{OnPlatform iOS=True, Default=False}" />
 
             <Label
+                IsVisible="{OnPlatform iOS=True,
+                                       Default=False}"
                 Style="{StaticResource Heading2LabelStyle}"
-                Text="FirebasePushNotificationOptions"
-                IsVisible="{OnPlatform iOS=True, Default=False}" />
+                Text="FirebasePushNotificationOptions" />
             <VerticalStackLayout
-                Spacing="8"
-                IsVisible="{OnPlatform iOS=True, Default=False}">
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                IsVisible="{OnPlatform iOS=True,
+                                       Default=False}"
+                Spacing="8">
+                <Grid
+                    ColumnDefinitions="Auto,*"
+                    ColumnSpacing="8">
                     <Label
                         Grid.Column="0"
                         Text="PresentationOptions:"
-                        VerticalOptions="Center"/>
+                        VerticalOptions="Center" />
                     <Picker
+                        Title="UNNotificationPresentationOptions"
                         Grid.Column="1"
+                        ItemDisplayBinding="{Binding .}"
                         ItemsSource="{Binding PresentationOptions}"
                         SelectedItem="{Binding SelectedPresentationOptions}"
-                        ItemDisplayBinding="{Binding .}"
-                        Title="UNNotificationPresentationOptions"
                         HorizontalOptions="Fill" />
                 </Grid>
             </VerticalStackLayout>
@@ -302,7 +304,10 @@
                 <Label.FormattedText>
                     <FormattedString>
                         <Span Text="SdkVersion: " />
-                        <Span Text="{Binding SdkVersion}" FontAttributes="Bold" FontFamily="{StaticResource FontFamilyMonospace}" />
+                        <Span
+                            FontAttributes="Bold"
+                            FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+                            Text="{Binding SdkVersion}" />
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
@@ -320,8 +325,7 @@
             <Label
                 Style="{StaticResource Heading2LabelStyle}"
                 Text="Interaction Checks" />
-            <Label
-                Text="MediaPicker uses a separate Activity on Android to take photos. This interacts with the ProcessIntent method of IFirebasePushNotification" />
+            <Label Text="MediaPicker uses a separate Activity on Android to take photos. This interacts with the ProcessIntent method of IFirebasePushNotification" />
             <Button
                 Command="{Binding CapturePhotoCommand}"
                 Text="MediaPicker.CapturePhotoAsync"

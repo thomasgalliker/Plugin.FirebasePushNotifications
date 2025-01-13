@@ -15,8 +15,8 @@
             VerticalOptions="Center" />
         <Label
             Grid.Column="1"
+            FontFamily="{StaticResource FontFamily.Monospace.Regular}"
             Text="{Binding .}"
-            FontFamily="{StaticResource FontFamilyMonospace}"
             VerticalOptions="Center" />
     </Grid>
 </ContentView>

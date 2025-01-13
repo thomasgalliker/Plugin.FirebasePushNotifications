@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--  Font Sizes  -->
+    <OnPlatform
+        x:Key="FontSize.XLarge"
+        x:TypeArguments="x:Double">
+        <On Platform="iOS">24</On>
+        <On Platform="Android">24</On>
+    </OnPlatform>
+
+    <OnPlatform
+        x:Key="FontSize.Large"
+        x:TypeArguments="x:Double">
+        <On Platform="iOS">20</On>
+        <On Platform="Android">20</On>
+    </OnPlatform>
+
+    <OnPlatform
+        x:Key="FontSize.Medium"
+        x:TypeArguments="x:Double">
+        <On Platform="iOS">16</On>
+        <On Platform="Android">16</On>
+    </OnPlatform>
+
+    <OnPlatform
+        x:Key="FontSize.Small"
+        x:TypeArguments="x:Double">
+        <On Platform="iOS">12</On>
+        <On Platform="Android">12</On>
+    </OnPlatform>
+
+    <OnPlatform
+        x:Key="FontSize.XSmall"
+        x:TypeArguments="x:Double">
+        <On Platform="iOS">10</On>
+        <On Platform="Android">10</On>
+    </OnPlatform>
+
+    <!--  Font Families  -->
+    <x:String x:Key="FontFamily.Default.Medium">IBMPlexSans</x:String>
+    <x:String x:Key="FontFamily.Default.Bold">IBMPlexSansBold</x:String>
+    <x:String x:Key="FontFamily.Monospace.Regular">IBMPlexMonoRegular</x:String>
+
+</ResourceDictionary>
