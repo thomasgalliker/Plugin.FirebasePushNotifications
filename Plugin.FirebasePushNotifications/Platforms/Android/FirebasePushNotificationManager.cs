@@ -38,10 +38,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private void ConfigurePlatform()
         {
-            this.logger.LogDebug("XXXXXXXXXXXXXXX ConfigurePlatform --> before WaitForActivityAsync");
-            var context = Application.Context;
-            this.logger.LogDebug("XXXXXXXXXXXXXXX ConfigurePlatform --> after WaitForActivityAsync");
+            this.logger.LogDebug("ConfigurePlatform");
 
+            var context = Application.Context;
             var isFirebaseAppInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context);
 
             if (this.logger.IsEnabled(LogLevel.Debug))
