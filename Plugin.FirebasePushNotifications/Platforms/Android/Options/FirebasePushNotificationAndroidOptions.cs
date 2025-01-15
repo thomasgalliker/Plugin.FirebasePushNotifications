@@ -8,6 +8,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 {
     public class FirebasePushNotificationAndroidOptions
     {
+        private NotificationChannelGroupRequest[] notificationChannelGroups = Array.Empty<NotificationChannelGroupRequest>();
         private NotificationChannelRequest[] notificationChannels = Array.Empty<NotificationChannelRequest>();
         private Type notificationActivityType;
 
@@ -38,57 +39,28 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
+        /// <summary>
+        /// The initial list of notification channel groups configured at app startup time.
+        /// </summary>
+        public virtual NotificationChannelGroupRequest[] NotificationChannelGroups
+        {
+            get => this.notificationChannelGroups;
+            set => this.notificationChannelGroups = value ?? Array.Empty<NotificationChannelGroupRequest>();
+        }
+
+        /// <summary>
+        /// The initial list of notification channels configured at app startup time.
+        /// </summary>
         public virtual NotificationChannelRequest[] NotificationChannels
         {
             get => this.notificationChannels;
-            set
-            {
-                EnsureNotificationChannelRequests(
-                    value,
-                    $"{nameof(FirebasePushNotificationOptions)}.{nameof(FirebasePushNotificationOptions.Android)}",
-                    nameof(this.NotificationChannels));
-
-                this.notificationChannels = value;
-            }
+            set => this.notificationChannels = value ?? Array.Empty<NotificationChannelRequest>();
         }
 
-        internal static void EnsureNotificationChannelRequests(NotificationChannelRequest[] notificationChannels, string source, string paramName)
-        {
-            if (notificationChannels == null)
-            {
-                throw new ArgumentNullException(paramName, $"{source} must not be null");
-            }
-
-            var duplicateChannelIds = notificationChannels
-               .Select(c => c.ChannelId)
-               .GroupBy(c => c)
-               .Where(g => g.Count() > 1)
-               .Select(g => g.Key)
-               .ToArray();
-
-            if (duplicateChannelIds.Any())
-            {
-                throw new ArgumentException(
-                    $"{source} contains {nameof(NotificationChannelRequest)} with duplicate {nameof(NotificationChannelRequest.ChannelId)}: " +
-                    $"[{string.Join(", ", duplicateChannelIds.Select(id => $"\"{id}\""))}]",
-                    paramName);
-            }
-
-            var defaultNotificationChannels = notificationChannels.Where(c => c.IsDefault && c.IsActive).ToArray();
-            if (defaultNotificationChannels.Length > 1)
-            {
-                throw new ArgumentException(
-                    $"{source} contains more than one active {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true" +
-                    $"[{string.Join(", ", defaultNotificationChannels.Select(c => $"\"{c.ChannelId}\""))}]",
-                    paramName);
-            }
-            else if (defaultNotificationChannels.Length < 1)
-            {
-                throw new ArgumentException(
-                    $"{source} does not contain any active {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true",
-                    paramName);
-            }
-        }
+        /// <summary>
+        /// The default notification channel identifier.
+        /// </summary>
+        public string DefaultNotificationChannelId { get; set; }
 
         public string NotificationTitleKey { get; set; }
 

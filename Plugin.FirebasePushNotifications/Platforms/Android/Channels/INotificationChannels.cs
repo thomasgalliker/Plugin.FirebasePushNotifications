@@ -1,4 +1,6 @@
-﻿using Plugin.FirebasePushNotifications.Platforms.Channels;
+﻿using System.Diagnostics.CodeAnalysis;
+using Android.App;
+using Plugin.FirebasePushNotifications.Platforms.Channels;
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -8,31 +10,86 @@ namespace Plugin.FirebasePushNotifications
     public partial interface INotificationChannels
     {
         /// <summary>
+        /// Gets the singleton instance of <see cref="INotificationChannels"/>.
+        /// </summary>
+        public static INotificationChannels Current { get; set; } = NotificationChannels.Current;
+
+        /// <summary>
         /// Gets the list of configured notification channels.
         /// </summary>
-        IEnumerable<NotificationChannelRequest> Channels { get; }
+        IEnumerable<NotificationChannel> Channels { get; }
 
         /// <summary>
-        /// Create Android notification channels from given <paramref name="notificationChannelRequests"/>.
+        /// Gets the list of configured notification channel groups.
         /// </summary>
+        IEnumerable<NotificationChannelGroup> ChannelGroups { get; }
+
+        /// <summary>
+        /// Creates notification channel groups.
+        /// </summary>
+        /// <remarks>
+        /// Important: Create notification channel groups before you create notification channels!
+        /// </remarks>
+        /// <param name="notificationChannelGroupRequests">The notification channel group requests.</param>
+        void CreateNotificationChannelGroups(NotificationChannelGroupRequest[] notificationChannelGroupRequests);
+
+        void SetNotificationChannelGroups(NotificationChannelGroupRequest[] notificationChannelGroupRequests);
+
+        /// <summary>
+        /// Deletes the notification channel group with <paramref name="groupId"/>.
+        /// </summary>
+        /// <param name="groupId">The identifier of the notification channel group.</param>
+        void DeleteNotificationChannelGroup(string groupId);
+
+        /// <summary>
+        /// Deletes the notification channel groups with <paramref name="groupIds"/>.
+        /// </summary>
+        /// <param name="groupIds">The identifiers of the notification channel groups.</param>
+        void DeleteNotificationChannelGroups(string[] groupIds);
+
+        /// <summary>
+        /// Deletes all notification channel groups which are configured in <see cref="Channels"/>.
+        /// </summary>
+        void DeleteAllNotificationChannelGroups();
+
+        /// <summary>
+        /// Creates notification channels from given <paramref name="notificationChannelRequests"/>.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="notificationChannelRequests"/> already exist, they're updated.
+        /// </remarks>
         /// <param name="notificationChannelRequests">The notification channel requests.</param>
-        void CreateChannels(NotificationChannelRequest[] notificationChannelRequests);
+        void CreateNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests);
 
         /// <summary>
-        /// Update Android notification channels from given <paramref name="notificationChannelRequests"/>.
+        /// Sets notification channels from given <paramref name="notificationChannelRequests"/>.
         /// </summary>
+        /// <remarks>
+        /// If the <paramref name="notificationChannelRequests"/> already exist, they're updated.
+        /// </remarks>
         /// <param name="notificationChannelRequests">The notification channel requests.</param>
-        void UpdateChannels(NotificationChannelRequest[] notificationChannelRequests);
+        void SetNotificationChannels(NotificationChannelRequest[] notificationChannelRequests);
 
         /// <summary>
-        /// Delete Android notification channels from given <paramref name="channelIds"/>.
+        /// Deletes notification channels with identifiers <paramref name="channelIds"/>.
         /// </summary>
-        /// <param name="channelIds">The notification channel identifiers.</param>
-        void DeleteChannels(string[] channelIds);
+        /// <param name="channelIds">The notification channel requests.</param>
+        void DeleteNotificationChannels(string[] channelIds);
 
         /// <summary>
-        /// Deletes all existing notification channels.
+        /// Deletes all existing notification channels which are configured in <see cref="Channels"/>.
         /// </summary>
-        void DeleteAllChannels();
+        void DeleteAllNotificationChannels();
+
+        /// <summary>
+        /// Open the notification settings.
+        /// </summary>
+        void OpenNotificationSettings();
+
+        /// <summary>
+        /// Opens the notification channel settings for <paramref name="channelId"/>.
+        /// </summary>
+        /// <param name="channelId">The notification channel identifier.</param>
+        void OpenNotificationChannelSettings(string channelId);
     }
 }

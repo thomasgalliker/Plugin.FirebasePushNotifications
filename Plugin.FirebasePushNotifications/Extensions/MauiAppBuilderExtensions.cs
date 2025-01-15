@@ -3,7 +3,6 @@
 #if ANDROID || IOS
 using Plugin.FirebasePushNotifications.Platforms;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
-using Plugin.FirebasePushNotifications.Model.Queues;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 #endif
 
@@ -101,8 +100,8 @@ namespace Plugin.FirebasePushNotifications
 
             // Service registrations
 #if ANDROID || IOS
-            builder.Services.AddSingleton(c => IFirebasePushNotification.Current);
-            builder.Services.AddSingleton(c => INotificationPermissions.Current);
+            builder.Services.AddSingleton(_ => IFirebasePushNotification.Current);
+            builder.Services.AddSingleton(_ => INotificationPermissions.Current);
             builder.Services.TryAddSingleton<IFirebasePushNotificationPreferences, FirebasePushNotificationPreferences>();
             builder.Services.TryAddSingleton<IPreferences>(_ => Preferences.Default);
             builder.Services.AddSingleton(defaultOptions);
