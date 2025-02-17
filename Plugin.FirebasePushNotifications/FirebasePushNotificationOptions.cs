@@ -30,7 +30,7 @@ namespace Plugin.FirebasePushNotifications
         {
             return $"[{nameof(FirebasePushNotificationOptions)}: " +
                    $"{nameof(this.AutoInitEnabled)}={this.AutoInitEnabled}," +
-                   $"{nameof(this.QueueFactory)}={this.QueueFactory?.GetType().FullName}"
+                   $"{nameof(this.QueueFactory)}={this.QueueFactory?.GetType().FullName}]"
                    ;
         }
     }
