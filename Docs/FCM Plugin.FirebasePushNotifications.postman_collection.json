@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "4c230c66-a967-4d41-8160-cf4d368e4a7b",
 		"name": "FCM Plugin.FirebasePushNotifications",
+		"description": "This Postman collection contains Firebase push notifications which can be used for testing features of Plugin.FirebasePushNotifications.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "2202768"
 	},
@@ -12,9 +13,6 @@
 				{
 					"name": "Notification Message",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -54,9 +52,6 @@
 				{
 					"name": "Notification Message with priority=high",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -96,9 +91,6 @@
 				{
 					"name": "Notification Message with priority=high and large_icon=drawable",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -138,9 +130,6 @@
 				{
 					"name": "Notification Message with priority=high and large_icon=url",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -180,9 +169,6 @@
 				{
 					"name": "Notification Message with priority=low",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -222,9 +208,6 @@
 				{
 					"name": "Notification Message with data payload",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -276,9 +259,6 @@
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -316,11 +296,91 @@
 					"response": []
 				},
 				{
+					"name": "Data Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"{{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Data Message with priority=high",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"{{currentDateTime}}\",\r\n            \"priority\": \"high\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Channels",
+			"item": [
+				{
 					"name": "Notification Message with channel_id=test_channel_1",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -356,90 +416,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Data Message",
-					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"value2\"\r\n        }\r\n    }\r\n}"
-						},
-						"url": {
-							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
-							"protocol": "https",
-							"host": [
-								"fcm",
-								"googleapis",
-								"com"
-							],
-							"path": [
-								"v1",
-								"projects",
-								"{{project_id}}",
-								"messages:send"
-							],
-							"query": [
-								{
-									"key": "",
-									"value": null,
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Data Message with priority=high",
-					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"value2\",\r\n            \"priority\": \"high\"\r\n        }\r\n    }\r\n}"
-						},
-						"url": {
-							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
-							"protocol": "https",
-							"host": [
-								"fcm",
-								"googleapis",
-								"com"
-							],
-							"path": [
-								"v1",
-								"projects",
-								"{{project_id}}",
-								"messages:send"
-							],
-							"query": [
-								{
-									"key": "",
-									"value": null,
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -447,11 +423,33 @@
 			"name": "Topics",
 			"item": [
 				{
-					"name": "subscriber-updates",
-					"request": {
-						"auth": {
-							"type": "oauth2"
+					"name": "Notification Message topic=general",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
 						"method": "POST",
 						"header": [
 							{
@@ -461,7 +459,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\":{\r\n    \"topic\":\"subscriber-updates\",\r\n    \"notification\":{\r\n      \"title\" : \"NewsMagazine.com\",\r\n      \"body\" : \"This week's edition is now available.\"\r\n    },\r\n    \"data\" : {\r\n      \"volume\" : \"3.21.15\",\r\n      \"contents\" : \"http://www.news-magazine.com/world-week/21659772\"\r\n    },\r\n    \"android\":{\r\n      \"priority\":\"normal\"\r\n    },\r\n    \"apns\":{\r\n      \"headers\":{\r\n        \"apns-priority\":\"5\"\r\n      }\r\n    }\r\n  }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Topic Title\",\r\n            \"body\": \"Topic Body @ {{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -482,11 +480,119 @@
 					"response": []
 				},
 				{
-					"name": "weather_updates",
-					"request": {
-						"auth": {
-							"type": "oauth2"
+					"name": "Data Message topic=general",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"{{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message topic=subscriber-updates",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\":{\r\n    \"topic\":\"subscriber-updates\",\r\n    \"notification\":{\r\n      \"title\" : \"NewsMagazine.com\",\r\n      \"body\" : \"This week's edition is now available.\"\r\n    },\r\n    \"data\" : {\r\n      \"volume\" : \"3.21.15\",\r\n      \"contents\" : \"http://www.news-magazine.com/world-week/1234\"\r\n    },\r\n    \"android\":{\r\n      \"priority\":\"normal\"\r\n    },\r\n    \"apns\":{\r\n      \"headers\":{\r\n        \"apns-priority\":\"5\"\r\n      }\r\n    }\r\n  }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message topic=weather_updates",
+					"request": {
 						"method": "POST",
 						"header": [
 							{
@@ -573,7 +679,14 @@
 					"name": "Push Notification Android (Flattened)",
 					"request": {
 						"auth": {
-							"type": "oauth2"
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
 						},
 						"method": "POST",
 						"header": [
@@ -709,9 +822,6 @@
 				{
 					"name": "Switchable Push Notification (Flattened)",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1010,21 +1120,12 @@
 									"console.log(microsecondsSinceEpoch);",
 									"pm.environment.set('fromMicrosecondsSinceEpoch', microsecondsSinceEpoch);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1034,7 +1135,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{    \r\n    \"message\": {\r\n        \"token\": \"{{fcm_token_ios}}\",\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"content-available\": 1\r\n                }\r\n            }\r\n        },\r\n        \"data\" : {\r\n            \"data1\": \"fb787aa2-6387-4f65-a5a2-125f96ab4c14\",\r\n            \"data2\": \"call_voz\",\r\n            \"data3\": \"3c3079b7-ab5e-48a5-8c61-b64ebb4910a9\",\r\n            \"data4\": \"5469846578\"\r\n        }\r\n    }\r\n}",
+							"raw": "{    \r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"content-available\": 1\r\n                }\r\n            }\r\n        },\r\n        \"data\" : {\r\n            \"data1\": \"fb787aa2-6387-4f65-a5a2-125f96ab4c14\",\r\n            \"data2\": \"call_voz\",\r\n            \"data3\": \"3c3079b7-ab5e-48a5-8c61-b64ebb4910a9\",\r\n            \"data4\": \"5469846578\"\r\n        }\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1073,21 +1174,12 @@
 									"console.log(microsecondsSinceEpoch);",
 									"pm.environment.set('fromMicrosecondsSinceEpoch', microsecondsSinceEpoch);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1097,7 +1189,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token_android}}\",\r\n        \"data\" : {\r\n            \"data1\": \"fb787aa2-6387-4f65-a5a2-125f96ab4c14\",\r\n            \"data2\": \"call_voz\",\r\n            \"data3\": \"3c3079b7-ab5e-48a5-8c61-b64ebb4910a9\",\r\n            \"data4\": \"5469846578\"\r\n        }\r\n    }\r\n}",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\" : {\r\n            \"data1\": \"fb787aa2-6387-4f65-a5a2-125f96ab4c14\",\r\n            \"data2\": \"call_voz\",\r\n            \"data3\": \"3c3079b7-ab5e-48a5-8c61-b64ebb4910a9\",\r\n            \"data4\": \"5469846578\"\r\n        }\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1230,11 +1322,8 @@
 			"name": "Notification Actions",
 			"item": [
 				{
-					"name": "medication_intake (variant 1)",
+					"name": "medication_intake with priority=high (variant 1: platform-specific)",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1265,11 +1354,8 @@
 					"response": []
 				},
 				{
-					"name": "medication_intake (variant 2)",
+					"name": "medication_intake with priority=high (variant 2: platform-independent)",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1279,7 +1365,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\": {\r\n            \"title\": \"Medication Intake\",\r\n            \"body\": \"Do you want to take your medicine?\",\r\n            \"click_action\": \"medication_intake\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"medication_intake\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Medication Intake\",\r\n            \"body\": \"Do you want to take your medicine?\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\",\r\n            \"click_action\": \"medication_intake\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"medication_intake\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -1300,81 +1386,8 @@
 					"response": []
 				},
 				{
-					"name": "meeting_invitation",
+					"name": "navigate with priority=high",
 					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\": {\r\n            \"title\": \"Meeting Invitation\",\r\n            \"body\": \"Want to participate?\",\r\n            \"click_action\": \"meeting_invitation\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"meeting_invitation\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
-						},
-						"url": {
-							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
-							"protocol": "https",
-							"host": [
-								"fcm",
-								"googleapis",
-								"com"
-							],
-							"path": [
-								"v1",
-								"projects",
-								"{{project_id}}",
-								"messages:send"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "contract",
-					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\": {\r\n            \"title\": \"Contract\",\r\n            \"body\": \"Accept contract?\",\r\n            \"click_action\": \"contract\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"contract\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
-						},
-						"url": {
-							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
-							"protocol": "https",
-							"host": [
-								"fcm",
-								"googleapis",
-								"com"
-							],
-							"path": [
-								"v1",
-								"projects",
-								"{{project_id}}",
-								"messages:send"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "navigate",
-					"request": {
-						"auth": {
-							"type": "oauth2"
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1403,8 +1416,103 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "meeting_invitation with priority=default",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Meeting Invitation\",\r\n            \"body\": \"Want to participate?\"\r\n        },\r\n        \"data\": {\r\n            \"click_action\": \"meeting_invitation\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"meeting_invitation\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							]
+						},
+						"description": "- meeting_invitation\n    \n- priority: default"
+					},
+					"response": []
+				},
+				{
+					"name": "contract with priority=default",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Contract\",\r\n            \"body\": \"Accept contract?\"\r\n        },\r\n        \"data\": {\r\n            \"click_action\": \"contract\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"contract\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							]
+						}
+					},
+					"response": []
 				}
 			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	],
 	"variable": [
@@ -1414,23 +1522,13 @@
 			"type": "string"
 		},
 		{
-			"key": "bearer_token",
+			"key": "fcm_token",
 			"value": "",
 			"type": "string"
 		},
 		{
 			"key": "fcm_test_topic",
-			"value": "/topics/test_topic",
-			"type": "string"
-		},
-		{
-			"key": "fcm_test_negative_topic",
-			"value": "/topics/test_negative_topic",
-			"type": "string"
-		},
-		{
-			"key": "fcm_token",
-			"value": "",
+			"value": "/topics/test",
 			"type": "string"
 		}
 	]
