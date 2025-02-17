@@ -55,10 +55,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void SetNotificationChannelGroups([NotNull] NotificationChannelGroupRequest[] notificationChannelGroupRequests)
         {
-            if (notificationChannelGroupRequests == null)
-            {
-                throw new ArgumentNullException(nameof(notificationChannelGroupRequests));
-            }
+            ArgumentNullException.ThrowIfNull(notificationChannelGroupRequests);
 
             var groupIds = notificationChannelGroupRequests
                 .Select(c => c.GroupId)
@@ -85,10 +82,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void CreateNotificationChannelGroups([NotNull] NotificationChannelGroupRequest[] notificationChannelGroupRequests)
         {
-            if (notificationChannelGroupRequests == null)
-            {
-                throw new ArgumentNullException(nameof(notificationChannelGroupRequests));
-            }
+            ArgumentNullException.ThrowIfNull(notificationChannelGroupRequests);
 
             var groupIds = notificationChannelGroupRequests
                 .Select(c => c.GroupId)
@@ -142,10 +136,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void DeleteNotificationChannelGroups([NotNull] string[] groupIds)
         {
-            if (groupIds == null)
-            {
-                throw new ArgumentNullException(nameof(groupIds));
-            }
+            ArgumentNullException.ThrowIfNull(groupIds);
 
             this.logger.LogDebug($"DeleteNotificationChannelGroups: groupIds=[{string.Join(",", groupIds)}]");
 
@@ -168,10 +159,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void SetNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests)
         {
-            if (notificationChannelRequests == null)
-            {
-                throw new ArgumentNullException(nameof(notificationChannelRequests));
-            }
+            ArgumentNullException.ThrowIfNull(notificationChannelRequests);
 
             var channelIds = notificationChannelRequests
                 .Select(c => c.ChannelId)
@@ -198,10 +186,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void CreateNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests)
         {
-            if (notificationChannelRequests == null)
-            {
-                throw new ArgumentNullException(nameof(notificationChannelRequests));
-            }
+            ArgumentNullException.ThrowIfNull(notificationChannelRequests);
 
             var channelIds = notificationChannelRequests
                 .Select(c => c.ChannelId)
@@ -280,10 +265,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void DeleteNotificationChannels([NotNull] string[] channelIds)
         {
-            if (channelIds == null)
-            {
-                throw new ArgumentNullException(nameof(channelIds));
-            }
+            ArgumentNullException.ThrowIfNull(channelIds);
 
             this.logger.LogDebug($"DeleteNotificationChannels: channelIds=[{string.Join(",", channelIds)}]");
 
@@ -330,10 +312,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         {
             this.logger.LogDebug($"OpenNotificationChannelSettings: channelId={channelId}");
 
-            if (channelId == null)
-            {
-                throw new ArgumentNullException(nameof(channelId));
-            }
+            ArgumentNullException.ThrowIfNull(channelId);
 
             try
             {
