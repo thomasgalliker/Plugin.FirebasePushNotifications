@@ -25,6 +25,15 @@ namespace Plugin.FirebasePushNotifications
         IEnumerable<NotificationChannelGroup> ChannelGroups { get; }
 
         /// <summary>
+        /// Sets notification channel groups from given <paramref name="notificationChannelGroupRequests"/>.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="notificationChannelGroupRequests"/> already exist, they're updated.
+        /// </remarks>
+        /// <param name="notificationChannelGroupRequests">The notification channel group requests.</param>
+        void SetNotificationChannelGroups(NotificationChannelGroupRequest[] notificationChannelGroupRequests);
+
+        /// <summary>
         /// Creates notification channel groups.
         /// </summary>
         /// <remarks>
@@ -32,8 +41,6 @@ namespace Plugin.FirebasePushNotifications
         /// </remarks>
         /// <param name="notificationChannelGroupRequests">The notification channel group requests.</param>
         void CreateNotificationChannelGroups(NotificationChannelGroupRequest[] notificationChannelGroupRequests);
-
-        void SetNotificationChannelGroups(NotificationChannelGroupRequest[] notificationChannelGroupRequests);
 
         /// <summary>
         /// Deletes the notification channel group with <paramref name="groupId"/>.
@@ -53,15 +60,6 @@ namespace Plugin.FirebasePushNotifications
         void DeleteAllNotificationChannelGroups();
 
         /// <summary>
-        /// Creates notification channels from given <paramref name="notificationChannelRequests"/>.
-        /// </summary>
-        /// <remarks>
-        /// If the <paramref name="notificationChannelRequests"/> already exist, they're updated.
-        /// </remarks>
-        /// <param name="notificationChannelRequests">The notification channel requests.</param>
-        void CreateNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests);
-
-        /// <summary>
         /// Sets notification channels from given <paramref name="notificationChannelRequests"/>.
         /// </summary>
         /// <remarks>
@@ -69,6 +67,15 @@ namespace Plugin.FirebasePushNotifications
         /// </remarks>
         /// <param name="notificationChannelRequests">The notification channel requests.</param>
         void SetNotificationChannels(NotificationChannelRequest[] notificationChannelRequests);
+
+        /// <summary>
+        /// Creates notification channels from given <paramref name="notificationChannelRequests"/>.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="notificationChannelRequests"/> already exist, they're updated.
+        /// </remarks>
+        /// <param name="notificationChannelRequests">The notification channel requests.</param>
+        void CreateNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests);
 
         /// <summary>
         /// Deletes notification channels with identifiers <paramref name="channelIds"/>.

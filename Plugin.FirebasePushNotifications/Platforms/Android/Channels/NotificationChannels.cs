@@ -53,6 +53,36 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         }
 
         /// <inheritdoc />
+        public void SetNotificationChannelGroups([NotNull] NotificationChannelGroupRequest[] notificationChannelGroupRequests)
+        {
+            if (notificationChannelGroupRequests == null)
+            {
+                throw new ArgumentNullException(nameof(notificationChannelGroupRequests));
+            }
+
+            var groupIds = notificationChannelGroupRequests
+                .Select(c => c.GroupId)
+                .ToArray();
+
+            this.logger.LogDebug($"SetNotificationChannelGroups: notificationChannelGroupRequests=[{string.Join(",", groupIds)}]");
+
+            var notificationChannelGroupsToDelete = this.ChannelGroups;
+
+            if (groupIds.Length > 0)
+            {
+                notificationChannelGroupsToDelete = notificationChannelGroupsToDelete
+                    .Where(c => !groupIds.Contains(c.Id));
+            }
+
+            var notificationChannelGroupIdsToDelete = notificationChannelGroupsToDelete
+                .Select(c => c.Id)
+                .ToArray();
+
+            this.DeleteNotificationChannelGroups(notificationChannelGroupIdsToDelete);
+            this.CreateNotificationChannelGroups(notificationChannelGroupRequests);
+        }
+
+        /// <inheritdoc />
         public void CreateNotificationChannelGroups([NotNull] NotificationChannelGroupRequest[] notificationChannelGroupRequests)
         {
             if (notificationChannelGroupRequests == null)
@@ -89,35 +119,6 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 
                 this.notificationManager.CreateNotificationChannelGroup(notificationChannelGroup);
             }
-        }
-
-        public void SetNotificationChannelGroups([NotNull] NotificationChannelGroupRequest[] notificationChannelGroupRequests)
-        {
-            if (notificationChannelGroupRequests == null)
-            {
-                throw new ArgumentNullException(nameof(notificationChannelGroupRequests));
-            }
-
-            var groupIds = notificationChannelGroupRequests
-                .Select(c => c.GroupId)
-                .ToArray();
-
-            this.logger.LogDebug($"SetNotificationChannelGroups: notificationChannelGroupRequests=[{string.Join(",", groupIds)}]");
-
-            var notificationChannelGroupsToDelete = this.ChannelGroups;
-
-            if (groupIds.Length > 0)
-            {
-                notificationChannelGroupsToDelete = notificationChannelGroupsToDelete
-                    .Where(c => !groupIds.Contains(c.Id));
-            }
-
-            var notificationChannelGroupIdsToDelete = notificationChannelGroupsToDelete
-                .Select(c => c.Id)
-                .ToArray();
-
-            this.DeleteNotificationChannelGroups(notificationChannelGroupIdsToDelete);
-            this.CreateNotificationChannelGroups(notificationChannelGroupRequests);
         }
 
         /// <inheritdoc />
