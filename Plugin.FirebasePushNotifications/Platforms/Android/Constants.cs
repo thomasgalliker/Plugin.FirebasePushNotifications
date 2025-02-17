@@ -1,6 +1,4 @@
-﻿using Plugin.FirebasePushNotifications.Platforms.Channels;
-
-namespace Plugin.FirebasePushNotifications
+﻿namespace Plugin.FirebasePushNotifications
 {
     internal static partial class Constants
     {
