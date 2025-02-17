@@ -203,11 +203,18 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 throw new ArgumentNullException(nameof(notificationChannelRequests));
             }
 
-            var channelIds = notificationChannelRequests.Select(c => c.ChannelId);
+            var channelIds = notificationChannelRequests
+                .Select(c => c.ChannelId)
+                .ToArray();
 
             this.logger.LogDebug($"CreateNotificationChannels: notificationChannelRequests=[{string.Join(",", channelIds)}]");
 
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            {
+                return;
+            }
+
+            if (channelIds.Length == 0)
             {
                 return;
             }
