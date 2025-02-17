@@ -38,13 +38,11 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         {
             this.logger = logger;
             this.notificationManager = NotificationManagerCompat.From(Android.App.Application.Context);
+            this.Channels = new NotificationChannelsWrapper(this.notificationManager.NotificationChannels);
         }
 
         /// <inheritdoc />
-        public IEnumerable<NotificationChannel> Channels
-        {
-            get => this.notificationManager.NotificationChannels;
-        }
+        public NotificationChannelsWrapper Channels { get; }
 
         /// <inheritdoc />
         public IEnumerable<NotificationChannelGroup> ChannelGroups
@@ -167,7 +165,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 
             this.logger.LogDebug($"SetNotificationChannels: notificationChannelRequests=[{string.Join(",", channelIds)}]");
 
-            var notificationChannelsToDelete = this.Channels;
+            IEnumerable<NotificationChannel> notificationChannelsToDelete = this.Channels;
 
             if (channelIds.Length > 0)
             {
@@ -328,5 +326,35 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 this.logger.LogError(e, "OpenNotificationChannelSettings failed with exception");
             }
         }
+
+        public sealed class NotificationChannelsWrapper : IEnumerable<NotificationChannel>
+        {
+            private readonly IEnumerable<NotificationChannel> notificationChannels;
+
+            internal NotificationChannelsWrapper(IEnumerable<NotificationChannel> notificationChannels)
+            {
+                this.notificationChannels = notificationChannels;
+            }
+
+            public string DefaultId { get; set; }
+
+            public IEnumerator<NotificationChannel> GetEnumerator()
+            {
+                return this.notificationChannels.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+
+            public NotificationChannel GetById(string notificationChannelId)
+            {
+                ArgumentNullException.ThrowIfNull(notificationChannelId);
+
+                return this.SingleOrDefault(c => string.Equals(c.Id, notificationChannelId, StringComparison.InvariantCultureIgnoreCase));
+            }
+        }
     }
+
 }

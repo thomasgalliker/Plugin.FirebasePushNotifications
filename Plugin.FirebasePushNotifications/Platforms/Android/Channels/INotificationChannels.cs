@@ -17,7 +17,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Gets the list of configured notification channels.
         /// </summary>
-        IEnumerable<NotificationChannel> Channels { get; }
+        NotificationChannels.NotificationChannelsWrapper Channels { get; }
 
         /// <summary>
         /// Gets the list of configured notification channel groups.

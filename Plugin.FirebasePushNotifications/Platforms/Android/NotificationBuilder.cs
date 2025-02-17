@@ -631,14 +631,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return showWhenVisible;
         }
 
-        private NotificationChannel GetNotificationChannelOrDefault(IDictionary<string,object> data)
+        private NotificationChannel GetNotificationChannelOrDefault(IDictionary<string, object> data)
         {
             var notificationChannel = this.GetNotificationChannel(data);
 
-            if (notificationChannel == null &&
-                this.options.Android.DefaultNotificationChannelId is string defaultNotificationChannelId)
+            if (notificationChannel == null && this.options.Android.DefaultNotificationChannelId is string defaultNotificationChannelId)
             {
-                notificationChannel = this.notificationChannels.Channels.SingleOrDefault(c => c.Id == defaultNotificationChannelId);
+                notificationChannel = this.notificationChannels.Channels.GetById(defaultNotificationChannelId);
             }
 
             return notificationChannel;
@@ -650,8 +649,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (data.TryGetString(Constants.ChannelIdKey, out var channelId))
             {
-                notificationChannel = this.notificationChannels.Channels.SingleOrDefault(c =>
-                    string.Equals(c.Id, channelId, StringComparison.InvariantCultureIgnoreCase));
+                notificationChannel = this.notificationChannels.Channels.GetById(channelId);
             }
 
             return notificationChannel;
