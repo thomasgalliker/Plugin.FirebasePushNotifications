@@ -256,7 +256,10 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 return;
             }
 
-            var channelIds = this.Channels.Select(c => c.Id).ToArray();
+            var channelIds = this.Channels
+                .Select(c => c.Id)
+                .ToArray();
+
             this.DeleteNotificationChannels(channelIds);
         }
 
