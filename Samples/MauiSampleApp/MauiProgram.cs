@@ -82,7 +82,6 @@ namespace MauiSampleApp
             // Demo: Register an IFirebasePushNotificationPreferences instance
             // in order to handle preferences in your own implementation.
 
-
             // Register services used by MauiSampleApp
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<MainViewModel>();
