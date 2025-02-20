@@ -17,7 +17,7 @@
                     return "...";
                 }
 
-                return $"{token[..substringLength]}...{token[^substringLength..]}";
+                return $"{token[..substringLength]}...{token[^substringLength..]}".Trim(new[] { '\n', '\r', ' ' });
             }
             catch (Exception ex)
             {
