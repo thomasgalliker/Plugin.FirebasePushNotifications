@@ -57,16 +57,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             set => this.notificationChannels = value ?? Array.Empty<NotificationChannelRequest>();
         }
 
-        /// <summary>
-        /// The default notification channel identifier.
-        /// </summary>
-        public string DefaultNotificationChannelId { get; set; }
-
         public string NotificationTitleKey { get; set; }
 
         public string NotificationBodyKey { get; set; }
 
-        public NotificationImportance DefaultNotificationChannelImportance { get; set; } = NotificationImportance.Default;
+        public NotificationImportance DefaultNotificationImportance { get; set; } = NotificationImportance.Default;
 
         public int? DefaultIconResource { get; set; }
 

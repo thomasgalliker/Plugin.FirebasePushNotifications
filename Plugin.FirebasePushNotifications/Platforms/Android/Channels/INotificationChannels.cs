@@ -17,7 +17,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Gets the list of configured notification channels.
         /// </summary>
-        NotificationChannels.NotificationChannelsWrapper Channels { get; }
+        NotificationChannels.NotificationChannelsDelegate Channels { get; }
 
         /// <summary>
         /// Gets the list of configured notification channel groups.
@@ -51,7 +51,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Deletes the notification channel groups with <paramref name="groupIds"/>.
         /// </summary>
-        /// <param name="groupIds">The identifiers of the notification channel groups.</param>
+        /// <param name="groupIds">The identifiers of the notification channel group.</param>
         void DeleteNotificationChannelGroups(string[] groupIds);
 
         /// <summary>
@@ -78,10 +78,16 @@ namespace Plugin.FirebasePushNotifications
         void CreateNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests);
 
         /// <summary>
-        /// Deletes notification channels with identifiers <paramref name="channelIds"/>.
+        /// Deletes the notification channel with the given <paramref name="notificationChannelId"/>.
         /// </summary>
-        /// <param name="channelIds">The notification channel requests.</param>
-        void DeleteNotificationChannels(string[] channelIds);
+        /// <param name="notificationChannelId">The notification channel identifier.</param>
+        void DeleteNotificationChannel(string notificationChannelId);
+
+        /// <summary>
+        /// Deletes the notification channels with the given <paramref name="notificationChannelIds"/>.
+        /// </summary>
+        /// <param name="notificationChannelIds">The notification channel identifiers.</param>
+        void DeleteNotificationChannels(string[] notificationChannelIds);
 
         /// <summary>
         /// Deletes all existing notification channels which are configured in <see cref="Channels"/>.
@@ -94,9 +100,9 @@ namespace Plugin.FirebasePushNotifications
         void OpenNotificationSettings();
 
         /// <summary>
-        /// Opens the notification channel settings for <paramref name="channelId"/>.
+        /// Opens the notification channel settings for <paramref name="notificationChannelId"/>.
         /// </summary>
-        /// <param name="channelId">The notification channel identifier.</param>
-        void OpenNotificationChannelSettings(string channelId);
+        /// <param name="notificationChannelId">The notification channel identifier.</param>
+        void OpenNotificationChannelSettings(string notificationChannelId);
     }
 }

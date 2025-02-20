@@ -635,9 +635,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             var notificationChannel = this.GetNotificationChannel(data);
 
-            if (notificationChannel == null && this.options.Android.DefaultNotificationChannelId is string defaultNotificationChannelId)
+            if (notificationChannel == null)
             {
-                notificationChannel = this.notificationChannels.Channels.GetById(defaultNotificationChannelId);
+                notificationChannel = this.notificationChannels.Channels.GetDefault();
             }
 
             return notificationChannel;
@@ -685,7 +685,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                notificationImportance = this.options.Android.DefaultNotificationChannelImportance;
+                notificationImportance = this.options.Android.DefaultNotificationImportance;
             }
 
             return notificationImportance;

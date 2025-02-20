@@ -7,14 +7,13 @@
     x:DataType="vm:NotificationChannelViewModel">
 
     <Grid
-        ColumnDefinitions="2*, 3*"
+        ColumnDefinitions="2*, 3*, Auto"
         ColumnSpacing="4"
         RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
 
         <Label
             Grid.Row="0"
             Grid.Column="0"
-            FontAttributes="Bold"
             LineBreakMode="MiddleTruncation"
             Text="ChannelId:" />
         <Label
@@ -80,5 +79,13 @@
             Grid.Column="1"
             FontFamily="{StaticResource FontFamily.Monospace.Regular}"
             Text="{Binding Importance}" />
+
+        <Button
+            Grid.RowSpan="6"
+            Grid.Column="2"
+            Command="{Binding DeleteNotificationChannelCommand}"
+            Text="X"
+            HorizontalOptions="Start"
+            VerticalOptions="Start" />
     </Grid>
 </ContentView>

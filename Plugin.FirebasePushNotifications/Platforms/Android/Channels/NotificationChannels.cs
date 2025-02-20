@@ -1,4 +1,5 @@
-﻿using Android.App;
+﻿using System.Collections;
+using Android.App;
 using Android.Content;
 using Android.Media;
 using Android.OS;
@@ -6,7 +7,6 @@ using Android.Provider;
 using AndroidX.Core.App;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications.Platforms.Channels
 {
@@ -24,25 +24,29 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         {
 #if ANDROID
             var logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<NotificationChannels>>();
-            return new NotificationChannels(logger);
+            var options = IPlatformApplication.Current.Services.GetRequiredService<FirebasePushNotificationOptions>();
+            return new NotificationChannels(logger, options);
 #else
             throw Exceptions.NotImplementedInReferenceAssembly();
 #endif
         }
 
         private readonly ILogger<NotificationChannels> logger;
+        private readonly FirebasePushNotificationOptions options;
         private readonly NotificationManagerCompat notificationManager;
 
         private NotificationChannels(
-            ILogger<NotificationChannels> logger)
+            ILogger<NotificationChannels> logger,
+            FirebasePushNotificationOptions options)
         {
             this.logger = logger;
+            this.options = options;
             this.notificationManager = NotificationManagerCompat.From(Android.App.Application.Context);
-            this.Channels = new NotificationChannelsWrapper(this.notificationManager.NotificationChannels);
+            this.Channels = new NotificationChannelsDelegate(() => this.notificationManager.NotificationChannels);
         }
 
         /// <inheritdoc />
-        public NotificationChannelsWrapper Channels { get; }
+        public NotificationChannelsDelegate Channels { get; }
 
         /// <inheritdoc />
         public IEnumerable<NotificationChannelGroup> ChannelGroups
@@ -159,26 +163,29 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         {
             ArgumentNullException.ThrowIfNull(notificationChannelRequests);
 
-            var channelIds = notificationChannelRequests
+            var notificationChannelRequestIds = notificationChannelRequests
                 .Select(c => c.ChannelId)
                 .ToArray();
 
-            this.logger.LogDebug($"SetNotificationChannels: notificationChannelRequests=[{string.Join(",", channelIds)}]");
+            this.logger.LogDebug(
+                $"SetNotificationChannels: notificationChannelRequests=[{string.Join(",", notificationChannelRequestIds)}]");
 
-            IEnumerable<NotificationChannel> notificationChannelsToDelete = this.Channels;
-
-            if (channelIds.Length > 0)
-            {
-                notificationChannelsToDelete = notificationChannelsToDelete
-                    .Where(c => !channelIds.Contains(c.Id));
-            }
-
-            var notificationChannelIdsToDelete = notificationChannelsToDelete
-                .Select(c => c.Id)
+            var notificationChannels = notificationChannelRequests
+                .Select(c => (c.ChannelId, c.IsDefault))
                 .ToArray();
 
-            this.DeleteNotificationChannels(notificationChannelIdsToDelete);
-            this.CreateNotificationChannels(notificationChannelRequests);
+            EnsureNotificationChannelRequests(
+                notificationChannels,
+                nameof(this.SetNotificationChannels),
+                nameof(notificationChannelRequests));
+
+            var notificationChannelIdsToDelete = this.Channels
+                .Select(c => c.Id)
+                .Intersect(notificationChannelRequestIds, StringComparer.InvariantCultureIgnoreCase)
+                .ToArray();
+
+            this.DeleteNotificationChannelsInternal(notificationChannelIdsToDelete);
+            this.CreateNotificationChannelsInternal(notificationChannelRequests);
         }
 
         /// <inheritdoc />
@@ -186,21 +193,42 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         {
             ArgumentNullException.ThrowIfNull(notificationChannelRequests);
 
-            var channelIds = notificationChannelRequests
+            var newChannelIds = notificationChannelRequests
                 .Select(c => c.ChannelId)
                 .ToArray();
 
-            this.logger.LogDebug($"CreateNotificationChannels: notificationChannelRequests=[{string.Join(",", channelIds)}]");
+            this.logger.LogDebug($"CreateNotificationChannels: notificationChannelRequests=[{string.Join(",", newChannelIds)}]");
 
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
                 return;
             }
 
-            if (channelIds.Length == 0)
+            if (newChannelIds.Length == 0)
             {
                 return;
             }
+
+            this.CreateNotificationChannelsInternal(notificationChannelRequests);
+        }
+
+        private void CreateNotificationChannelsInternal([NotNull] NotificationChannelRequest[] notificationChannelRequests)
+        {
+            var existingNotificationChannelIds = this.Channels
+                .Select(c => c.Id)
+                .ToArray();
+
+            var defaultNotificationChannelId = this.Channels.DefaultNotificationChannelId;
+
+            var newNotificationChannels = existingNotificationChannelIds
+                .Select(c => (c, string.Equals(c, defaultNotificationChannelId, StringComparison.InvariantCultureIgnoreCase)))
+                .Concat(notificationChannelRequests.Select(c => (c.ChannelId, c.IsDefault)))
+                .ToArray();
+
+            EnsureNotificationChannelRequests(
+                newNotificationChannels,
+                nameof(this.CreateNotificationChannels),
+                nameof(notificationChannelRequests));
 
             foreach (var notificationChannelRequest in notificationChannelRequests)
             {
@@ -244,6 +272,12 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                     this.notificationManager.CreateNotificationChannel(notificationChannel);
                 }
             }
+
+            var defaultNotificationChannelRequest = notificationChannelRequests.SingleOrDefault(c => c.IsDefault);
+            if (defaultNotificationChannelRequest != null)
+            {
+                this.Channels.SetDefaultNotificationChannelIdInternal(defaultNotificationChannelRequest.ChannelId);
+            }
         }
 
         /// <inheritdoc />
@@ -256,38 +290,77 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 return;
             }
 
-            var channelIds = this.Channels
+            var allNotificationChannelIds = this.Channels
                 .Select(c => c.Id)
                 .ToArray();
 
-            this.DeleteNotificationChannels(channelIds);
+            this.DeleteNotificationChannelsInternal(allNotificationChannelIds);
         }
 
         /// <inheritdoc />
-        public void DeleteNotificationChannels([NotNull] string[] channelIds)
+        public void DeleteNotificationChannel([NotNull] string notificationChannelId)
         {
-            ArgumentNullException.ThrowIfNull(channelIds);
+            this.DeleteNotificationChannels(new[] { notificationChannelId });
+        }
 
-            this.logger.LogDebug($"DeleteNotificationChannels: channelIds=[{string.Join(",", channelIds)}]");
+        /// <inheritdoc />
+        public void DeleteNotificationChannels([NotNull] string[] notificationChannelIds)
+        {
+            ArgumentNullException.ThrowIfNull(notificationChannelIds);
+
+            this.logger.LogDebug($"DeleteNotificationChannels: notificationChannelIds=[{string.Join(",", notificationChannelIds)}]");
 
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
                 return;
             }
 
-            if (channelIds.Length == 0)
+            var channelIds = this.Channels
+                .Select(c => c.Id)
+                .ToArray();
+
+            var remainingNotificationChannelIds = channelIds
+                .Except(notificationChannelIds, StringComparer.InvariantCultureIgnoreCase)
+                .ToArray();
+
+            var defaultNotificationChannelId = this.Channels.DefaultNotificationChannelId;
+
+            var remainingNotificationChannels = remainingNotificationChannelIds
+                .Select(c => (c, string.Equals(c, defaultNotificationChannelId, StringComparison.InvariantCultureIgnoreCase)))
+                .ToArray();
+
+            EnsureNotificationChannelRequests(
+                remainingNotificationChannels,
+                nameof(this.DeleteNotificationChannels),
+                nameof(notificationChannelIds));
+
+            this.DeleteNotificationChannelsInternal(notificationChannelIds);
+        }
+
+        private void DeleteNotificationChannelsInternal([NotNull] string[] notificationChannelIdsToDelete)
+        {
+            if (notificationChannelIdsToDelete.Length == 0)
             {
                 return;
             }
 
-            var notificationChannelIdsToDelete = this.Channels
-                .Where(c => channelIds.Contains(c.Id))
-                .Select(c => c.Id)
-                .ToArray();
-
             foreach (var notificationChannelId in notificationChannelIdsToDelete)
             {
-                this.notificationManager.DeleteNotificationChannel(notificationChannelId);
+                try
+                {
+                    this.notificationManager.DeleteNotificationChannel(notificationChannelId);
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError(ex, $"DeleteNotificationChannels failed to delete notificationChannelId={notificationChannelId}");
+                }
+            }
+
+            var defaultNotificationChannelId = this.Channels.DefaultNotificationChannelId;
+
+            if (notificationChannelIdsToDelete.Contains(defaultNotificationChannelId))
+            {
+                this.Channels.SetDefaultNotificationChannelIdInternal(null);
             }
         }
 
@@ -309,11 +382,11 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             }
         }
 
-        public void OpenNotificationChannelSettings([NotNull] string channelId)
+        public void OpenNotificationChannelSettings([NotNull] string notificationChannelId)
         {
-            this.logger.LogDebug($"OpenNotificationChannelSettings: channelId={channelId}");
+            this.logger.LogDebug($"OpenNotificationChannelSettings: notificationChannelId={notificationChannelId}");
 
-            ArgumentNullException.ThrowIfNull(channelId);
+            ArgumentNullException.ThrowIfNull(notificationChannelId);
 
             try
             {
@@ -321,7 +394,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 var newIntent = new Intent(Settings.ActionChannelNotificationSettings);
                 newIntent.SetFlags(ActivityFlags.NewTask);
                 newIntent.PutExtra(Settings.ExtraAppPackage, context.PackageName);
-                newIntent.PutExtra(Settings.ExtraChannelId, channelId);
+                newIntent.PutExtra(Settings.ExtraChannelId, notificationChannelId);
                 context.StartActivity(newIntent);
             }
             catch (Exception e)
@@ -330,20 +403,91 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             }
         }
 
-        public sealed class NotificationChannelsWrapper : IEnumerable<NotificationChannel>
+        private static void EnsureNotificationChannelRequests(
+            (string ChannelId, bool IsDefault)[] notificationChannels,
+            string methodName, string paramName)
         {
-            private readonly IEnumerable<NotificationChannel> notificationChannels;
+            var duplicateChannelIds = notificationChannels
+                .Select(c => c.ChannelId)
+                .GroupBy(c => c)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToArray();
 
-            internal NotificationChannelsWrapper(IEnumerable<NotificationChannel> notificationChannels)
+            if (duplicateChannelIds.Any())
+            {
+                throw new ArgumentException(
+                    $"{methodName} failed: {paramName} contains {nameof(NotificationChannelRequest)} with duplicate {nameof(NotificationChannelRequest.ChannelId)}: " +
+                    $"[{string.Join(", ", duplicateChannelIds.Select(id => $"\"{id}\""))}]",
+                    paramName);
+            }
+
+            var defaultNotificationChannels = notificationChannels.Where(c => c.IsDefault).ToArray();
+            if (defaultNotificationChannels.Length > 1)
+            {
+                throw new ArgumentException(
+                    $"{methodName} failed: {paramName} contains more than one active {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true" +
+                    $"[{string.Join(", ", defaultNotificationChannels.Select(c => $"\"{c.ChannelId}\""))}]",
+                    paramName);
+            }
+
+            if (defaultNotificationChannels.Length < 1)
+            {
+                throw new ArgumentException(
+                    $"{methodName} failed: {paramName} does not contain any active {nameof(NotificationChannelRequest)} with {nameof(NotificationChannelRequest.IsDefault)}=true",
+                    paramName);
+            }
+        }
+
+        public sealed class NotificationChannelsDelegate : IEnumerable<NotificationChannel>
+        {
+            private readonly Func<IEnumerable<NotificationChannel>> notificationChannels;
+            private string defaultNotificationChannelId;
+
+            internal NotificationChannelsDelegate(
+                Func<IEnumerable<NotificationChannel>> notificationChannels)
             {
                 this.notificationChannels = notificationChannels;
             }
 
-            public string DefaultId { get; set; }
+            public NotificationChannel GetDefault()
+            {
+                if (this.defaultNotificationChannelId is string notificationChannelId)
+                {
+                    return this.GetById(notificationChannelId);
+                }
+
+                return null;
+            }
+
+            internal void SetDefaultNotificationChannelIdInternal(string defaultNotificationChannelId)
+            {
+                this.defaultNotificationChannelId = defaultNotificationChannelId;
+            }
+
+            public string DefaultNotificationChannelId
+            {
+                get => this.defaultNotificationChannelId;
+                set
+                {
+                    if (this.defaultNotificationChannelId != value)
+                    {
+                        try
+                        {
+                            var notificationChannel = this.GetById(value);
+                            this.defaultNotificationChannelId = notificationChannel.Id;
+                        }
+                        catch
+                        {
+                            // Ignore
+                        }
+                    }
+                }
+            }
 
             public IEnumerator<NotificationChannel> GetEnumerator()
             {
-                return this.notificationChannels.GetEnumerator();
+                return this.notificationChannels().GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -355,9 +499,11 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             {
                 ArgumentNullException.ThrowIfNull(notificationChannelId);
 
-                return this.SingleOrDefault(c => string.Equals(c.Id, notificationChannelId, StringComparison.InvariantCultureIgnoreCase));
+                var notificationChannel = this.SingleOrDefault(c =>
+                    string.Equals(c.Id, notificationChannelId, StringComparison.InvariantCultureIgnoreCase));
+
+                return notificationChannel;
             }
         }
     }
-
 }

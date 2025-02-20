@@ -33,9 +33,8 @@ namespace MauiSampleApp
                     // You can configure Android-specific options under o.Android:
                     // o.Android.NotificationActivityType = typeof(MainActivity);
                     // o.Android.NotificationChannelGroups = NotificationChannelGroupSamples.GetAll().ToArray();
-                    // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
-                    o.Android.NotificationChannels = new [] { NotificationChannelSamples.Default };
-                    o.Android.DefaultNotificationChannelId = NotificationChannelSamples.Default.ChannelId;
+                    o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
+                    // o.Android.NotificationChannels = new [] { NotificationChannelSamples.Default };
                     // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
 
                     // If you don't want to use the google-services.json file,
@@ -95,6 +94,7 @@ namespace MauiSampleApp
             builder.Services.AddSingleton<INavigationService, MauiNavigationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
             builder.Services.AddSingleton(_ => Launcher.Default);
+            builder.Services.AddSingleton(_ => Browser.Default);
             builder.Services.AddSingleton(_ => Share.Default);
             builder.Services.AddSingleton(_ => Preferences.Default);
             builder.Services.AddSingleton(_ => Email.Default);

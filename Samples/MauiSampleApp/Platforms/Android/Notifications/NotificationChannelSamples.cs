@@ -12,6 +12,7 @@ namespace MauiSampleApp.Platforms.Notifications
             Description = "The default notification channel",
             LockscreenVisibility = NotificationVisibility.Public,
             Importance = NotificationImportance.High,
+            IsDefault = true,
         };
 
         public static IEnumerable<NotificationChannelRequest> GetAll()

@@ -98,6 +98,22 @@
                 IsVisible="{OnPlatform Android=True,
                                        Default=False}"
                 Spacing="8">
+
+                <!--  Notification app settings  -->
+                <Button
+                    Command="{Binding OpenNotificationSettingsCommand}"
+                    Text="Open notification settings"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding OpenNotificationChannelSettingsCommand}"
+                    Text="Open notification channel settings"
+                    HorizontalOptions="Fill" />
+
+                <BoxView
+                    Height="1"
+                    BackgroundColor="Transparent" />
+
                 <!--  Notification channel groups  -->
                 <Button
                     Command="{Binding GetNotificationChannelGroupsCommand}"
@@ -106,7 +122,7 @@
                     VerticalOptions="Start" />
                 <Button
                     Command="{Binding CreateNotificationChannelGroupsCommand}"
-                    Text="Create sample notification channel groups"
+                    Text="Create notification channel groups"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
                 <Button
@@ -119,19 +135,17 @@
                     BindableLayout.ItemsSource="{Binding ChannelGroups}" />
 
                 <!--  Notification channels  -->
-                <Button
-                    Command="{Binding OpenNotificationSettingsCommand}"
-                    Text="Open notification settings"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Start" />
-                <Button
-                    Command="{Binding OpenNotificationChannelSettingsCommand}"
-                    Text="Open notification channel settings"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Start" />
+                <Entry
+                    Placeholder="Default Notification Channel ID"
+                    Text="{Binding DefaultNotificationChannelId}" />
                 <Button
                     Command="{Binding GetNotificationChannelsCommand}"
                     Text="Get notification channels"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start" />
+                <Button
+                    Command="{Binding SetNotificationChannelsCommand}"
+                    Text="Set sample notification channels"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start" />
                 <Button
@@ -184,6 +198,7 @@
                     Grid.Column="0"
                     AutoSize="TextChanges"
                     FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+                    Placeholder="(not available)"
                     Text="{Binding Token, Mode=OneWay}" />
                 <Grid
                     Grid.Row="1"
