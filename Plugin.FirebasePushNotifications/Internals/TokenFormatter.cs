@@ -14,14 +14,14 @@
                 var substringLength = Math.Min(10, token.Length / 10);
                 if (substringLength < 5)
                 {
-                    return Constants.SuppressedString;
+                    return "...";
                 }
 
-                return $"{Constants.SuppressedString}...{token[^substringLength..]}";
+                return $"{token[..substringLength]}...{token[^substringLength..]}";
             }
-            catch
+            catch (Exception ex)
             {
-                return Constants.SuppressedString;
+                return ex.Message;
             }
         }
     }

@@ -27,7 +27,7 @@ namespace MauiSampleApp
                 .UseMauiCommunityToolkit()
                 .UseFirebasePushNotifications(o =>
                 {
-                    o.AutoInitEnabled = true;
+                    o.AutoInitEnabled = false;
                     o.QueueFactory = new PersistentQueueFactory();
 #if ANDROID
                     // You can configure Android-specific options under o.Android:

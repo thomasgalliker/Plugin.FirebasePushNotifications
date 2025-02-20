@@ -21,6 +21,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         private readonly Queue<(string Topic, bool Subscribe)> pendingTopics = new Queue<(string, bool)>();
         private readonly NotificationRateLimiter willPresentNotificationRateLimiter = new NotificationRateLimiter();
         private bool disposed;
+        private MessagingDelegateImpl messagingDelegate;
 
         internal FirebasePushNotificationManager(
             ILogger<FirebasePushNotificationManager> logger,
@@ -47,10 +48,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     return fcmToken;
                 }
-                else
-                {
-                    return this.preferences.Get<string>(Constants.Preferences.TokenKey);
-                }
+
+                fcmToken = this.preferences.Get<string>(Constants.Preferences.TokenKey);
+
+                return fcmToken;
             }
         }
 
@@ -158,13 +159,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     this.WillPresentNotification);
             }
 
-            if (firebaseMessaging.Delegate != null)
+            if (firebaseMessaging.Delegate is not MessagingDelegateImpl)
             {
-                this.logger.LogWarning("Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is already set");
-            }
-            else
-            {
-                firebaseMessaging.Delegate = new MessagingDelegateImpl((_, fcmToken) => this.DidReceiveRegistrationToken(fcmToken));
+                this.messagingDelegate = new MessagingDelegateImpl((_, fcmToken) => this.DidReceiveRegistrationToken(fcmToken));
+                firebaseMessaging.Delegate = this.messagingDelegate;
             }
         }
 
@@ -216,26 +214,36 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("RegisterForPushNotificationsAsync");
 
-            Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = true;
-
-            var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(AuthorizationOptions);
-            if (granted)
+            try
             {
+                if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is not MessagingDelegateImpl)
+                {
+                    Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = this.messagingDelegate;
+                }
+
+                Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = true;
+
+                var (granted, error) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(AuthorizationOptions);
+                if (!granted)
+                {
+                    this.logger.LogWarning("RegisterForPushNotificationsAsync: Push notification permission denied by user");
+                }
+
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     UIApplication.SharedApplication.RegisterForRemoteNotifications();
                 });
-            }
-            else
-            {
-                this.logger.LogWarning("RegisterForPushNotificationsAsync: Push notification permission denied by user");
-            }
 
-            if (error != null)
+                if (error != null)
+                {
+                    var exception = new Exception("RegisterForPushNotificationsAsync failed with exception", new NSErrorException(error));
+                    this.logger.LogError(exception, exception.Message);
+                    throw exception;
+                }
+            }
+            catch (Exception ex)
             {
-                var exception = new Exception("RegisterForPushNotificationsAsync failed with exception", new NSErrorException(error));
-                this.logger.LogError(exception, exception.Message);
-                throw exception;
+                this.logger.LogError(ex, "RegisterForPushNotificationsAsync failed with exception");
             }
         }
 
@@ -246,18 +254,36 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("UnregisterForPushNotificationsAsync");
 
-            Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = false;
+            try
+            {
+                Firebase.CloudMessaging.Messaging.SharedInstance.AutoInitEnabled = false;
 
-            // if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
-            // {
-            //     Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = null;
-            // }
+                if (Firebase.CloudMessaging.Messaging.SharedInstance.Delegate is MessagingDelegateImpl)
+                {
+                    Firebase.CloudMessaging.Messaging.SharedInstance.Delegate = null;
+                }
 
-            await MainThread.InvokeOnMainThreadAsync(UIApplication.SharedApplication.UnregisterForRemoteNotifications);
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    UIApplication.SharedApplication.UnregisterForRemoteNotifications();
+                });
 
-            Firebase.CloudMessaging.Messaging.SharedInstance.ApnsToken = null;
+                try
+                {
+                    await Firebase.CloudMessaging.Messaging.SharedInstance.DeleteTokenAsync();
+                    Firebase.CloudMessaging.Messaging.SharedInstance.ApnsToken = null;
+                }
+                catch (Exception _)
+                {
+                    // Ignore
+                }
 
-            this.preferences.Remove(Constants.Preferences.TokenKey);
+                this.preferences.Remove(Constants.Preferences.TokenKey);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "UnregisterForPushNotificationsAsync failed with exception");
+            }
         }
 
         /// <inheritdoc />

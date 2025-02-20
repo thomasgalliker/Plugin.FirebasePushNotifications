@@ -8,8 +8,6 @@
         internal const string NotificationDataKey = "data";
         internal const string PriorityKey = "priority";
 
-        internal const string SuppressedString = "{suppressed}";
-
         internal static class Preferences
         {
             private const string KeyPrefix = "Plugin.FirebasePushNotifications";
