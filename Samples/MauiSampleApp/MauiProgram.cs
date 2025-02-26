@@ -9,6 +9,7 @@ using MauiSampleApp.Services.Logging;
 using NLog.Extensions.Logging;
 
 #if ANDROID
+using Android.App;
 using Firebase;
 using MauiSampleApp.Platforms.Notifications;
 #elif IOS
@@ -32,6 +33,7 @@ namespace MauiSampleApp
 #if ANDROID
                     // You can configure Android-specific options under o.Android:
                     // o.Android.NotificationActivityType = typeof(MainActivity);
+                    // o.Android.DefaultNotificationImportance = NotificationImportance.High;
                     // o.Android.NotificationChannelGroups = NotificationChannelGroupSamples.GetAll().ToArray();
                     o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
                     // o.Android.NotificationChannels = new [] { NotificationChannelSamples.Default };
