@@ -31,5 +31,13 @@
         public const string ChannelIdKey = "channel_id";
         public const string ShowWhenKey = "show_when";
         public const string BigTextStyleKey = "bigtextstyle";
+
+        public static readonly string[] ClickActionKeys = new []
+        {
+            ClickActionKey,
+            CategoryKey,
+            GcmNotificationClickActionKey
+        };
+
     }
 }
