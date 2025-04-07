@@ -2,21 +2,90 @@
 <ContentView
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
     x:Class="MauiSampleApp.Views.ItemTemplates.NotificationChannelItemTemplate"
-    x:DataType="x:String">
+    x:DataType="vm:NotificationChannelViewModel">
 
     <Grid
-        Padding="4"
-        ColumnDefinitions="Auto, *"
-        ColumnSpacing="4">
+        ColumnDefinitions="2*, 3*, Auto"
+        ColumnSpacing="4"
+        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+
         <Label
+            Grid.Row="0"
             Grid.Column="0"
-            Text="ChannelId: "
-            VerticalOptions="Center" />
+            LineBreakMode="MiddleTruncation"
+            Text="ChannelId:" />
         <Label
+            Grid.Row="0"
+            Grid.Column="1"
+            FontAttributes="Bold"
+            FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+            Text="{Binding ChannelId}" />
+
+        <Label
+            Grid.Row="1"
+            Grid.Column="0"
+            LineBreakMode="MiddleTruncation"
+            Text="ChannelName:" />
+        <Label
+            Grid.Row="1"
             Grid.Column="1"
             FontFamily="{StaticResource FontFamily.Monospace.Regular}"
-            Text="{Binding .}"
-            VerticalOptions="Center" />
+            Text="{Binding ChannelName}" />
+
+        <Label
+            Grid.Row="2"
+            Grid.Column="0"
+            LineBreakMode="MiddleTruncation"
+            Text="Description:" />
+        <Label
+            Grid.Row="2"
+            Grid.Column="1"
+            FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+            LineBreakMode="TailTruncation"
+            MaxLines="3"
+            Text="{Binding Description}" />
+
+        <Label
+            Grid.Row="3"
+            Grid.Column="0"
+            LineBreakMode="MiddleTruncation"
+            Text="LockscreenVisibility:" />
+        <Label
+            Grid.Row="3"
+            Grid.Column="1"
+            FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+            Text="{Binding LockscreenVisibility}" />
+
+        <Label
+            Grid.Row="4"
+            Grid.Column="0"
+            LineBreakMode="MiddleTruncation"
+            Text="Group:" />
+        <Label
+            Grid.Row="4"
+            Grid.Column="1"
+            FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+            Text="{Binding Group}" />
+
+        <Label
+            Grid.Row="5"
+            Grid.Column="0"
+            LineBreakMode="MiddleTruncation"
+            Text="Importance:" />
+        <Label
+            Grid.Row="5"
+            Grid.Column="1"
+            FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+            Text="{Binding Importance}" />
+
+        <Button
+            Grid.RowSpan="6"
+            Grid.Column="2"
+            Command="{Binding DeleteNotificationChannelCommand}"
+            Text="X"
+            HorizontalOptions="Start"
+            VerticalOptions="Start" />
     </Grid>
 </ContentView>

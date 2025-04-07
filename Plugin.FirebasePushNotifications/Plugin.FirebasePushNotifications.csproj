@@ -37,7 +37,13 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>3.0
+		<PackageReleaseNotes>3.1
+- Extend INotificationChannels to manage notification channel groups.
+- Internal refactoring of INotificationChannels implementation.
+- Removed properties IsActive and IsDefault from NotificationChannelRequest. Set the default notification channel via UseFirebasePushNotifications(o => o.Android.DefaultNotificationChannelId = ...).
+- Configure initial list of notification channels via o.Android.NotificationChannels and notification groups via o.Android.NotificationChannelGroups.
+
+3.0
 - Update firebase-ios-sdk by replacing nuget package Xamarin.Firebase.iOS.CloudMessaging with AdamE.Firebase.iOS.CloudMessaging.
 
 2.5

@@ -68,17 +68,18 @@
                 value = boolValue;
                 return true;
             }
-            else if (items.TryGetString(key, out var stringValue))
+
+            if (items.TryGetString(key, out var stringValue))
             {
-                if (stringValue.Equals("true", StringComparison.InvariantCultureIgnoreCase) ||
-                    stringValue.Equals("1", StringComparison.InvariantCultureIgnoreCase))
+                if (stringValue.Equals("1", StringComparison.InvariantCultureIgnoreCase) ||
+                    stringValue.Equals("true", StringComparison.InvariantCultureIgnoreCase))
                 {
                     value = true;
                     return true;
                 }
-                else if (
-                    stringValue.Equals("false", StringComparison.InvariantCultureIgnoreCase) ||
-                    stringValue.Equals("0", StringComparison.InvariantCultureIgnoreCase))
+
+                if (stringValue.Equals("0", StringComparison.InvariantCultureIgnoreCase) ||
+                    stringValue.Equals("false", StringComparison.InvariantCultureIgnoreCase))
                 {
                     value = false;
                     return true;

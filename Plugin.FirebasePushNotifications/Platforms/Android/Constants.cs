@@ -1,20 +1,8 @@
-﻿using Plugin.FirebasePushNotifications.Platforms.Channels;
-
-namespace Plugin.FirebasePushNotifications
+﻿namespace Plugin.FirebasePushNotifications
 {
     internal static partial class Constants
     {
         internal const string ExtraFirebaseProcessIntentHandled = "EXTRA_FIREBASE_PROCESS_INTENT_HANDLED";
-
-        public const string DefaultNotificationChannelId = "DefaultNotificationChannel";
-        public const string DefaultNotificationChannelName = "Default";
-
-        internal static readonly NotificationChannelRequest DefaultNotificationChannel = new NotificationChannelRequest
-        {
-            ChannelId = Constants.DefaultNotificationChannelId,
-            ChannelName = Constants.DefaultNotificationChannelName,
-            IsDefault = true,
-        };
 
         public const string MetadataIconKey = "com.google.firebase.messaging.default_notification_icon";
         public const string MetadataColorKey = "com.google.firebase.messaging.default_notification_color";
@@ -43,5 +31,13 @@ namespace Plugin.FirebasePushNotifications
         public const string ChannelIdKey = "channel_id";
         public const string ShowWhenKey = "show_when";
         public const string BigTextStyleKey = "bigtextstyle";
+
+        public static readonly string[] ClickActionKeys = new []
+        {
+            ClickActionKey,
+            CategoryKey,
+            GcmNotificationClickActionKey
+        };
+
     }
 }
