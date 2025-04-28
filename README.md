@@ -31,8 +31,7 @@ You can use this library in any .NET MAUI project compatible to .NET 7 and highe
 ```
 - iOS apps need to be enabled to support push notifications. Turn on the "Push Notifications" capability of your app in the [Apple Developer Portal](https://developer.apple.com).
 
-#### App Startup
-
+#### MAUI App Startup
 This plugin provides an extension method for MauiAppBuilder `UseFirebasePushNotifications` which ensure proper startup and initialization. Call this method within your `MauiProgram` just as demonstrated in the MauiSampleApp:
 
 ```csharp
@@ -42,6 +41,38 @@ var builder = MauiApp.CreateBuilder()
 ```
 
 `UseFirebasePushNotifications` has optional configuration parameters which are documented in another section of this document.
+
+
+#### Android-specific Setup
+- Copy the google-services.json to path location Platforms\Android\Resources\google-services.json (depending on what is configured in the csproj file).
+- Make sure your launcher activity (usually this is MainActivity - but not always) uses `LaunchMode = LaunchMode.SingleTask`. You can also use a different LaunchMode; just be very sure what you do!
+
+#### iOS-specific Setup
+- Copy the GoogleService-Info.plist to path location Platforms\iOS\GoogleService-Info.plist (depending on what is configured in the csproj file).
+- Extend the AppDelegate.cs file with following method exports:
+```csharp
+[Export("application:didRegisterForRemoteNotificationsWithDeviceToken:")]
+[BindingImpl(BindingImplOptions.GeneratedCode | BindingImplOptions.Optimizable)]
+public void RegisteredForRemoteNotifications(UIApplication application, NSData deviceToken)
+{
+    IFirebasePushNotification.Current.RegisteredForRemoteNotifications(deviceToken);
+}
+
+[Export("application:didFailToRegisterForRemoteNotificationsWithError:")]
+[BindingImpl(BindingImplOptions.GeneratedCode | BindingImplOptions.Optimizable)]
+public void FailedToRegisterForRemoteNotifications(UIApplication application, NSError error)
+{
+    IFirebasePushNotification.Current.FailedToRegisterForRemoteNotifications(error);
+}
+
+[Export("application:didReceiveRemoteNotification:fetchCompletionHandler:")]
+public void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler)
+{
+    IFirebasePushNotification.Current.DidReceiveRemoteNotification(userInfo);
+    completionHandler(UIBackgroundFetchResult.NewData);
+}
+```
+
 
 ### API Usage
 `IFirebasePushNotification` is the main interface which handles most of the desired Firebase push notification features. This interface is injectable via dependency injection or accessible as a static singleton instance `IFirebasePushNotification.Current`. We strongly encourage you to use the dependency injection approach in order to keep your code testable.
@@ -90,15 +121,14 @@ await this.firebasePushNotification.UnregisterForPushNotificationsAsync();
 ```
 
 Following .NET events can be subscribed:
-- `IFirebasePushNotification.TokenRefreshed` is raised whenever the Firebase push notification token is updated. You'll need to inform your server/backend whenever a new push notification token is available.
 
-- `IFirebasePushNotification.NotificationReceived` is raised when a new push notification message was received.
-
-- `IFirebasePushNotification.NotificationOpened` is raised when a received push notification is opened. This means, a user taps on a received notification listed in the notification center provided by the OS.
-
-- `IFirebasePushNotification.NotificationAction` is raised when the user taps a notification action. Notification actions allow users to make simple decisions when a notification is received, e.g. "Do you like to take your medicine?" could be answered with "Take medicine" and "Skip medicine".
-
-- `IFirebasePushNotification.NotificationDeleted` is raised when the user deletes a received notification.
+| Events                 | Description                                                                                                                                                                                                                                          |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `TokenRefreshed`       | Is raised whenever the Firebase push notification token is updated. You'll need to inform your server/backend whenever a new push notification token is available.                                                                                   |
+| `NotificationReceived` | Is raised when a new push notification message was received.                                                                                                                                                                                         |
+| `NotificationOpened`   | Is raised when a received push notification is opened. This means, a user taps on a received notification listed in the notification center provided by the OS.                                                                                      |
+| `NotificationAction`   | Is raised when the user taps a notification action. Notification actions allow users to make simple decisions when a notification is received, e.g. "Do you like to take your medicine?" could be answered with "Take medicine" and "Skip medicine". |
+| `NotificationDeleted`  | Is raised when the user deletes a received notification.                                                                                                                                                                                             |
 
 #### Topics
 The most common way of sending push notifications is by targeting notification message directly to push tokens.
