@@ -206,8 +206,7 @@ are end-to-end tested using postman calls. You can find an up-to-date postman co
 
 - Import the collection in postman.
 - Adjust the variables, especially the `project_id` and the `fcm_token` accordingly.
-- Authenticate each call by selecting the Auth Type "Firebase Cloud Messaging API (Oauth 2.0)".
-- Press "Authorize" and enter the credentials of a user which is allowed to send FCM messages for the configured FCM project.
+- Get a Bearer authentication token either by selecting the Auth Type "Firebase Cloud Messaging API (Oauth 2.0)" or by creating it manually via https://developers.google.com/oauthplayground (see this [youtube video](https://www.youtube.com/watch?v=PYfpBwupoMQ)).
 
 ### Options
 > *to be documented*
@@ -216,7 +215,22 @@ are end-to-end tested using postman calls. You can find an up-to-date postman co
 Contributors welcome! If you find a bug or you want to propose a new feature, feel free to do so by opening a new issue on github.com.
 
 ### Links
-- FCM messages, data format, concepts and options: https://firebase.google.com/docs/cloud-messaging/concept-options
-- Set up a Firebase Cloud Messaging client app on Apple platforms: https://firebase.google.com/docs/cloud-messaging/ios/client
-- Set up a Firebase Cloud Messaging client app on Android: https://firebase.google.com/docs/cloud-messaging/android/client
-- Expandable notification on Android: https://developer.android.com/develop/ui/views/notifications/expanded
+- FCM messages, data format, concepts and options:
+
+  https://firebase.google.com/docs/cloud-messaging/concept-options
+
+- Set up a Firebase Cloud Messaging client app on Apple platforms:
+
+  https://firebase.google.com/docs/cloud-messaging/ios/client
+
+- Set up a Firebase Cloud Messaging client app on Android:
+
+  https://firebase.google.com/docs/cloud-messaging/android/client
+
+- Expandable notification on Android:
+
+  https://developer.android.com/develop/ui/views/notifications/expanded
+
+- Create bearer authentication tokens for Firebase Cloud Messaging (and other Google APIs):
+
+  https://developers.google.com/oauthplayground
