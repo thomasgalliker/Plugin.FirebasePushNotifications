@@ -39,7 +39,7 @@ namespace MauiSampleApp
         [Export("application:didReceiveRemoteNotification:fetchCompletionHandler:")]
         public void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler)
         {
-            CrossFirebasePushNotification.Current.DidReceiveRemoteNotification(userInfo);
+            IFirebasePushNotification.Current.DidReceiveRemoteNotification(userInfo);
             completionHandler(UIBackgroundFetchResult.NewData);
         }
 

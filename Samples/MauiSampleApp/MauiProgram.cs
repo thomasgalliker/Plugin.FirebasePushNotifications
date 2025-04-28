@@ -9,6 +9,7 @@ using MauiSampleApp.Services.Logging;
 using NLog.Extensions.Logging;
 
 #if ANDROID
+using Android.App;
 using Firebase;
 using MauiSampleApp.Platforms.Notifications;
 #elif IOS
@@ -32,7 +33,10 @@ namespace MauiSampleApp
 #if ANDROID
                     // You can configure Android-specific options under o.Android:
                     // o.Android.NotificationActivityType = typeof(MainActivity);
-                    // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
+                    // o.Android.DefaultNotificationImportance = NotificationImportance.High;
+                    // o.Android.NotificationChannelGroups = NotificationChannelGroupSamples.GetAll().ToArray();
+                    o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
+                    // o.Android.NotificationChannels = new [] { NotificationChannelSamples.Default };
                     // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
 
                     // If you don't want to use the google-services.json file,
@@ -79,7 +83,6 @@ namespace MauiSampleApp
             // Demo: Register an IFirebasePushNotificationPreferences instance
             // in order to handle preferences in your own implementation.
 
-
             // Register services used by MauiSampleApp
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<MainViewModel>();
@@ -93,6 +96,7 @@ namespace MauiSampleApp
             builder.Services.AddSingleton<INavigationService, MauiNavigationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
             builder.Services.AddSingleton(_ => Launcher.Default);
+            builder.Services.AddSingleton(_ => Browser.Default);
             builder.Services.AddSingleton(_ => Share.Default);
             builder.Services.AddSingleton(_ => Preferences.Default);
             builder.Services.AddSingleton(_ => Email.Default);

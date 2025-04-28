@@ -16,15 +16,19 @@ namespace Plugin.FirebasePushNotifications.Platforms
     [Preserve(AllMembers = true)]
     public class FirebasePushNotificationManager : FirebasePushNotificationManagerBase, IFirebasePushNotification
     {
+        private readonly INotificationChannels notificationChannels;
+
         internal FirebasePushNotificationManager(
             ILogger<FirebasePushNotificationManager> logger,
             ILoggerFactory loggerFactory,
             FirebasePushNotificationOptions options,
             IPushNotificationHandler pushNotificationHandler,
             IFirebasePushNotificationPreferences preferences,
+            INotificationChannels notificationChannels,
             INotificationBuilder notificationBuilder)
             : base(logger, loggerFactory, options, pushNotificationHandler, preferences)
         {
+            this.notificationChannels = notificationChannels;
             this.NotificationBuilder = notificationBuilder;
             this.ConfigurePlatform();
 
@@ -40,6 +44,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("ConfigurePlatform");
 
+            this.notificationChannels.SetNotificationChannelGroups(this.options.Android.NotificationChannelGroups);
+            this.notificationChannels.SetNotificationChannels(this.options.Android.NotificationChannels);
+
             var context = Application.Context;
             var isFirebaseAppInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context);
 
@@ -54,7 +61,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 if (this.options.Android.FirebaseOptions != null)
                 {
-                    this.logger.LogWarning("Firebase is already configured; Android.FirebaseOptions is not used!");
+                    this.logger.LogWarning("ConfigurePlatform: Firebase is already configured; Android.FirebaseOptions is not used!");
                 }
             }
             else
@@ -72,16 +79,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.CheckIfFirebaseAppInitialized(context);
 
             FirebaseMessaging.Instance.AutoInitEnabled = this.options.AutoInitEnabled;
-
-            var notificationChannels = NotificationChannels.Current;
-
-            var notificationChannelRequests = this.options.Android.NotificationChannels.ToArray();
-            if (notificationChannelRequests.Length == 0)
-            {
-                notificationChannelRequests = new[] { Constants.DefaultNotificationChannel };
-            }
-
-            notificationChannels.CreateChannels(notificationChannelRequests);
         }
 
         private void InitializeFirebaseAppFromServiceFile(Context context)

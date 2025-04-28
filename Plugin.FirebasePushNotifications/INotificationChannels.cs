@@ -1,18 +1,13 @@
-﻿namespace Plugin.FirebasePushNotifications
+namespace Plugin.FirebasePushNotifications
 {
     /// <summary>
     /// Cross-platform interface to handle notification channels.
     /// </summary>
     /// <remarks>
-    /// The concept of notification channels does only exist on Android.
-    /// This cross-platform interfaces allows to update all existing
-    /// notification channels from platform-independent code.
+    /// The concept of notification channels exists on Android only.
+    /// This interface is mainly used to simplify dependency injection.
     /// </remarks>
     public partial interface INotificationChannels
     {
-        /// <summary>
-        /// Updates all existing notification channels.
-        /// </summary>
-        void UpdateChannels();
     }
 }

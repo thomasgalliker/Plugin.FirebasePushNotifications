@@ -7,7 +7,7 @@ namespace MauiSampleApp.Services.Logging
     {
         public static void Configure(SentryLoggingOptions options)
         {
-            options.InitializeSdk = true;
+            options.InitializeSdk = false;
             options.Debug = false;
             options.Dsn = "https://a6a1f9dae37aa06035b28a7fe65ae4ce@o4507458300280832.ingest.de.sentry.io/4507526259998800";
             options.MinimumEventLevel = LogLevel.Warning;
