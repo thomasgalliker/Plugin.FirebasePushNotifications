@@ -19,7 +19,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Gets the singleton instance of <see cref="IFirebasePushNotification"/>.
         /// </summary>
-        public static IFirebasePushNotification Current { get; set; } = CrossFirebasePushNotification.Current;
+        public static IFirebasePushNotification Current => CrossFirebasePushNotification.Current;
 
         /// <summary>
         /// Gets the version of the underlying Firebase SDK.

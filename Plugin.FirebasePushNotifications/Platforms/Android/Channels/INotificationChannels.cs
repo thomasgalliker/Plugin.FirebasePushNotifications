@@ -12,7 +12,7 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Gets the singleton instance of <see cref="INotificationChannels"/>.
         /// </summary>
-        public static INotificationChannels Current { get; set; } = NotificationChannels.Current;
+        public static INotificationChannels Current => NotificationChannels.Current;
 
         /// <summary>
         /// Gets the list of configured notification channels.
