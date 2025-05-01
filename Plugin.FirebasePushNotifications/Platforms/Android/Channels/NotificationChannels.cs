@@ -24,23 +24,19 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         {
 #if ANDROID
             var logger = IPlatformApplication.Current.Services.GetRequiredService<ILogger<NotificationChannels>>();
-            var options = IPlatformApplication.Current.Services.GetRequiredService<FirebasePushNotificationOptions>();
-            return new NotificationChannels(logger, options);
+            return new NotificationChannels(logger);
 #else
             throw Exceptions.NotImplementedInReferenceAssembly();
 #endif
         }
 
-        private readonly ILogger<NotificationChannels> logger;
-        private readonly FirebasePushNotificationOptions options;
+        private readonly ILogger logger;
         private readonly NotificationManagerCompat notificationManager;
 
         private NotificationChannels(
-            ILogger<NotificationChannels> logger,
-            FirebasePushNotificationOptions options)
+            ILogger<NotificationChannels> logger)
         {
             this.logger = logger;
-            this.options = options;
             this.notificationManager = NotificationManagerCompat.From(Android.App.Application.Context);
             this.Channels = new NotificationChannelsDelegate(() => this.notificationManager.NotificationChannels);
         }
