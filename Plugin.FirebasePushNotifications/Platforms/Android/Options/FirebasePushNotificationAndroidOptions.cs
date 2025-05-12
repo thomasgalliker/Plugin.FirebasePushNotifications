@@ -3,6 +3,7 @@ using Android.App;
 using Android.Content;
 using Firebase;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
+using static Plugin.FirebasePushNotifications.Platforms.Channels.NotificationChannelHelper;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -54,13 +55,35 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public virtual NotificationChannelRequest[] NotificationChannels
         {
             get => this.notificationChannels;
-            set => this.notificationChannels = value ?? Array.Empty<NotificationChannelRequest>();
+            set
+            {
+                value ??= Array.Empty<NotificationChannelRequest>();
+
+                var notificationChannels = value
+                    .Select(c => (c.ChannelId, c.IsDefault))
+                    .ToArray();
+
+                var checkResult = CheckNotificationChannelRequests(notificationChannels, nameof(this.NotificationChannels), nameof(value));
+                if (checkResult.Result != NotificationChannelCheckResult.Success &&
+                    checkResult.Result != NotificationChannelCheckResult.NoDefaultChannel)
+                {
+                    throw checkResult.Exception;
+                }
+
+                this.notificationChannels = value;
+            }
         }
 
         public string NotificationTitleKey { get; set; }
 
         public string NotificationBodyKey { get; set; }
 
+        /// <summary>
+        /// The notification importance used by default
+        /// - if the notification data does not contain any "priority" flags.
+        /// - as notification importance for the default notification channel (if not specified).
+        /// Default value: <c>NotificationImportance.Default</c>
+        /// </summary>
         public NotificationImportance DefaultNotificationImportance { get; set; } = NotificationImportance.Default;
 
         public int? DefaultIconResource { get; set; }

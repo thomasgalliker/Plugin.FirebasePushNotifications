@@ -2,10 +2,14 @@
 {
     internal static partial class Constants
     {
+        public static string DefaultNotificationChannelId = "default_channel_id";
+        public static string DefaultNotificationChannelName = "Default";
+
         internal const string ExtraFirebaseProcessIntentHandled = "EXTRA_FIREBASE_PROCESS_INTENT_HANDLED";
 
         public const string MetadataIconKey = "com.google.firebase.messaging.default_notification_icon";
         public const string MetadataColorKey = "com.google.firebase.messaging.default_notification_color";
+        public const string MetadataDefaultNotificationChannelId = "com.google.firebase.messaging.default_notification_channel_id";
 
         public const string GcmNotificationTitleKey = "gcm.notification.title";
         public const string GcmNotificationBodyKey = "gcm.notification.body";

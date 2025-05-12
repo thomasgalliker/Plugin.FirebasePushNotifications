@@ -554,7 +554,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 try
                 {
-                    var metadata = GetMetadata();
+                    var metadata = MetadataHelper.GetMetadata();
                     smallIconResource = metadata.GetInt(Constants.MetadataIconKey, 0);
                 }
                 catch (Exception ex)
@@ -626,7 +626,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 try
                 {
-                    var metadata = GetMetadata();
+                    var metadata = MetadataHelper.GetMetadata();
                     var resourceId = metadata.GetInt(Constants.MetadataColorKey, 0);
                     if (resourceId != 0)
                     {
@@ -640,17 +640,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             return notificationColor;
-        }
-
-        private static Bundle GetMetadata()
-        {
-            var applicationInfo = Application.Context.PackageManager.GetApplicationInfo(
-                Application.Context.PackageName,
-                Android.Content.PM.PackageInfoFlags.MetaData);
-
-            var metadata = applicationInfo.MetaData;
-
-            return metadata;
         }
 
         private Intent CreateActivityLaunchIntent(Context context)
@@ -690,7 +679,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (notificationChannel == null)
             {
-                notificationChannel = this.notificationChannels.Channels.Default;
+                notificationChannel = this.notificationChannels.Channels.GetDefault();
             }
 
             // if (notificationChannel == null)
