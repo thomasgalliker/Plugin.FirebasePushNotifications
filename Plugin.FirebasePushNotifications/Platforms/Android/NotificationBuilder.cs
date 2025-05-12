@@ -79,7 +79,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return true;
             }
 
-            var defaultNotificationImportance = this.GetDefaultNotificationImportance();
+            var defaultNotificationImportance = this.options.Android.DefaultNotificationImportance;
             if (defaultNotificationImportance >= NotificationImportance.High)
             {
                 // In case a default notification importance >= high is configured
@@ -690,7 +690,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (notificationChannel == null)
             {
-                notificationChannel = this.notificationChannels.Channels.GetDefault();
+                notificationChannel = this.notificationChannels.Channels.Default;
             }
 
             // if (notificationChannel == null)
@@ -753,7 +753,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             if (GetNotificationImportance(data) is not NotificationImportance notificationImportance)
             {
-                notificationImportance = this.GetDefaultNotificationImportance();
+                notificationImportance = this.options.Android.DefaultNotificationImportance;
             }
 
             return notificationImportance;
@@ -780,11 +780,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 default:
                     return NotificationImportance.Default;
             }
-        }
-
-        private NotificationImportance GetDefaultNotificationImportance()
-        {
-            return this.options.Android.DefaultNotificationImportance;
         }
 
         private string GetNotificationBody(IDictionary<string, object> data)
