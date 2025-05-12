@@ -13,7 +13,7 @@ namespace Plugin.FirebasePushNotifications
 
         /// <summary>
         /// The factory used to create new queues to intercept push notification events.
-        /// Default: <c>null</c> (No queuing is used).
+        /// Default: <c>InMemoryQueueFactory</c> (In-memory queuing is used).
         /// </summary>
         /// <remarks>
         /// Use one of the predefined queues or create your own implementation of <see cref="IQueueFactory"/>.
@@ -22,7 +22,7 @@ namespace Plugin.FirebasePushNotifications
         ///<item><see cref="PersistentQueueFactory"/></item>
         ///</list>
         /// </remarks>
-        public virtual IQueueFactory QueueFactory { get; set; }
+        public virtual IQueueFactory QueueFactory { get; set; } = new InMemoryQueueFactory();
 
 #if ANDROID
         /// <summary>

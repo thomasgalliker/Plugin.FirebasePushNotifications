@@ -29,7 +29,7 @@ namespace MauiSampleApp
                 .UseFirebasePushNotifications(o =>
                 {
                     o.AutoInitEnabled = false;
-                    o.QueueFactory = new PersistentQueueFactory();
+                    // o.QueueFactory = new PersistentQueueFactory();
 #if ANDROID
                     // You can configure Android-specific options under o.Android:
                     // o.Android.NotificationActivityType = typeof(MainActivity);
