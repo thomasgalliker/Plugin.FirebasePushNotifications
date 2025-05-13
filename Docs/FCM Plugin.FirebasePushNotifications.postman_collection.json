@@ -8,10 +8,24 @@
 	},
 	"item": [
 		{
-			"name": "Basic Notifications",
+			"name": "Notification Messages",
 			"item": [
 				{
 					"name": "Notification Message",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -22,7 +36,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body sent @ {{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -89,7 +103,46 @@
 					"response": []
 				},
 				{
-					"name": "Notification Message with priority=high and large_icon=drawable",
+					"name": "Notification Message with icon=ic_number_one",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\",\r\n            \"icon\": \"ic_number_one\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with large_icon=ic_notification_icon_large",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -128,7 +181,7 @@
 					"response": []
 				},
 				{
-					"name": "Notification Message with priority=high and large_icon=url",
+					"name": "Notification Message with large_icon=url",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -296,7 +349,65 @@
 					"response": []
 				},
 				{
+					"name": "Notification Message with localizable keys",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"value2\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Data Messages",
+			"item": [
+				{
 					"name": "Data Message",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -336,6 +447,20 @@
 				},
 				{
 					"name": "Data Message with priority=high",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -423,7 +548,7 @@
 			"name": "Topics",
 			"item": [
 				{
-					"name": "Notification Message topic=general",
+					"name": "Notification Message with topic=general",
 					"event": [
 						{
 							"listen": "test",
@@ -440,7 +565,6 @@
 							"script": {
 								"exec": [
 									"var moment = require('moment');",
-									"",
 									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
 									""
 								],
@@ -480,7 +604,7 @@
 					"response": []
 				},
 				{
-					"name": "Data Message topic=general",
+					"name": "Data Message with topic=general",
 					"event": [
 						{
 							"listen": "test",
@@ -537,7 +661,7 @@
 					"response": []
 				},
 				{
-					"name": "Notification Message topic=subscriber-updates",
+					"name": "Notification Message with topic=subscriber-updates",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -591,7 +715,7 @@
 					"response": []
 				},
 				{
-					"name": "Notification Message topic=weather_updates",
+					"name": "Notification Message with topic=weather_updates",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -630,16 +754,6 @@
 				{
 					"name": "Push Notification iOS (Flattened)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -678,16 +792,6 @@
 				{
 					"name": "Push Notification Android (Flattened)",
 					"request": {
-						"auth": {
-							"type": "oauth2",
-							"oauth2": [
-								{
-									"key": "addTokenTo",
-									"value": "header",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -726,16 +830,6 @@
 				{
 					"name": "Localization/Tanslation (Flattened)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -774,16 +868,6 @@
 				{
 					"name": "Localization/Tanslation Key (Flattened)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -865,16 +949,6 @@
 				{
 					"name": "Push Notification iOS (Stringfy)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -913,16 +987,6 @@
 				{
 					"name": "Push Notification Android (Stringify)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -961,16 +1025,6 @@
 				{
 					"name": "Localization/Tanslation (Stringify)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1009,16 +1063,6 @@
 				{
 					"name": "Localization/Tanslation key (Stringify)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1057,16 +1101,6 @@
 				{
 					"name": "Switchable Push Notification (Stringify)",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1117,8 +1151,19 @@
 									"var moment = require('moment');",
 									"",
 									"const microsecondsSinceEpoch = moment().valueOf();",
-									"console.log(microsecondsSinceEpoch);",
-									"pm.environment.set('fromMicrosecondsSinceEpoch', microsecondsSinceEpoch);"
+									"console.log(\"microsecondsSinceEpoch=\" + microsecondsSinceEpoch);",
+									"pm.environment.set('microsecondsSinceEpoch', microsecondsSinceEpoch);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -1135,7 +1180,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{    \r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"content-available\": 1\r\n                }\r\n            }\r\n        },\r\n        \"data\" : {\r\n            \"data1\": \"fb787aa2-6387-4f65-a5a2-125f96ab4c14\",\r\n            \"data2\": \"call_voz\",\r\n            \"data3\": \"3c3079b7-ab5e-48a5-8c61-b64ebb4910a9\",\r\n            \"data4\": \"5469846578\"\r\n        }\r\n    }\r\n}",
+							"raw": "{    \r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"content-available\": 1\r\n                }\r\n            }\r\n        },\r\n        \"data\" : {\r\n            \"id\": \"fb787aa2-6387-4f65-a5a2-125f96ab4c14\",\r\n            \"microsecondsSinceEpoch\": \"{{microsecondsSinceEpoch}}\"\r\n        }\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1171,8 +1216,9 @@
 									"var moment = require('moment');",
 									"",
 									"const microsecondsSinceEpoch = moment().valueOf();",
-									"console.log(microsecondsSinceEpoch);",
-									"pm.environment.set('fromMicrosecondsSinceEpoch', microsecondsSinceEpoch);"
+									"console.log(\"microsecondsSinceEpoch=\" + microsecondsSinceEpoch);",
+									"pm.environment.set('microsecondsSinceEpoch', microsecondsSinceEpoch);",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -1189,7 +1235,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\" : {\r\n            \"data1\": \"fb787aa2-6387-4f65-a5a2-125f96ab4c14\",\r\n            \"data2\": \"call_voz\",\r\n            \"data3\": \"3c3079b7-ab5e-48a5-8c61-b64ebb4910a9\",\r\n            \"data4\": \"5469846578\"\r\n        }\r\n    }\r\n}",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\": {\r\n            \"id\": \"fb787aa2-6387-4f65-a5a2-125f96ab4c14\",\r\n            \"microsecondsSinceEpoch\": \"{{microsecondsSinceEpoch}}\"\r\n        }\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1223,16 +1269,6 @@
 				{
 					"name": "Push Notifications + dismiss",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -1271,16 +1307,6 @@
 				{
 					"name": "Silent Remote dismiss",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{bearer_token}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
