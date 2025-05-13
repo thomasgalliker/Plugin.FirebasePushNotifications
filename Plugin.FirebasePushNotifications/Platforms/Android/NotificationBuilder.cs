@@ -470,7 +470,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private Bitmap GetLargeIconBitmap(IDictionary<string, object> data, Context context)
         {
-            var largeIconResource = GetIconResourceFromDrawableOrMipmap(context, data, Constants.LargeIconKey);
+            var largeIconResource = this.GetIconResourceFromDrawable(context, data, Constants.LargeIconKey);
+
+            if (largeIconResource == 0)
+            {
+                largeIconResource = this.GetIconResourceFromMipmap(context, data, Constants.LargeIconKey);
+            }
 
             if (largeIconResource == 0 &&
                 data.TryGetString(Constants.LargeIconKey, out var largeIconUrl) &&
@@ -482,20 +487,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (largeIconResource == 0 && this.options.Android.DefaultLargeIconResource is int defaultLargeIconResource)
             {
                 largeIconResource = defaultLargeIconResource;
-            }
-
-            try
-            {
-                var name = context.Resources.GetResourceName(largeIconResource);
-                if (name == null)
+                var resourceName = this.TryGetResourceName(context, largeIconResource, nameof(largeIconResource), nameof(this.GetLargeIconBitmap), nameof(this.options.Android.DefaultLargeIconResource));
+                if (resourceName == null)
                 {
                     largeIconResource = 0;
                 }
-            }
-            catch (Resources.NotFoundException ex)
-            {
-                this.logger.LogError(ex, "Failed to get large icon resource");
-                largeIconResource = 0;
             }
 
             Bitmap largeIconBitmap = null;
@@ -509,7 +505,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex, "Failed to decode bitmap ");
+                this.logger.LogError(ex, "GetLargeIconBitmap: DecodeResource failed with exception");
             }
 
             return largeIconBitmap;
@@ -543,11 +539,24 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private int GetSmallIconResource(IDictionary<string, object> data, Context context)
         {
-            var smallIconResource = GetIconResourceFromDrawableOrMipmap(context, data, Constants.IconKey);
+            var smallIconResource = this.GetIconResourceFromDrawable(context, data, Constants.IconKey);
+
+            if (smallIconResource == 0)
+            {
+                smallIconResource = this.GetIconResourceFromMipmap(context, data, Constants.IconKey);
+            }
 
             if (smallIconResource == 0 && this.options.Android.DefaultIconResource is int defaultIconResource)
             {
                 smallIconResource = defaultIconResource;
+                if (smallIconResource != 0)
+                {
+                    var resourceName = this.TryGetResourceName(context, smallIconResource, nameof(smallIconResource), nameof(this.GetSmallIconResource), nameof(this.options.Android.DefaultIconResource));
+                    if (resourceName == null)
+                    {
+                        smallIconResource = 0;
+                    }
+                }
             }
 
             if (smallIconResource == 0)
@@ -556,49 +565,103 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     var metadata = MetadataHelper.GetMetadata();
                     smallIconResource = metadata.GetInt(Constants.MetadataIconKey, 0);
+                    if (smallIconResource != 0)
+                    {
+                        var resourceName = this.TryGetResourceName(context, smallIconResource, nameof(smallIconResource), nameof(this.GetSmallIconResource), "AndroidManifest.xml");
+                        if (resourceName == null)
+                        {
+                            smallIconResource = 0;
+                        }
+                    }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    this.logger.LogWarning(ex, "Failed to get default notification icon from meta-data");
+                    this.logger.LogDebug($"GetSmallIconResource: Failed to get {Constants.MetadataIconKey} from AndroidManifest.xml");
                 }
-            }
-
-            try
-            {
-                var name = context.Resources.GetResourceName(smallIconResource);
-                if (name == null)
-                {
-                    smallIconResource = 0;
-                }
-            }
-            catch (Resources.NotFoundException ex)
-            {
-                this.logger.LogError(ex, "Failed to get small icon resource");
-                smallIconResource = 0;
             }
 
             if (smallIconResource == 0)
             {
                 smallIconResource = context.ApplicationInfo.Icon;
+                if (smallIconResource != 0)
+                {
+                    var resourceName = this.TryGetResourceName(context, smallIconResource, nameof(smallIconResource), nameof(this.GetSmallIconResource), "ApplicationInfo.Icon");
+                    if (resourceName == null)
+                    {
+                        smallIconResource = 0;
+                    }
+                }
             }
 
             return smallIconResource;
         }
 
-        private static int GetIconResourceFromDrawableOrMipmap(Context context, IDictionary<string, object> data, string dataKey)
+        private string TryGetResourceName(Context context, int resid, string residName, string methodName, string source)
         {
-            var largeIconResource = 0;
+            string resourceName = null;
 
-            if (data.TryGetString(dataKey, out var largeIcon) && largeIcon != null)
+            try
             {
-                largeIconResource = context.Resources.GetIdentifier(largeIcon, "drawable", context.PackageName);
-                if (largeIconResource == 0)
+                if (resid != 0)
                 {
-                    largeIconResource = context.Resources.GetIdentifier(largeIcon, "mipmap", context.PackageName);
+                    resourceName = context.Resources.GetResourceName(resid);
+                    if (resourceName != null)
+                    {
+                        this.logger.LogDebug($"{methodName}: {residName}={resid}, resourceName={resourceName} " +
+                                             $"(Source: {source})");
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore
+            }
+
+            return resourceName;
+        }
+
+        private static int GetIconResourceFromDrawableOrMipmap___(Context context, IDictionary<string, object> data, string dataKey)
+        {
+            var iconResourceId = 0;
+
+            if (data.TryGetString(dataKey, out var iconKey) && iconKey != null)
+            {
+                iconResourceId = context.Resources.GetIdentifier(iconKey, "drawable", context.PackageName);
+
+                if (iconResourceId == 0)
+                {
+                    iconResourceId = context.Resources.GetIdentifier(iconKey, "mipmap", context.PackageName);
                 }
             }
 
-            return largeIconResource;
+            return iconResourceId;
+        }
+
+        private int GetIconResourceFromDrawable(Context context, IDictionary<string, object> data, string dataKey)
+        {
+            return this.GetIconResource(context, data, dataKey, "drawable");
+        }
+
+        private int GetIconResourceFromMipmap(Context context, IDictionary<string, object> data, string dataKey)
+        {
+            return this.GetIconResource(context, data, dataKey, "mipmap");
+        }
+
+        private int GetIconResource(Context context, IDictionary<string, object> data, string dataKey, string defType)
+        {
+            var iconResourceId = 0;
+
+            if (data.TryGetString(dataKey, out var iconKey) && iconKey != null)
+            {
+                iconResourceId = context.Resources.GetIdentifier(iconKey, defType, context.PackageName);
+                var resourceName = this.TryGetResourceName(context, iconResourceId, nameof(iconResourceId), nameof(this.GetIconResource), defType);
+                if (resourceName == null)
+                {
+                    iconResourceId = 0;
+                }
+            }
+
+            return iconResourceId;
         }
 
         private int? GetNotificationColor(IDictionary<string, object> data)
@@ -681,14 +744,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 notificationChannel = this.notificationChannels.Channels.GetDefault();
             }
-
-            // if (notificationChannel == null)
-            // {
-            //     // TODO: Read default notification channel from manifest
-            //     // Source: https://github.com/firebase/firebase-android-sdk/blob/1e8c2185411d6b62e8a6a74de91d4dccf40838c7/firebase-messaging/src/main/java/com/google/firebase/messaging/CommonNotificationBuilder.java#L62
-            //     //  public static final String METADATA_DEFAULT_CHANNEL_ID =
-            //     //      "com.google.firebase.messaging.default_notification_channel_id";
-            // }
 
             return notificationChannel;
         }
