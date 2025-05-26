@@ -38,6 +38,18 @@ Common reasons for notification delivery issues include:
 - Verify your Firebase configuration and ensure that the correct services files are being used.
 - Configure your app to use logging (Microsoft.Extensions.Logging) and check the log output for any messages related to Plugin.FirebasePushNotifications.
 
+### SERVICE_NOT_AVAILABLE when registering for push notifications
+When you receive a java.io.IOException SERVICE_NOT_AVAILABLE while registering for push notifications, there is a good chance that there is something wrong with the internet connectivity.
+The device needs to be connected to the internet when RegisterForPushNotificationsAsync is called. You can retry as soon as the connectivity is restored.
+
+### The Token is null or empty - TokenRefreshed event is not fired
+This can happen if you've never called RegisterForPushNotificationsAsync method - or - the method execution has raised an exception (e.g. SERVICE_NOT_AVAILABLE).
+TokenRefreshed is fired if a new token is ready to be used. Send the new token to your backend in order to push new notification to the device.
+
+### NotificationEvent is fired while app is in foreground but not when it's in background [Android]
+Make sure you requested the notification permission via INotificationPermissions (method RequestPermissionAsync). 
+If no permission is requested or the user has declined the permissions, Android will only receive notifications while the app is in foreground mode.
+
 ### Where have the platform-specific methods gone?
 It happened in the past, that iOS- or Android-specific methods from cross-platform interfaces (e.g. IFirebasePushNotification) were missing after a nuget update, which results in build errors.
 - Some code files in .NET MAUI are partial across platforms. You may look at the wrong part of the file.
