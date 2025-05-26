@@ -929,5 +929,10 @@ namespace MauiSampleApp.ViewModels
                 // Ignore exceptions
             }
         }
+
+        public void OnResume()
+        {
+            _ = this.UpdateAuthorizationStatusAsync();
+        }
     }
 }
