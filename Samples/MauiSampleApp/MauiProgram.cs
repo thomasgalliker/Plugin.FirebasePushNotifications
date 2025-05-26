@@ -29,14 +29,25 @@ namespace MauiSampleApp
                 .UseFirebasePushNotifications(o =>
                 {
                     o.AutoInitEnabled = false;
-                    o.QueueFactory = new PersistentQueueFactory();
+
+                    // Demo: Use persistent event queues instead of in-memory queues.
+                    // o.QueueFactory = new PersistentQueueFactory();
 #if ANDROID
-                    // You can configure Android-specific options under o.Android:
+                    // Demo: Configure the activity which receives the push notifications.
                     // o.Android.NotificationActivityType = typeof(MainActivity);
+
+                    // Demo: Set the default notification importance to 'high'.
+                    //       This has the same effect as the 'priority' flag sent in the data portion of the notification message.
                     // o.Android.DefaultNotificationImportance = NotificationImportance.High;
+
+                    // Demo: Use notification channels and notification channel groups.
+                    //       If no notification channels are specified, a default notification channel is created.
                     // o.Android.NotificationChannelGroups = NotificationChannelGroupSamples.GetAll().ToArray();
-                    o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
+                    // o.Android.NotificationChannels = NotificationChannelSamples.GetAll().ToArray();
                     // o.Android.NotificationChannels = new [] { NotificationChannelSamples.Default };
+
+                    // Demo: Notification categories are used with 'click_action'
+                    //       to allow user interaction with notification messages.
                     // o.Android.NotificationCategories = NotificationCategorySamples.GetAll().ToArray();
 
                     // If you don't want to use the google-services.json file,

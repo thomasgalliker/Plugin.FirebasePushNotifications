@@ -4,7 +4,6 @@ using Firebase;
 using Firebase.Messaging;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Extensions;
-using Plugin.FirebasePushNotifications.Platforms.Channels;
 using Application = Android.App.Application;
 
 namespace Plugin.FirebasePushNotifications.Platforms

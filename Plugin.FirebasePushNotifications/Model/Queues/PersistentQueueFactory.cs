@@ -4,6 +4,9 @@ using Plugin.FirebasePushNotifications.Internals;
 
 namespace Plugin.FirebasePushNotifications.Model.Queues
 {
+    /// <summary>
+    /// IQueueFactory which uses local storage to temporarily store queued objects.
+    /// </summary>
     public class PersistentQueueFactory : IQueueFactory
     {
         private readonly PersistentQueueOptions options;

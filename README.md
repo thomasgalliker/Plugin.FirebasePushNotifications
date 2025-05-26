@@ -242,7 +242,8 @@ are end-to-end tested using postman calls. You can find an up-to-date postman co
 > *to be documented*
 
 ### Contribution
-Contributors welcome! If you find a bug or you want to propose a new feature, feel free to do so by opening a new issue on github.com.
+Your contribution is valuable! If you find a bug or want to propose a new feature, feel free to create a new issue [here](https://github.com/thomasgalliker/Plugin.FirebasePushNotifications/issues/new/choose).
+Please use the **predefined issue templates** when submitting a new issue.
 
 ### Links
 - FCM messages, data format, concepts and options:
