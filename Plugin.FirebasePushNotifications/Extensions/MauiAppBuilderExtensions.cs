@@ -108,7 +108,7 @@ namespace Plugin.FirebasePushNotifications
 #endif
 
 #if ANDROID
-            builder.Services.AddSingleton(c => NotificationChannels.Current);
+            builder.Services.AddSingleton(c => INotificationChannels.Current);
             builder.Services.TryAddSingleton<INotificationBuilder, NotificationBuilder>();
 #elif IOS
             builder.Services.AddSingleton<INotificationChannels, NotificationChannels>();

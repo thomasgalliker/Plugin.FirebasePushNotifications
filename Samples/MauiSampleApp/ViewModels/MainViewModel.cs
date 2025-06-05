@@ -9,6 +9,7 @@ using Plugin.FirebasePushNotifications.Model;
 
 #if ANDROID
 using Android.App;
+using NotificationChannelRequest = Plugin.FirebasePushNotifications.Platforms.Channels.NotificationChannelRequest;
 using NotificationChannelSamples = MauiSampleApp.Platforms.Notifications.NotificationChannelSamples;
 using NotificationChannelGroupSamples = MauiSampleApp.Platforms.Notifications.NotificationChannelGroupSamples;
 #endif
@@ -624,6 +625,7 @@ namespace MauiSampleApp.ViewModels
             {
 #if ANDROID
                 var notificationChannelRequests = NotificationChannelSamples.GetAll().ToArray();
+                // var notificationChannelRequests = Array.Empty<NotificationChannelRequest>();
                 this.notificationChannels.SetNotificationChannels(notificationChannelRequests);
                 this.UpdateNotificationChannels();
 #endif
@@ -926,6 +928,11 @@ namespace MauiSampleApp.ViewModels
             {
                 // Ignore exceptions
             }
+        }
+
+        public void OnResume()
+        {
+            _ = this.UpdateAuthorizationStatusAsync();
         }
     }
 }
