@@ -209,7 +209,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                     ChannelName = Constants.DefaultNotificationChannelName,
                     IsDefault = true,
                     LockscreenVisibility = NotificationVisibility.Public,
-                    Importance = this.options.Android.DefaultNotificationImportance
+                    Importance = NotificationImportance.Default
                 };
 
                 const string optionsPath = $"options.{nameof(FirebasePushNotificationOptions.Android)}." +
