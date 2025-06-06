@@ -192,7 +192,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 this.logger.LogError(
                     $"NotificationCompat.Builder requires a notification channel to work properly. " +
-                    $"Use {nameof(INotificationChannels)}.{nameof(INotificationChannels.CreateNotificationChannels)} " +
+                    $"Use {nameof(INotificationChannels)}.{nameof(INotificationChannels.CreateNotificationChannels)} or " +
+                    $"{nameof(INotificationChannels)}.{nameof(INotificationChannels.SetNotificationChannels)} " +
                     $"to create at least one notification channel.");
                 return;
             }
