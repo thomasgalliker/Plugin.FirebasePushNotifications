@@ -546,7 +546,10 @@ namespace MauiSampleApp.ViewModels
             {
 #if ANDROID
                 var defaultNotificationChannel = this.notificationChannels.Channels.GetDefault();
-                this.notificationChannels.OpenNotificationChannelSettings(defaultNotificationChannel.Id);
+                if (defaultNotificationChannel != null)
+                {
+                    this.notificationChannels.OpenNotificationChannelSettings(defaultNotificationChannel.Id);
+                }
 #endif
             }
             catch (Exception ex)
@@ -674,7 +677,12 @@ namespace MauiSampleApp.ViewModels
                         this.UpdateNotificationChannels();
                     }
 
-                    return new NotificationChannelViewModel(notificationChannelViewModelLogger, this.dialogService, DeleteNotificationChannel, c);
+                    return new NotificationChannelViewModel(
+                        notificationChannelViewModelLogger,
+                        this.dialogService,
+                        this.notificationChannels,
+                        DeleteNotificationChannel,
+                        c);
                 })
                 .ToArray();
 
@@ -930,9 +938,10 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public void OnResume()
+        public async void OnResume()
         {
-            _ = this.UpdateAuthorizationStatusAsync();
+            await this.UpdateAuthorizationStatusAsync();
+            await this.GetNotificationChannelsAsync();
         }
     }
 }

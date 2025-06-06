@@ -29,12 +29,13 @@ namespace MauiSampleApp.ViewModels
         public NotificationChannelViewModel(
             ILogger<NotificationChannelViewModel> logger,
             IDialogService dialogService,
+            INotificationChannels notificationChannels,
             Action<string> deleteNotificationChannel,
             NotificationChannel notificationChannel)
         {
             this.ChannelId = notificationChannel.Id;
             this.ChannelName = notificationChannel.Name;
-            this.IsDefault = notificationChannel.Id == NotificationChannels.Current.Channels.DefaultNotificationChannelId;
+            this.IsDefault = notificationChannel.Id == notificationChannels.Channels.DefaultNotificationChannelId;
             this.Description = notificationChannel.Description;
             this.LockscreenVisibility = Enum.GetName(typeof(NotificationVisibility), notificationChannel.LockscreenVisibility) ?? $"{notificationChannel.LockscreenVisibility}";
             this.Group = notificationChannel.Group ?? "null";
