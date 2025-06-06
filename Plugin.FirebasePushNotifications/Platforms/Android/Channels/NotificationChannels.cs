@@ -194,6 +194,8 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 return;
             }
 
+            // If no default notification channel is requested,
+            // we create a default notification channel with some predefined properties.
             if (!notificationChannelRequests.Any(c => c.IsDefault))
             {
                 var metadata = MetadataHelper.GetMetadata();
@@ -205,18 +207,20 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 {
                     ChannelId = channelId,
                     ChannelName = Constants.DefaultNotificationChannelName,
+                    IsDefault = true,
                     LockscreenVisibility = NotificationVisibility.Public,
-                    Importance = this.options.Android.DefaultNotificationImportance,
-                    IsDefault = true
+                    Importance = this.options.Android.DefaultNotificationImportance
                 };
 
                 const string optionsPath = $"options.{nameof(FirebasePushNotificationOptions.Android)}." +
                                            $"{nameof(FirebasePushNotificationAndroidOptions.NotificationChannels)}";
 
-                this.logger.LogDebug(
-                    $"No default notification channel specified in {optionsPath}. Creating default notification channel with {Environment.NewLine}" +
+                this.logger.LogWarning(
+                    $"Missing default notification channel (IsDefault=true) in {optionsPath}. " +
+                    $"A default notification channel will be created with the following properties: {Environment.NewLine}" +
                     $"> ChannelId={defaultNotificationChannelRequest.ChannelId}, {Environment.NewLine}" +
                     $"> ChannelName={defaultNotificationChannelRequest.ChannelName}, {Environment.NewLine}" +
+                    $"> IsDefault={defaultNotificationChannelRequest.IsDefault}, {Environment.NewLine}" +
                     $"> LockscreenVisibility={defaultNotificationChannelRequest.LockscreenVisibility}, {Environment.NewLine}" +
                     $"> Importance={defaultNotificationChannelRequest.Importance}");
 
