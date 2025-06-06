@@ -34,10 +34,11 @@ namespace MauiSampleApp.ViewModels
         {
             this.ChannelId = notificationChannel.Id;
             this.ChannelName = notificationChannel.Name;
+            this.IsDefault = notificationChannel.Id == NotificationChannels.Current.Channels.DefaultNotificationChannelId;
             this.Description = notificationChannel.Description;
-            this.LockscreenVisibility = Enum.GetName(notificationChannel.LockscreenVisibility) ?? $"{notificationChannel.LockscreenVisibility}";
+            this.LockscreenVisibility = Enum.GetName(typeof(NotificationVisibility), notificationChannel.LockscreenVisibility) ?? $"{notificationChannel.LockscreenVisibility}";
             this.Group = notificationChannel.Group ?? "null";
-            this.Importance = Enum.GetName(notificationChannel.Importance);
+            this.Importance = Enum.GetName(typeof(NotificationImportance), notificationChannel.Importance);
 
             this.logger = logger;
             this.dialogService = dialogService;
@@ -48,6 +49,8 @@ namespace MauiSampleApp.ViewModels
         public string ChannelId { get; }
 
         public string ChannelName { get; }
+
+        public bool IsDefault { get; }
 
         public string Description { get; }
 
