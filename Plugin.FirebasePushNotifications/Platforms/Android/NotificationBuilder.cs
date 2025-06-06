@@ -45,7 +45,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 // we don't display any local notification.
                 this.logger.LogDebug(
                     $"ShouldHandleNotificationReceived returns false " +
-                    $"(Reason: Key '{MessageNotificationKeys.NoUi}' is present)");
+                    $"(Reason: Data key '{MessageNotificationKeys.NoUi}' is present)");
                 return false;
             }
 
@@ -55,7 +55,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 // we don't display any local notification.
                 this.logger.LogDebug(
                     $"ShouldHandleNotificationReceived returns false " +
-                    $"(Reason: Key '{Constants.SilentKey}' is present)");
+                    $"(Reason: Data key '{Constants.SilentKey}' is present)");
                 return false;
             }
 
@@ -86,7 +86,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 // we show it in a local notification popup.
                 this.logger.LogDebug(
                     $"ShouldHandleNotificationReceived returns true " +
-                    $"(Reason: Default notification importance '{defaultNotificationImportance}' is greater or equal to 'high')");
+                    $"(Reason: Target notification channel with Id={notificationChannel.Id} " +
+                    $"has Importance={notificationChannel.Importance} greater than or equal to 'High')");
                 return true;
             }
 
@@ -202,8 +203,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
             if (notificationChannel.Importance < notificationImportance)
             {
                 this.logger.LogWarning(
-                    $"Notification channel '{notificationChannel.Id}' has importance '{notificationChannel.Importance}' " +
-                    $"which is lower than notification importance '{notificationImportance}'");
+                    $"Notification channel with Id={notificationChannel.Id} has Importance={notificationChannel.Importance} " +
+                    $"which is lower than '{notificationImportance}' (as specified in {notificationImportanceSource}).");
             }
 
             var smallIconResource = this.GetSmallIconResource(data, context);
