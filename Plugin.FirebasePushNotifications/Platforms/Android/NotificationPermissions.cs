@@ -103,7 +103,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     foreach (var channelId in channelIds)
                     {
                         var channel = this.notificationManager.GetNotificationChannel(channelId);
-                        if (channel != null && channel.Importance == NotificationImportance.None)
+                        if (channel is { Importance: NotificationImportance.None })
                         {
                             return true;
                         }

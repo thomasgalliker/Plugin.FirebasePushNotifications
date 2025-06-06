@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Versioning;
 using Android.App;
 using Plugin.FirebasePushNotifications.Platforms.Channels;
 
@@ -68,6 +70,8 @@ namespace Plugin.FirebasePushNotifications
         /// <param name="notificationChannelRequests">The notification channel requests.</param>
         void SetNotificationChannels(NotificationChannelRequest[] notificationChannelRequests);
 
+        void EnsureDefaultNotificationChannel();
+
         /// <summary>
         /// Creates notification channels from given <paramref name="notificationChannelRequests"/>.
         /// </summary>
@@ -103,6 +107,7 @@ namespace Plugin.FirebasePushNotifications
         /// Opens the notification channel settings for <paramref name="notificationChannelId"/>.
         /// </summary>
         /// <param name="notificationChannelId">The notification channel identifier.</param>
+        [SupportedOSPlatform("android26.0")]
         void OpenNotificationChannelSettings(string notificationChannelId);
     }
 }

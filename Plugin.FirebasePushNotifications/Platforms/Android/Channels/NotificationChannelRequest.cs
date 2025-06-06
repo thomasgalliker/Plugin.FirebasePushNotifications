@@ -13,6 +13,14 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// Sets or gets, the level of interruption of this notification channel.
         /// Default: <c>NotificationImportance.Default</c>
         /// </summary>
+        /// <remarks>
+        /// Important note:
+        /// The importance of a notification channel cannot be changed programmatically after it is first created.
+        /// Deleting and recreating a notification channel with the same ID does not change its importance.
+        /// Only the user can change the notification settings for an existing channel in system settings.
+        /// If you want to change the importance of a notification channel,
+        /// delete the existing channel and create a new one with a different ID.
+        /// </remarks>
         public NotificationImportance Importance { get; set; } = NotificationImportance.Default;
 
         /// <summary>
@@ -63,7 +71,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         public long[] VibrationPattern { get; set; }
 
         /// <summary>
-        /// Sets or gets, whether or not notifications posted to this channel are shown on the lockscreen in full or redacted form.
+        /// Sets or gets, whether notifications posted to this channel are shown on the lockscreen in full or redacted form.
         /// Default: <c> NotificationVisibility.Public</c>.
         /// </summary>
         public NotificationVisibility LockscreenVisibility { get; set; } = NotificationVisibility.Public;
