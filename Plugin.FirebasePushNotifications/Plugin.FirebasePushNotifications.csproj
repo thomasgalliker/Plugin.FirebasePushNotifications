@@ -38,6 +38,10 @@
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageReleaseNotes>3.3
+- Improved notification channel handling during app startup.
+- Data-only notifications are no longer displayed in the notification tray.
+- NotificationBuilder support for Android API 26 and below (where no notification channels are available).
+- OpenNotificationSettings now also works for Android API 26 and below.
 - Bug fixes and refactorings.
 
 3.2

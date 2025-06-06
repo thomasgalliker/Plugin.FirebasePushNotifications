@@ -59,30 +59,69 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return false;
             }
 
+            var isAppInForeground = AppHelper.IsAppForeground(Application.Context);
+            var isAppInBackground = !isAppInForeground;
+
             if (notificationParams.IsNotification)
             {
-                var isAppInBackground = !AppHelper.IsAppForeground(Application.Context);
                 if (isAppInBackground)
                 {
+                    // If the notification is a notification message (not data-only)
+                    // and the app runs in background mode,
+                    // we show it in a local notification popup.
+                    this.logger.LogDebug(
+                        $"ShouldHandleNotificationReceived returns true " +
+                        $"(Reason: Notification message present and app runs in background mode)");
+                    return true;
+                }
+            }
+            else
+            {
+                this.logger.LogDebug(
+                    $"ShouldHandleNotificationReceived returns false " +
+                    $"(Reason: Data-only notification)");
+                return false;
+            }
+
+            var notificationChannel = this.GetNotificationChannelOrDefault(data);
+            var hasNotificationChannelWithHighImportance = notificationChannel is { Importance: >= NotificationImportance.High };
+
+            // We check notification importance ('priority' presence or DefaultNotificationImportance setting) only, if
+            // - the app runs in background mode OR
+            // - the app runs in foreground mode AND the target notification channel importance is >= high
+            // If we receive notification messages with priority=high while the app runs in foreground mode
+            // and the target notification channel has importance lower than high, we cannot display a local notification popup!
+            if (isAppInBackground || hasNotificationChannelWithHighImportance)
+            {
+                // If the target/default notification channel has importance >= High
+                // we check if the notification importance is also >= High
+                var notificationImportance = GetNotificationImportance(data);
+                if (notificationImportance >= NotificationImportance.High)
+                {
+                    // In case we receive a notification with priority >= high
+                    // we show it in a local notification popup.
+                    this.logger.LogDebug(
+                        $"ShouldHandleNotificationReceived returns true " +
+                        $"(Reason: Notification importance '{notificationImportance}' is greater than or equal to 'High')");
+                    return true;
+                }
+
+                var defaultNotificationImportance = this.options.Android.DefaultNotificationImportance;
+                if (defaultNotificationImportance >= NotificationImportance.High)
+                {
+                    // In case a default notification importance >= High is configured
+                    // we show it in a local notification popup.
+                    this.logger.LogDebug(
+                        $"ShouldHandleNotificationReceived returns true " +
+                        $"(Reason: DefaultNotificationImportance={defaultNotificationImportance} is greater than or equal to 'High')");
                     return true;
                 }
             }
 
-            var notificationImportance = GetNotificationImportance(data);
-            if (notificationImportance >= NotificationImportance.High)
+            if (hasNotificationChannelWithHighImportance)
             {
-                // In case we receive a notification with priority >= high
-                // we show it in a local notification popup.
-                this.logger.LogDebug(
-                    $"ShouldHandleNotificationReceived returns true " +
-                    $"(Reason: Notification importance '{notificationImportance}' is greater or equal to 'high')");
-                return true;
-            }
-
-            var defaultNotificationImportance = this.options.Android.DefaultNotificationImportance;
-            if (defaultNotificationImportance >= NotificationImportance.High)
-            {
-                // In case a default notification importance >= high is configured
+                // In case we receive a notification which targets a specific notification channel
+                // and the notification channel's importance is >= high
                 // we show it in a local notification popup.
                 this.logger.LogDebug(
                     $"ShouldHandleNotificationReceived returns true " +
@@ -97,7 +136,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             if (presentClickActionKeys.Length > 0)
             {
-                var isAppInBackground = !AppHelper.IsAppForeground(Application.Context);
                 if (isAppInBackground)
                 {
                     // If we received a "click_action" or "category"
@@ -110,19 +148,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
                             $"Keys [{string.Join(",", presentClickActionKeys)}] are present")})");
                     return true;
                 }
-            }
-
-            var notificationChannel = this.GetNotificationChannel(data);
-            if (notificationChannel is { Importance: >= NotificationImportance.High })
-            {
-                // In case we receive a notification which targets a specific notification channel
-                // and the notification channel's importance is >= high
-                // we show it in a local notification popup.
-                this.logger.LogDebug(
-                    $"ShouldHandleNotificationReceived returns true " +
-                    $"(Reason: Target notification channel '{notificationChannel.Id}' " +
-                    $"has importance '{notificationChannel.Importance}' greater or equal to 'high')");
-                return true;
             }
 
             if (data.ContainsKey(Constants.LargeIconKey))
@@ -188,22 +213,34 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 launchIntent.SetFlags(activityFlags);
             }
 
-            var notificationChannel = this.GetNotificationChannelOrDefault(data);
-            if (notificationChannel == null)
+            NotificationChannel notificationChannel;
+            string notificationChannelId;
+            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
-                this.logger.LogError(
-                    $"NotificationCompat.Builder requires a notification channel to work properly. " +
-                    $"Use {nameof(INotificationChannels)}.{nameof(INotificationChannels.CreateNotificationChannels)} or " +
-                    $"{nameof(INotificationChannels)}.{nameof(INotificationChannels.SetNotificationChannels)} " +
-                    $"to create at least one notification channel.");
-                return;
+                notificationChannel = null;
+                notificationChannelId = NotificationChannel.DefaultChannelId;
+            }
+            else
+            {
+                notificationChannel = this.GetNotificationChannelOrDefault(data);
+                if (notificationChannel == null)
+                {
+                    this.logger.LogError(
+                        $"NotificationCompat.Builder requires a notification channel to work properly. " +
+                        $"Use {nameof(INotificationChannels)}.{nameof(INotificationChannels.CreateNotificationChannels)} or " +
+                        $"{nameof(INotificationChannels)}.{nameof(INotificationChannels.SetNotificationChannels)} " +
+                        $"to create at least one notification channel.");
+                    return;
+                }
+
+                notificationChannelId = notificationChannel.Id;
             }
 
-            var notificationImportance = this.GetNotificationImportanceOrDefault(data);
-            if (notificationChannel.Importance < notificationImportance)
+            var (notificationImportance, notificationImportanceSource) = this.GetNotificationImportanceOrDefault(data);
+            if (notificationChannel is { Importance: var importance } && importance < notificationImportance)
             {
                 this.logger.LogWarning(
-                    $"Notification channel with Id={notificationChannel.Id} has Importance={notificationChannel.Importance} " +
+                    $"Notification channel with Id={notificationChannelId} has Importance={importance} " +
                     $"which is lower than '{notificationImportance}' (as specified in {notificationImportanceSource}).");
             }
 
@@ -215,7 +252,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var pendingIntent = PendingIntent.GetActivity(context, requestCode, launchIntent,
                 PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-            var notificationBuilder = new NotificationCompat.Builder(context, notificationChannel.Id)
+            var notificationBuilder = new NotificationCompat.Builder(context, notificationChannelId)
                 .SetSmallIcon(smallIconResource)
                 .SetAutoCancel(true)
                 .SetWhen(Java.Lang.JavaSystem.CurrentTimeMillis())
@@ -795,14 +832,21 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return notificationImportance;
         }
 
-        private NotificationImportance GetNotificationImportanceOrDefault(IDictionary<string, object> data)
+        private (NotificationImportance, string) GetNotificationImportanceOrDefault(IDictionary<string, object> data)
         {
+            string notificationImportanceSource;
+
             if (GetNotificationImportance(data) is not NotificationImportance notificationImportance)
             {
                 notificationImportance = this.options.Android.DefaultNotificationImportance;
+                notificationImportanceSource = nameof(this.options.Android.DefaultNotificationImportance);
+            }
+            else
+            {
+                notificationImportanceSource = $"notification {Constants.PriorityKey}";
             }
 
-            return notificationImportance;
+            return (notificationImportance, notificationImportanceSource);
         }
 
         private static NotificationImportance GetNotificationImportance(string priorityValue)

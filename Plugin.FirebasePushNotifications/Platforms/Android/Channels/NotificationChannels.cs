@@ -60,6 +60,11 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void SetNotificationChannelGroups([NotNull] NotificationChannelGroupRequest[] notificationChannelGroupRequests)
         {
+            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            {
+                return;
+            }
+
             ArgumentNullException.ThrowIfNull(notificationChannelGroupRequests);
 
             var groupIds = notificationChannelGroupRequests
@@ -67,11 +72,6 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 .ToArray();
 
             this.logger.LogDebug($"SetNotificationChannelGroups: notificationChannelGroupRequests=[{string.Join(",", groupIds)}]");
-
-            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
-            {
-                return;
-            }
 
             var notificationChannelGroupIdsToDelete = this.ChannelGroups.Select(c => c.Id);
 
@@ -88,6 +88,11 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void CreateNotificationChannelGroups([NotNull] NotificationChannelGroupRequest[] notificationChannelGroupRequests)
         {
+            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            {
+                return;
+            }
+
             ArgumentNullException.ThrowIfNull(notificationChannelGroupRequests);
 
             var groupIds = notificationChannelGroupRequests
@@ -95,11 +100,6 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 .ToArray();
 
             this.logger.LogDebug($"CreateNotificationChannelGroups: notificationChannelGroupRequests=[{string.Join(",", groupIds)}]");
-
-            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
-            {
-                return;
-            }
 
             this.CreateNotificationChannelGroupsInternal(notificationChannelGroupRequests);
         }
@@ -135,12 +135,12 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void DeleteAllNotificationChannelGroups()
         {
-            this.logger.LogDebug("DeleteAllNotificationChannelGroups");
-
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
                 return;
             }
+
+            this.logger.LogDebug("DeleteAllNotificationChannelGroups");
 
             var groupIds = this.ChannelGroups
                 .Select(g => g.Id)
@@ -152,14 +152,14 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void DeleteNotificationChannelGroups([NotNull] string[] groupIds)
         {
-            ArgumentNullException.ThrowIfNull(groupIds);
-
-            this.logger.LogDebug($"DeleteNotificationChannelGroups: groupIds=[{string.Join(",", groupIds)}]");
-
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
                 return;
             }
+
+            ArgumentNullException.ThrowIfNull(groupIds);
+
+            this.logger.LogDebug($"DeleteNotificationChannelGroups: groupIds=[{string.Join(",", groupIds)}]");
 
             this.DeleteNotificationChannelGroupsInternal(groupIds);
         }
@@ -180,6 +180,11 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void SetNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests)
         {
+            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            {
+                return;
+            }
+
             ArgumentNullException.ThrowIfNull(notificationChannelRequests);
 
             var notificationChannelRequestIds = notificationChannelRequests
@@ -189,40 +194,11 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             this.logger.LogDebug(
                 $"SetNotificationChannels: notificationChannelRequests=[{string.Join(",", notificationChannelRequestIds)}]");
 
-            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
-            {
-                return;
-            }
-
-            // If no default notification channel is requested,
-            // we create a default notification channel with some predefined properties.
+            // If no default notification channel is requested, we create it with predefined properties.
             if (!notificationChannelRequests.Any(c => c.IsDefault))
             {
-                var metadata = MetadataHelper.GetMetadata();
-                var channelId = metadata.GetString(
-                    Constants.MetadataDefaultNotificationChannelId,
-                    Constants.DefaultNotificationChannelId);
-
-                var defaultNotificationChannelRequest = new NotificationChannelRequest
-                {
-                    ChannelId = channelId,
-                    ChannelName = Constants.DefaultNotificationChannelName,
-                    IsDefault = true,
-                    LockscreenVisibility = NotificationVisibility.Public,
-                    Importance = NotificationImportance.Default
-                };
-
-                const string optionsPath = $"options.{nameof(FirebasePushNotificationOptions.Android)}." +
-                                           $"{nameof(FirebasePushNotificationAndroidOptions.NotificationChannels)}";
-
-                this.logger.LogWarning(
-                    $"Missing default notification channel (IsDefault=true) in {optionsPath}.{Environment.NewLine}" +
-                    $"A default notification channel with the following properties will be created: {Environment.NewLine}" +
-                    $"> ChannelId={defaultNotificationChannelRequest.ChannelId}, {Environment.NewLine}" +
-                    $"> ChannelName={defaultNotificationChannelRequest.ChannelName}, {Environment.NewLine}" +
-                    $"> IsDefault=true, {Environment.NewLine}" +
-                    $"> LockscreenVisibility=NotificationVisibility.Public, {Environment.NewLine}" +
-                    $"> Importance=NotificationImportance.Default");
+                var defaultNotificationChannelId = GetDefaultNotificationChannelIds().First();
+                var defaultNotificationChannelRequest = this.CreateDefaultNotificationChannelRequest(defaultNotificationChannelId);
 
                 notificationChannelRequests = notificationChannelRequests
                     .Prepend(defaultNotificationChannelRequest)
@@ -246,9 +222,114 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             this.CreateNotificationChannelsInternal(notificationChannelRequests);
         }
 
+        public void EnsureDefaultNotificationChannel()
+        {
+            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            {
+                return;
+            }
+
+            var existingNotificationChannelIds = this.Channels
+                .Select(c => c.Id)
+                .ToArray();
+
+            // There is no concept of default notification channels in Android.
+            // Therefore, we need to find or create the default notification channel.
+            // 1. If there is no existing notification channel, we create a new one with default properties.
+            // 2. If we have exactly one notification channel, we treat it as the default notification channel.
+            // 3. If we have multiple notification channels,
+            //    3a. try to get the default notification channel from the list of existing notification channels, or
+            //    3b. we treat the first in the list as default notification channel.
+            var defaultNotificationChannelIds = GetDefaultNotificationChannelIds().ToArray();
+            var defaultNotificationChannelId = existingNotificationChannelIds.Length switch
+            {
+                0 => defaultNotificationChannelIds.First(),
+                1 => existingNotificationChannelIds[0],
+                _ => existingNotificationChannelIds.FirstOrDefault(c => defaultNotificationChannelIds.Contains(c, StringComparer.InvariantCultureIgnoreCase)) ?? existingNotificationChannelIds[0],
+            };
+
+            var defaultNotificationChannelExists = existingNotificationChannelIds
+                .Any(c => string.Equals(c, defaultNotificationChannelId, StringComparison.InvariantCultureIgnoreCase));
+
+            this.logger.LogDebug(
+                $"EnsureDefaultNotificationChannel: existingNotificationChannelIds=[{string.Join(",", existingNotificationChannelIds)}] " +
+                $"--> defaultNotificationChannelId={defaultNotificationChannelId} ({(defaultNotificationChannelExists ? "existing" : "new")})");
+
+            if (!defaultNotificationChannelExists)
+            {
+                // If no default notification channel exists, we create it with predefined properties.
+                var defaultNotificationChannelRequest = this.CreateDefaultNotificationChannelRequest(defaultNotificationChannelId);
+                this.CreateNotificationChannelsInternal(new[] { defaultNotificationChannelRequest });
+            }
+            else
+            {
+                this.Channels.SetDefaultNotificationChannelIdInternal(defaultNotificationChannelId);
+            }
+        }
+
+        private NotificationChannelRequest CreateDefaultNotificationChannelRequest(string defaultNotificationChannelId)
+        {
+            var defaultNotificationChannelRequest = new NotificationChannelRequest
+            {
+                ChannelId = defaultNotificationChannelId,
+                ChannelName = Constants.DefaultNotificationChannelName,
+                IsDefault = true,
+                LockscreenVisibility = NotificationVisibility.Public,
+                Importance = this.options.Android.DefaultNotificationImportance,
+            };
+
+            const string optionsPath = $"options.{nameof(FirebasePushNotificationOptions.Android)}." +
+                                       $"{nameof(FirebasePushNotificationAndroidOptions.NotificationChannels)}";
+
+            this.logger.LogWarning(
+                $"Missing default notification channel (IsDefault=true) in {optionsPath}.{Environment.NewLine}" +
+                $"A default notification channel with the following properties will be created: {Environment.NewLine}" +
+                $"> ChannelId={defaultNotificationChannelRequest.ChannelId}, {Environment.NewLine}" +
+                $"> ChannelName={defaultNotificationChannelRequest.ChannelName}, {Environment.NewLine}" +
+                $"> IsDefault=true, {Environment.NewLine}" +
+                $"> LockscreenVisibility=NotificationVisibility.Public, {Environment.NewLine}" +
+                $"> Importance=NotificationImportance.{defaultNotificationChannelRequest.Importance}");
+
+            return defaultNotificationChannelRequest;
+        }
+
+        private static IEnumerable<string> GetDefaultNotificationChannelIds()
+        {
+            // Try to get the default notification channel ID from AndroidManifest.xml
+            {
+                var metadata = MetadataHelper.GetMetadata();
+                var defaultNotificationChannelId = metadata.GetString(
+                    key: Constants.MetadataDefaultNotificationChannelId,
+                    defaultValue: null);
+
+                if (!string.IsNullOrEmpty(defaultNotificationChannelId))
+                {
+                    yield return defaultNotificationChannelId;
+                }
+            }
+
+            // Try to get the default notification channel ID from static string defined in this library
+            {
+                var defaultNotificationChannelId = Constants.DefaultNotificationChannelId;
+                if (!string.IsNullOrEmpty(defaultNotificationChannelId))
+                {
+                    yield return defaultNotificationChannelId;
+                }
+                else
+                {
+                    yield return "default_channel_id";
+                }
+            }
+        }
+
         /// <inheritdoc />
         public void CreateNotificationChannels([NotNull] NotificationChannelRequest[] notificationChannelRequests)
         {
+            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            {
+                return;
+            }
+
             ArgumentNullException.ThrowIfNull(notificationChannelRequests);
 
             var newChannelIds = notificationChannelRequests
@@ -256,11 +337,6 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 .ToArray();
 
             this.logger.LogDebug($"CreateNotificationChannels: notificationChannelRequests=[{string.Join(",", newChannelIds)}]");
-
-            if (Build.VERSION.SdkInt < BuildVersionCodes.O)
-            {
-                return;
-            }
 
             if (newChannelIds.Length == 0)
             {
@@ -327,6 +403,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                 }
                 else
                 {
+                    this.logger.LogDebug($"Creating notification channel '{notificationChannelRequest.ChannelId}'");
                     this.notificationManager.CreateNotificationChannel(notificationChannel);
                 }
             }
@@ -341,12 +418,12 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void DeleteAllNotificationChannels()
         {
-            this.logger.LogDebug("DeleteAllNotificationChannels");
-
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
                 return;
             }
+
+            this.logger.LogDebug("DeleteAllNotificationChannels");
 
             var defaultNotificationChannelId = this.Channels.DefaultNotificationChannelId;
 
@@ -369,14 +446,14 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
         /// <inheritdoc />
         public void DeleteNotificationChannels([NotNull] string[] notificationChannelIds)
         {
-            ArgumentNullException.ThrowIfNull(notificationChannelIds);
-
-            this.logger.LogDebug($"DeleteNotificationChannels: notificationChannelIds=[{string.Join(",", notificationChannelIds)}]");
-
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             {
                 return;
             }
+
+            ArgumentNullException.ThrowIfNull(notificationChannelIds);
+
+            this.logger.LogDebug($"DeleteNotificationChannels: notificationChannelIds=[{string.Join(",", notificationChannelIds)}]");
 
             var channelIds = this.Channels
                 .Select(c => c.Id)
@@ -425,6 +502,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             // TODO
         }
 
+        /// <inheritdoc />
         public void OpenNotificationSettings()
         {
             this.logger.LogDebug("OpenNotificationSettings");
@@ -432,10 +510,27 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             try
             {
                 var context = Android.App.Application.Context;
-                var newIntent = new Intent(Settings.ActionAppNotificationSettings);
-                newIntent.SetFlags(ActivityFlags.NewTask);
-                newIntent.PutExtra(Settings.ExtraAppPackage, context.PackageName);
-                context.StartActivity(newIntent);
+
+                var intent = new Intent();
+                var sdkInt = (int)Build.VERSION.SdkInt;
+                if (sdkInt >= (int)BuildVersionCodes.O) // >= Android 8.0
+                {
+                    intent.SetAction(Settings.ActionAppNotificationSettings);
+                    intent.PutExtra(Settings.ExtraAppPackage, context.PackageName);
+                    intent.PutExtra(Settings.ExtraChannelId, context.ApplicationInfo!.Uid);
+                }
+                else if (sdkInt is >= (int)BuildVersionCodes.Lollipop and < (int)BuildVersionCodes.O) // >= Android 5.0 && < Android 8.0
+                {
+                    intent.SetAction(Settings.ActionAppNotificationSettings);
+                    intent.PutExtra("app_package", context.PackageName);
+                    intent.PutExtra("app_uid", context.ApplicationInfo!.Uid);
+                }
+                else
+                {
+                    return;
+                }
+
+                context.StartActivity(intent);
             }
             catch (Exception e)
             {
@@ -443,6 +538,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
             }
         }
 
+        /// <inheritdoc />
         public void OpenNotificationChannelSettings([NotNull] string notificationChannelId)
         {
             this.logger.LogDebug($"OpenNotificationChannelSettings: notificationChannelId={notificationChannelId}");

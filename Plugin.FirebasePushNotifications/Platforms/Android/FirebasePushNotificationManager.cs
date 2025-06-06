@@ -43,8 +43,23 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("ConfigurePlatform");
 
-            this.notificationChannels.SetNotificationChannelGroups(this.options.Android.NotificationChannelGroups);
-            this.notificationChannels.SetNotificationChannels(this.options.Android.NotificationChannels);
+            var groups = this.options.Android.NotificationChannelGroups;
+            if (groups.Any())
+            {
+                this.notificationChannels.SetNotificationChannelGroups(groups);
+            }
+
+            var channels = this.options.Android.NotificationChannels;
+            if (channels.Any())
+            {
+                // If we have NotificationChannels set, use them to configure the absolute set of notification channels.
+                this.notificationChannels.SetNotificationChannels(channels);
+            }
+            else
+            {
+                // Otherwise, ensure we have at least the default notification channel.
+                this.notificationChannels.EnsureDefaultNotificationChannel();
+            }
 
             var context = Application.Context;
             var isFirebaseAppInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context);
