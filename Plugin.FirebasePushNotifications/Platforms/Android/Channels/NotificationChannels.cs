@@ -216,13 +216,13 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
                                            $"{nameof(FirebasePushNotificationAndroidOptions.NotificationChannels)}";
 
                 this.logger.LogWarning(
-                    $"Missing default notification channel (IsDefault=true) in {optionsPath}. " +
-                    $"A default notification channel will be created with the following properties: {Environment.NewLine}" +
+                    $"Missing default notification channel (IsDefault=true) in {optionsPath}.{Environment.NewLine}" +
+                    $"A default notification channel with the following properties will be created: {Environment.NewLine}" +
                     $"> ChannelId={defaultNotificationChannelRequest.ChannelId}, {Environment.NewLine}" +
                     $"> ChannelName={defaultNotificationChannelRequest.ChannelName}, {Environment.NewLine}" +
-                    $"> IsDefault={defaultNotificationChannelRequest.IsDefault}, {Environment.NewLine}" +
-                    $"> LockscreenVisibility={defaultNotificationChannelRequest.LockscreenVisibility}, {Environment.NewLine}" +
-                    $"> Importance={defaultNotificationChannelRequest.Importance}");
+                    $"> IsDefault=true, {Environment.NewLine}" +
+                    $"> LockscreenVisibility=NotificationVisibility.Public, {Environment.NewLine}" +
+                    $"> Importance=NotificationImportance.Default");
 
                 notificationChannelRequests = notificationChannelRequests
                     .Prepend(defaultNotificationChannelRequest)
