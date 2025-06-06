@@ -135,6 +135,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         // TODO: Check if this code is still needed or if it can be removed.
+        /*
         private void OnMessageReceived(RemoteMessage remoteMessage)
         {
             this.logger.LogDebug("OnMessageReceived");
@@ -237,7 +238,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             this.firebasePushNotification.HandleNotificationReceived(data);
-        }
+        }*/
 
         private void HandleTokenIntent(Intent intent)
         {
