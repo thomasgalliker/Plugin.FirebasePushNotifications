@@ -58,7 +58,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             else
             {
                 // Otherwise, ensure we have at least the default notification channel.
-                this.notificationChannels.EnsureDefaultNotificationChannel();
+                ((Channels.NotificationChannels)this.notificationChannels).EnsureDefaultNotificationChannel();
             }
 
             var context = Application.Context;

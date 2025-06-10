@@ -70,8 +70,6 @@ namespace Plugin.FirebasePushNotifications
         /// <param name="notificationChannelRequests">The notification channel requests.</param>
         void SetNotificationChannels(NotificationChannelRequest[] notificationChannelRequests);
 
-        void EnsureDefaultNotificationChannel();
-
         /// <summary>
         /// Creates notification channels from given <paramref name="notificationChannelRequests"/>.
         /// </summary>
