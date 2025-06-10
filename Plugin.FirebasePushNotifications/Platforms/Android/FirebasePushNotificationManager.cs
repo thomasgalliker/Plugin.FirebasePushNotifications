@@ -315,7 +315,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
             if (!subscribedTopics.Contains(topic))
             {
-                this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
+                this.logger.LogDebug($"SubscribeTopic: topic=\"{topic}\"");
 
                 // TODO: Use AddOnCompleteListener(...)
                 FirebaseMessaging.Instance.SubscribeToTopic(topic);
@@ -327,7 +327,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                this.logger.LogInformation($"Subscribe: skipping topic \"{topic}\"; topic is already subscribed");
+                this.logger.LogInformation($"SubscribeTopic: skipping topic \"{topic}\"; topic is already subscribed");
             }
         }
 
