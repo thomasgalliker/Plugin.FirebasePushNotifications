@@ -229,6 +229,29 @@ If everything works fine, the mobile device with the given token displays the no
 
 ![Notification Category medication_intake](Docs/notificationcategory_takemedicine.png?raw=true)
 
+#### Notification Channels
+Notification channels are an Android feature introduced in Android 8.0 (API level 26) that let users manage notification settings for different categories of notifications within the app.
+Each notification channel represents a distinct type of notification (such as chat messages, medication intake, or promotions) and allows users to customize notification preferences per channel, rather than for the whole app.
+
+##### Default Notification Channel
+Your app must always have at least one notification channel. This library will use this channel for any notifications that are not targeting a specific channel. This ensures that push notifications are delivered even if a custom channel is not set up.
+
+It is highly recommended to create the default notification channel by yourself so that all properties are under your control.
+Use `INotificationChannels.Channels` methods to create notification channels manually at startup or specify them in the Android-specific options under `UseFirebasePushNotifications(o => o.Android.NotificationChannels = ...)`).
+To get an idea of how to use the `NotificationChannels` option, take a look at `MauiProgram.cs` in the sample app in this repository.
+
+##### Notification Channel Importance
+When your app (or this library) creates a notification channel, you must specify its importance (e.g., `Low`, `Default`, `High`). 
+Importance controls how notifications are presented (such as whether they make a sound or appear as a heads-up notification).
+
+> [!IMPORTANT]
+> The importance level can only be set once when the channel is created. It cannot be changed afterward. 
+> If you need to modify a channel’s importance, you must create a new channel with a different ID.
+
+##### Notification Channel Groups
+Multiple notification channels may be grouped together within a notification channel group.
+Use `INotificationChannels.ChannelGroups` methods to create/delete notification channel groups.
+
 #### More Push Notification Scenarios
 There are a lot of features in this library that can be controlled via specific data flags. The most common scenarios
 are end-to-end tested using postman calls. You can find an up-to-date postman collection in this repository:
