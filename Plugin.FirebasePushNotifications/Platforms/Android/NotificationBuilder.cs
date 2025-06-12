@@ -305,8 +305,8 @@ namespace Plugin.FirebasePushNotifications.Platforms
                                     PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
                             }
 
-                            var icon = context.Resources.GetIdentifier(notificationAction.Icon ?? "", "drawable", context.PackageName);
-                            var action = new NotificationCompat.Action.Builder(icon, notificationAction.Title, pendingActionIntent).Build();
+                            var iconResource = this.GetIconResourceFromDrawableOrMipmap(context, notificationAction.Icon);
+                            var action = new NotificationCompat.Action.Builder(iconResource, notificationAction.Title, pendingActionIntent).Build();
                             notificationBuilder.AddAction(action);
                         }
                     }
@@ -440,12 +440,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private Bitmap GetLargeIconBitmap(IDictionary<string, object> data, Context context)
         {
-            var largeIconResource = this.GetIconResourceFromDrawable(context, data, Constants.LargeIconKey);
-
-            if (largeIconResource == 0)
-            {
-                largeIconResource = this.GetIconResourceFromMipmap(context, data, Constants.LargeIconKey);
-            }
+            var largeIconResource = this.GetIconResourceFromDrawableOrMipmap(context, data, Constants.LargeIconKey);
 
             if (largeIconResource == 0 &&
                 data.TryGetString(Constants.LargeIconKey, out var largeIconUrl) &&
@@ -509,12 +504,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
         private int GetSmallIconResource(IDictionary<string, object> data, Context context)
         {
-            var smallIconResource = this.GetIconResourceFromDrawable(context, data, Constants.IconKey);
-
-            if (smallIconResource == 0)
-            {
-                smallIconResource = this.GetIconResourceFromMipmap(context, data, Constants.IconKey);
-            }
+            var smallIconResource = this.GetIconResourceFromDrawableOrMipmap(context, data, Constants.IconKey);
 
             if (smallIconResource == 0 && this.options.Android.DefaultIconResource is int defaultIconResource)
             {
@@ -590,48 +580,55 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return resourceName;
         }
 
-        private static int GetIconResourceFromDrawableOrMipmap___(Context context, IDictionary<string, object> data, string dataKey)
+        private int GetIconResourceFromDrawableOrMipmap(Context context, IDictionary<string, object> data, string iconKey)
         {
-            var iconResourceId = 0;
+            var iconResource = 0;
 
-            if (data.TryGetString(dataKey, out var iconKey) && iconKey != null)
+            if (data.TryGetString(iconKey, out var iconName))
             {
-                iconResourceId = context.Resources.GetIdentifier(iconKey, "drawable", context.PackageName);
-
-                if (iconResourceId == 0)
-                {
-                    iconResourceId = context.Resources.GetIdentifier(iconKey, "mipmap", context.PackageName);
-                }
+                iconResource = this.GetIconResourceFromDrawableOrMipmap(context, iconName);
             }
 
-            return iconResourceId;
+            return iconResource;
         }
 
-        private int GetIconResourceFromDrawable(Context context, IDictionary<string, object> data, string dataKey)
+        private int GetIconResourceFromDrawableOrMipmap(Context context, string iconName)
         {
-            return this.GetIconResource(context, data, dataKey, "drawable");
-        }
-
-        private int GetIconResourceFromMipmap(Context context, IDictionary<string, object> data, string dataKey)
-        {
-            return this.GetIconResource(context, data, dataKey, "mipmap");
-        }
-
-        private int GetIconResource(Context context, IDictionary<string, object> data, string dataKey, string defType)
-        {
-            var iconResourceId = 0;
-
-            if (data.TryGetString(dataKey, out var iconKey) && iconKey != null)
+            if (string.IsNullOrEmpty(iconName))
             {
-                iconResourceId = context.Resources.GetIdentifier(iconKey, defType, context.PackageName);
-                var resourceName = this.TryGetResourceName(context, iconResourceId, nameof(iconResourceId), nameof(this.GetIconResource), defType);
-                if (resourceName == null)
-                {
-                    iconResourceId = 0;
-                }
+                return 0;
             }
 
-            return iconResourceId;
+            var iconResource = this.GetIconResourceFromDrawable(context, iconName);
+
+            if (iconResource == 0)
+            {
+                iconResource = this.GetIconResourceFromMipmap(context, iconName);
+            }
+
+            return iconResource;
+        }
+
+        private int GetIconResourceFromMipmap(Context context, string iconName)
+        {
+            return this.GetIconResource(context, iconName, "mipmap");
+        }
+
+        private int GetIconResourceFromDrawable(Context context, string iconName)
+        {
+            return this.GetIconResource(context, iconName, "drawable");
+        }
+
+        private int GetIconResource(Context context, string iconName, string defType)
+        {
+            var resourceId = context.Resources.GetIdentifier(iconName, defType, context.PackageName);
+            var resourceName = this.TryGetResourceName(context, resourceId, nameof(resourceId), nameof(this.GetIconResource), defType);
+            if (resourceName == null)
+            {
+                resourceId = 0;
+            }
+
+            return resourceId;
         }
 
         private int? GetNotificationColor(IDictionary<string, object> data)
