@@ -123,12 +123,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 extras.PutString(kvp.Key, kvp.Value.ToString());
             }
 
-            var notificationId = this.GetNotificationId(data);
+            var notificationId = GetNotificationId(data);
             extras.PutInt(Constants.ActionNotificationIdKey, notificationId);
 
-            if (data.TryGetString(Constants.NotificationTagKey, out var tag))
+            var notificationTag = GetNotificationTag(data);
+            if (notificationTag != null)
             {
-                extras.PutString(Constants.ActionNotificationTagKey, tag);
+                extras.PutString(Constants.ActionNotificationTagKey, notificationTag);
             }
 
             var context = Application.Context;
@@ -330,13 +331,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
             var notification = notificationBuilder.Build();
 
-            if (tag == null)
+            if (notificationTag == null)
             {
                 notificationManager.Notify(notificationId, notification);
             }
             else
             {
-                notificationManager.Notify(tag, notificationId, notification);
+                notificationManager.Notify(notificationTag, notificationId, notification);
             }
         }
 
@@ -727,25 +728,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
             return notificationChannel;
         }
 
-        private int GetNotificationId(IDictionary<string, object> data)
+        private static int GetNotificationId(IDictionary<string, object> data)
         {
-            var notificationId = 0;
-
-            // TODO: Use TryGetInt here
-            if (data.TryGetString(Constants.IdKey, out var id))
-            {
-                try
-                {
-                    notificationId = Convert.ToInt32(id);
-                }
-                catch (Exception ex)
-                {
-                    // Keep the default value of zero for the notify_id, but log the conversion problem.
-                    this.logger.LogError(ex, $"Failed to convert {id} to an integer");
-                }
-            }
-
+            data.TryGetInt(Constants.IdKey, out var notificationId);
             return notificationId;
+        }
+
+        private static string GetNotificationTag(IDictionary<string, object> data)
+        {
+            data.TryGetString(Constants.NotificationTagKey, out var notificationTag);
+            return notificationTag;
         }
 
         private static NotificationImportance? GetNotificationImportance(IDictionary<string, object> data)
