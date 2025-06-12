@@ -746,7 +746,7 @@ namespace MauiSampleApp.ViewModels
             try
             {
                 var topic = this.Topic;
-                this.firebasePushNotification.SubscribeTopic(topic);
+                await this.firebasePushNotification.SubscribeTopicAsync(topic);
                 this.UpdateSubscribedTopics();
                 this.Topic = null;
             }
@@ -761,7 +761,7 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                this.firebasePushNotification.UnsubscribeTopic(topic);
+                await this.firebasePushNotification.UnsubscribeTopicAsync(topic);
                 this.UpdateSubscribedTopics();
             }
             catch (Exception ex)
@@ -780,7 +780,7 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                this.firebasePushNotification.UnsubscribeAllTopics();
+                await this.firebasePushNotification.UnsubscribeAllTopicsAsync();
                 this.UpdateSubscribedTopics();
             }
             catch (Exception ex)
