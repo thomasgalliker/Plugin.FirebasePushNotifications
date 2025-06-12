@@ -163,16 +163,22 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return;
             }
 
-            var extras = intent.GetExtrasDict();
-            this.logger.LogDebug(
-                $"ProcessIntent: activity.Type={activityType.Name}, intent.Flags=[{intent.Flags}], intent.Extras=[{extras.ToDebugString()}]");
-
             var launchedFromHistory = intent.Flags.HasFlag(ActivityFlags.LaunchedFromHistory);
             if (launchedFromHistory)
             {
                 // Don't process the intent if flag FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY is present
                 return;
             }
+
+            if (string.Equals(intent.Action, Intent.ActionMain, StringComparison.InvariantCultureIgnoreCase))
+            {
+                // Don't process the intent if intent action is android.intent.action.MAIN
+                return;
+            }
+
+            var extras = intent.GetExtrasDict();
+            this.logger.LogDebug(
+                $"ProcessIntent: activity.Type={activityType.Name}, intent.Flags=[{intent.Flags}], intent.Extras=[{extras.ToDebugString()}]");
 
             if (extras.Any())
             {
