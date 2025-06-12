@@ -42,6 +42,8 @@
 - Data-only notifications are no longer displayed in the notification tray.
 - NotificationBuilder support for Android API 26 and below (where no notification channels are available).
 - OpenNotificationSettings now also works for Android API 26 and below.
+- Renamed topic methods to follow the Async pattern: SubscribeToTopicAsync, UnsubscribeFromTopicAsync, etc.
+- Use AddOnCompleteListener for asynchronous tasks in Android.
 - Bug fixes and refactorings.
 
 3.2
