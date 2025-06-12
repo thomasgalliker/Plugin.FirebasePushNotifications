@@ -257,7 +257,7 @@ namespace Plugin.FirebasePushNotifications.Platforms.Channels
 
             if (!defaultNotificationChannelExists)
             {
-                // If no default notification channel exists, we create it with predefined properties.
+                // If no default notification channel exists, we create one with predefined properties.
                 var defaultNotificationChannelRequest = this.CreateDefaultNotificationChannelRequest(defaultNotificationChannelId);
                 this.CreateNotificationChannelsInternal(new[] { defaultNotificationChannelRequest });
             }
