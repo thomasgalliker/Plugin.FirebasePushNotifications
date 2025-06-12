@@ -17,11 +17,11 @@
             return defaultValue;
         }
 
-        public static Ty GetValueOrDefault<Tx, Ty>(this IDictionary<string, Tx> items, string key, Ty defaultValue = default)
+        public static TY GetValueOrDefault<TX, TY>(this IDictionary<string, TX> items, string key, TY defaultValue = default)
         {
             if (items.TryGetValue(key, out var value))
             {
-                return (Ty)Convert.ChangeType(value, typeof(Ty));
+                return (TY)Convert.ChangeType(value, typeof(TY));
             }
 
             return defaultValue;
