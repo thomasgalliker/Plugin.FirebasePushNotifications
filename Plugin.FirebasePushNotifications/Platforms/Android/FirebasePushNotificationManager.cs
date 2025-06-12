@@ -137,11 +137,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        protected override void OnNotificationReceived(IDictionary<string, object> data)
-        {
-            this.NotificationBuilder?.OnNotificationReceived(data);
-        }
-
         public void ProcessIntent(Activity activity, Intent intent)
         {
             if (activity == null)

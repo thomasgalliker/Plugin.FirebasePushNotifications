@@ -87,72 +87,15 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return true;
             }
 
-            // var (notificationImportance, notificationImportanceSource) = this.GetNotificationImportanceOrDefault(data);
-
-            // bool checkForHighImportance;
-            //
-            // if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+            // if (data.ContainsKey(Constants.LargeIconKey))
             // {
-            //     // Priority was deprecated in API level 26.
-            //     var notificationPriority = GetNotificationPriority(notificationImportance);
-            //     checkForHighImportance = true;
+            //     // If we received a "large_icon"
+            //     // we need to show a local notification with SetLargeIcon
+            //     this.logger.LogDebug(
+            //         $"ShouldHandleNotificationReceived returns true " +
+            //         $"(Reason: Key '{Constants.LargeIconKey}' present)");
+            //     return true;
             // }
-            // else
-            // {
-            //     var notificationChannel = this.GetNotificationChannelOrDefault(data);
-            //     this.CheckAndLogNotificationImportanceDivergence(notificationChannel, notificationImportance, notificationImportanceSource);
-            //     checkForHighImportance = notificationChannel is { Importance: >= NotificationImportance.High };
-            // }
-
-            // We check notification importance ('priority' key present or DefaultNotificationImportance setting) only, if
-            // - the app runs in background mode OR
-            // - the app runs in foreground mode AND the target notification channel importance is >= high
-            // If we receive a notification message with priority=high while the app runs in foreground mode
-            // AND the target notification channel has importance < high, we cannot display a local notification popup!
-            // if (isAppInBackground || checkForHighImportance)
-            // {
-            //     // If the target/default notification channel has importance >= High
-            //     // we check if the notification importance is also >= High
-            //     if (notificationImportance >= NotificationImportance.High)
-            //     {
-            //         // In case we receive a notification with importance >= high
-            //         // we show it in a local notification popup.
-            //         this.logger.LogDebug(
-            //             $"ShouldHandleNotificationReceived returns true " +
-            //             $"(Reason: Notification importance '{notificationImportance}' (source: {notificationImportanceSource}) higher than or equal to 'High')");
-            //         return true;
-            //     }
-            // }
-
-            var presentClickActionKeys = Constants.ClickActionKeys
-                .Where(data.ContainsKey)
-                .ToArray();
-
-            if (presentClickActionKeys.Length > 0)
-            {
-                if (isAppInBackground)
-                {
-                    // If we received a "click_action" or "category"
-                    // and we run in background mode
-                    // we need to show a local notification with action buttons.
-                    this.logger.LogDebug(
-                        $"ShouldHandleNotificationReceived returns true " +
-                        $"(Reason: {(presentClickActionKeys.Length == 1 ?
-                            $"Key '{presentClickActionKeys.Single()}' is present" :
-                            $"Keys [{string.Join(",", presentClickActionKeys)}] are present")})");
-                    return true;
-                }
-            }
-
-            if (data.ContainsKey(Constants.LargeIconKey))
-            {
-                // If we received a "large_icon"
-                // we need to show a local notification with SetLargeIcon
-                this.logger.LogDebug(
-                    $"ShouldHandleNotificationReceived returns true " +
-                    $"(Reason: Key '{Constants.LargeIconKey}' present)");
-                return true;
-            }
 
             this.logger.LogDebug("ShouldHandleNotificationReceived returns false");
             return false;

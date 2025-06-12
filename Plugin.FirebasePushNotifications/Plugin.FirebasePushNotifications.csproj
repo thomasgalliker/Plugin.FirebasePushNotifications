@@ -37,11 +37,12 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>3.3
+		<PackageReleaseNotes>4.0
 - Improved notification channel handling during app startup.
 - Data-only notifications are no longer displayed in the notification tray.
 - NotificationBuilder support for Android API 26 and below (where no notification channels are available).
 - OpenNotificationSettings now also works for Android API 26 and below.
+- Synchronized notification handling behavior between Android and iOS.
 - Renamed topic methods to follow the Async pattern: SubscribeToTopicAsync, UnsubscribeFromTopicAsync, etc.
 - Use AddOnCompleteListener for asynchronous tasks in Android.
 - Bug fixes and refactorings.
