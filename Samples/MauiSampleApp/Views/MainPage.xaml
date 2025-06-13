@@ -267,20 +267,28 @@
                     VerticalOptions="Start" />
                 <VerticalStackLayout
                     BindableLayout.ItemTemplate="{StaticResource SubscribedTopicItemTemplate}"
-                    BindableLayout.ItemsSource="{Binding SubscribedTopics}" />
+                    BindableLayout.ItemsSource="{Binding SubscribedTopics}"
+                    Spacing="4" />
 
-                <Entry
-                    FontFamily="{StaticResource FontFamily.Monospace.Regular}"
-                    IsSpellCheckEnabled="False"
-                    IsTextPredictionEnabled="False"
-                    Keyboard="Url"
-                    Placeholder="New topic name"
-                    Text="{Binding Topic}" />
-                <Button
-                    Command="{Binding SubscribeToTopicCommand}"
-                    Text="Subscribe to topic"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Start" />
+                <Grid
+                    ColumnDefinitions="*,Auto"
+                    ColumnSpacing="4">
+                    <Entry
+                        Grid.Column="0"
+                        FontFamily="{StaticResource FontFamily.Monospace.Regular}"
+                        IsSpellCheckEnabled="False"
+                        IsTextPredictionEnabled="False"
+                        Keyboard="Url"
+                        Placeholder="New topic name"
+                        Text="{Binding Topic}" />
+                    <Button
+                        Grid.Column="1"
+                        Command="{Binding SubscribeToTopicCommand}"
+                        Text="Subscribe"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Start" />
+                </Grid>
+
                 <Button
                     Command="{Binding UnsubscribeAllTopicsCommand}"
                     LineBreakMode="MiddleTruncation"

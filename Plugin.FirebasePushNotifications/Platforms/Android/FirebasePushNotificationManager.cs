@@ -43,8 +43,23 @@ namespace Plugin.FirebasePushNotifications.Platforms
         {
             this.logger.LogDebug("ConfigurePlatform");
 
-            this.notificationChannels.SetNotificationChannelGroups(this.options.Android.NotificationChannelGroups);
-            this.notificationChannels.SetNotificationChannels(this.options.Android.NotificationChannels);
+            var groups = this.options.Android.NotificationChannelGroups;
+            if (groups.Any())
+            {
+                this.notificationChannels.SetNotificationChannelGroups(groups);
+            }
+
+            var channels = this.options.Android.NotificationChannels;
+            if (channels.Any())
+            {
+                // If we have NotificationChannels set, use them to configure the absolute set of notification channels.
+                this.notificationChannels.SetNotificationChannels(channels);
+            }
+            else
+            {
+                // Otherwise, ensure we have at least the default notification channel.
+                ((Channels.NotificationChannels)this.notificationChannels).EnsureDefaultNotificationChannel();
+            }
 
             var context = Application.Context;
             var isFirebaseAppInitialized = FirebaseAppHelper.IsFirebaseAppInitialized(context);
@@ -122,11 +137,6 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
         }
 
-        protected override void OnNotificationReceived(IDictionary<string, object> data)
-        {
-            this.NotificationBuilder?.OnNotificationReceived(data);
-        }
-
         public void ProcessIntent(Activity activity, Intent intent)
         {
             if (activity == null)
@@ -153,16 +163,22 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 return;
             }
 
-            var extras = intent.GetExtrasDict();
-            this.logger.LogDebug(
-                $"ProcessIntent: activity.Type={activityType.Name}, intent.Flags=[{intent.Flags}], intent.Extras=[{extras.ToDebugString()}]");
-
             var launchedFromHistory = intent.Flags.HasFlag(ActivityFlags.LaunchedFromHistory);
             if (launchedFromHistory)
             {
                 // Don't process the intent if flag FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY is present
                 return;
             }
+
+            if (string.Equals(intent.Action, Intent.ActionMain, StringComparison.InvariantCultureIgnoreCase))
+            {
+                // Don't process the intent if intent action is android.intent.action.MAIN
+                return;
+            }
+
+            var extras = intent.GetExtrasDict();
+            this.logger.LogDebug(
+                $"ProcessIntent: activity.Type={activityType.Name}, intent.Flags=[{intent.Flags}], intent.Extras=[{extras.ToDebugString()}]");
 
             if (extras.Any())
             {
@@ -195,8 +211,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                     else
                     {
                         var notificationActionId = extras.GetStringOrDefault(Constants.NotificationActionId);
-                        this.HandleNotificationAction(extras, notificationCategoryId, notificationActionId,
-                            NotificationCategoryType.Default);
+                        this.HandleNotificationAction(extras, notificationCategoryId, notificationActionId, NotificationCategoryType.Default);
                     }
                 }
                 else
@@ -276,16 +291,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public INotificationBuilder NotificationBuilder { get; set; }
 
         /// <inheritdoc />
-        public void SubscribeTopics(string[] topics)
+        public async Task SubscribeTopicsAsync(string[] topics)
         {
-            foreach (var t in topics)
+            foreach (var topic in topics)
             {
-                this.SubscribeTopic(t);
+                await this.SubscribeTopicAsync(topic);
             }
         }
 
         /// <inheritdoc />
-        public void SubscribeTopic(string topic)
+        public async Task SubscribeTopicAsync(string topic)
         {
             if (topic == null)
             {
@@ -300,10 +315,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
             if (!subscribedTopics.Contains(topic))
             {
-                this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
+                this.logger.LogDebug($"SubscribeTopicAsync: topic=\"{topic}\"");
 
-                // TODO: Use AddOnCompleteListener(...)
-                FirebaseMessaging.Instance.SubscribeToTopic(topic);
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.SubscribeToTopic(topic).AddOnCompleteListener(taskCompleteListener);
+                await tcs.Task;
 
                 subscribedTopics.Add(topic);
 
@@ -312,12 +329,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                this.logger.LogInformation($"Subscribe: skipping topic \"{topic}\"; topic is already subscribed");
+                this.logger.LogInformation($"SubscribeTopicAsync: skipping topic \"{topic}\"; topic is already subscribed");
             }
         }
 
         /// <inheritdoc />
-        public void UnsubscribeTopics(string[] topics)
+        public async Task UnsubscribeTopicsAsync(string[] topics)
         {
             if (topics == null)
             {
@@ -325,26 +342,31 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             // TODO: Improve efficiency here (move to base class maybe)
-            foreach (var t in topics)
+            foreach (var topic in topics)
             {
-                this.UnsubscribeTopic(t);
+                await this.UnsubscribeTopicAsync(topic);
             }
         }
 
         /// <inheritdoc />
-        public void UnsubscribeAllTopics()
+        public async Task UnsubscribeAllTopicsAsync()
         {
+            var topics = this.SubscribedTopics.ToArray();
+            this.logger.LogDebug($"UnsubscribeAllTopicsAsync: topics=[{string.Join(',', topics)}]");
+
             foreach (var topic in this.SubscribedTopics)
             {
-                // TODO: Use AddOnCompleteListener(...)
-                FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.UnsubscribeFromTopic(topic).AddOnCompleteListener(taskCompleteListener);
+                await tcs.Task;
             }
 
             this.SubscribedTopics = null;
         }
 
         /// <inheritdoc />
-        public void UnsubscribeTopic(string topic)
+        public async Task UnsubscribeTopicAsync(string topic)
         {
             if (topic == null)
             {
@@ -359,10 +381,13 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
             if (subscribedTopics.Contains(topic))
             {
-                this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
+                this.logger.LogDebug($"UnsubscribeTopicAsync: topic=\"{topic}\"");
 
-                // TODO: Use AddOnCompleteListener(...)
-                FirebaseMessaging.Instance.UnsubscribeFromTopic(topic);
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.UnsubscribeFromTopic(topic).AddOnCompleteListener(taskCompleteListener);
+                await tcs.Task;
+
                 subscribedTopics.Remove(topic);
 
                 // TODO: Improve write performance here; don't loop all topics one by one
@@ -370,25 +395,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
             else
             {
-                this.logger.LogInformation($"Unsubscribe: skipping topic \"{topic}\"; topic is not subscribed");
+                this.logger.LogInformation($"UnsubscribeTopicAsync: skipping topic \"{topic}\"; topic is not subscribed");
             }
         }
 
         protected override void HandleTokenRefreshPlatform(string token)
         {
-            this.ResubscribeExistingTopics();
+            _ = this.ResubscribeExistingTopicsAsync();
         }
 
         /// <summary>
         /// Resubscribes all existing topics since the old instance id isn't valid anymore.
         /// This is obviously necessary but seems a very bad design decision...
         /// </summary>
-        private void ResubscribeExistingTopics()
+        private async Task ResubscribeExistingTopicsAsync()
         {
             foreach (var topic in this.SubscribedTopics)
             {
-                // TODO: Use AddOnCompleteListener(...)
-                FirebaseMessaging.Instance.SubscribeToTopic(topic);
+                var tcs = new TaskCompletionSource<Java.Lang.Object>();
+                var taskCompleteListener = new TaskCompleteListener(tcs);
+                FirebaseMessaging.Instance.SubscribeToTopic(topic).AddOnCompleteListener(taskCompleteListener);
+                await tcs.Task;
             }
         }
 

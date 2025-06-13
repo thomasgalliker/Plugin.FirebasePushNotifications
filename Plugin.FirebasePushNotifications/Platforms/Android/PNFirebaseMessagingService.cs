@@ -3,6 +3,7 @@ using Android.Content;
 using Android.OS;
 using Firebase.Messaging;
 using Microsoft.Extensions.Logging;
+using Plugin.FirebasePushNotifications.Utils;
 
 namespace Plugin.FirebasePushNotifications.Platforms
 {
@@ -124,17 +125,22 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var data = intent.GetExtrasDict();
             data.Remove("com.google.firebase.iid.WakeLockHolder.wakefulintent");
 
-            if (this.notificationBuilder.ShouldHandleNotificationReceived(data))
-            {
-                this.notificationBuilder.OnNotificationReceived(data);
-            }
-            else
+            var handleNotification = this.notificationBuilder.ShouldHandleNotificationReceived(data);
+
+            var isAppInForeground = AppHelper.IsAppForeground();
+            if (isAppInForeground || handleNotification == false)
             {
                 this.firebasePushNotification.HandleNotificationReceived(data);
+            }
+
+            if (handleNotification)
+            {
+                this.notificationBuilder.OnNotificationReceived(data);
             }
         }
 
         // TODO: Check if this code is still needed or if it can be removed.
+        /*
         private void OnMessageReceived(RemoteMessage remoteMessage)
         {
             this.logger.LogDebug("OnMessageReceived");
@@ -237,7 +243,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             this.firebasePushNotification.HandleNotificationReceived(data);
-        }
+        }*/
 
         private void HandleTokenIntent(Intent intent)
         {

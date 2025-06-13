@@ -37,7 +37,21 @@
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>3.1
+		<PackageReleaseNotes>4.0
+- Improved notification channel handling during app startup.
+- Data-only notifications are no longer displayed in the notification tray.
+- NotificationBuilder support for Android API 26 and below (where no notification channels are available).
+- OpenNotificationSettings now also works for Android API 26 and below.
+- Synchronized notification handling behavior between Android and iOS.
+- Renamed topic methods to follow the Async pattern: SubscribeToTopicAsync, UnsubscribeFromTopicAsync, etc.
+- Use AddOnCompleteListener for asynchronous tasks in Android.
+- Bug fixes and refactorings.
+
+3.2
+- Improved default notification channel handling.
+- Bug fixes and refactorings.
+
+3.1
 - Extend INotificationChannels to manage notification channel groups.
 - Internal refactoring of INotificationChannels implementation.
 - Removed properties IsActive and IsDefault from NotificationChannelRequest. Set the default notification channel via UseFirebasePushNotifications(o => o.Android.DefaultNotificationChannelId = ...).
@@ -104,6 +118,6 @@
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
-    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="11.6.0" />
+    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="11.10.0" />
   </ItemGroup>
 </Project>
