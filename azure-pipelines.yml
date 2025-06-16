@@ -102,7 +102,7 @@ steps:
   inputs:
     command: restore
     projects: '$(solution)'
-    arguments: '--configuration $(buildConfiguration)'
+    restoreArguments: '--configuration $(buildConfiguration)'
 
 - task: DownloadSecureFile@1
   name: GoogleServiceFileAndroid
