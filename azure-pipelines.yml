@@ -163,11 +163,9 @@ steps:
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)'
-
     Contents: |
-     **\bin\$(BuildConfiguration)\**
-     **\bin\*.nupkg
-
+      **\bin\*.nupkg
+      **\bin\*.snupkg
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
      
 - task: PublishCodeCoverageResults@2
