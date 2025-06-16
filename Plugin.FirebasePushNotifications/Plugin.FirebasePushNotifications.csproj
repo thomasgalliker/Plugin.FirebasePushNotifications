@@ -120,4 +120,13 @@
   <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
     <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="[11.10.0,)" />
   </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <ProguardConfiguration Include="Platforms\Android\proguard.cfg" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <TrimmerRootDescriptor Include="ILLink.Descriptors.xml" RootMode="All" />
+    <EmbeddedResource Include="Platforms\Android\ILLink.Descriptors.xml" LogicalName="ILLink.Descriptors.xml" />
+  </ItemGroup>
 </Project>
