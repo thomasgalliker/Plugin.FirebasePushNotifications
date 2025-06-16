@@ -90,7 +90,7 @@
     <AndroidPackageFormat>aab</AndroidPackageFormat>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <JavaMaximumHeapSize>1G</JavaMaximumHeapSize>
-    <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
   </PropertyGroup>
