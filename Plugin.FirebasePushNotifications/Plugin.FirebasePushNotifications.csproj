@@ -1,18 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net7.0-android33.0;net7.0-ios;net8.0;net8.0-android34.0;net8.0-ios17.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net8.0-android34.0;net8.0-ios17.0;net9.0;net9.0-android35.0;net9.0-ios18.0</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<UseMaui>true</UseMaui>
 		<MauiVersion Condition="$(TargetFramework.Contains('net8.0'))">8.0.3</MauiVersion>
-		<MauiVersion Condition="$(TargetFramework.Contains('net7.0'))">7.0.49</MauiVersion>
+		<MauiVersion Condition="$(TargetFramework.Contains('net9.0'))">9.0.0</MauiVersion>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<IsPackable>true</IsPackable>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' and $(TargetFramework.Contains('net8.0'))">12.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' and $(TargetFramework.Contains('net9.0'))">12.2</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
 
 		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
@@ -45,6 +46,8 @@
 - Synchronized notification handling behavior between Android and iOS.
 - Renamed topic methods to follow the Async pattern: SubscribeToTopicAsync, UnsubscribeFromTopicAsync, etc.
 - Use AddOnCompleteListener for asynchronous tasks in Android.
+- Add target framework net9.0, net9.0-android and net9.0-ios.
+- Remove target framework net7.0, net7.0-android and net7.0-ios.
 - Bug fixes and refactorings.
 
 3.2
@@ -97,27 +100,21 @@
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="[13.0.3,)" />
 	</ItemGroup>
-	
-	<ItemGroup Condition="$(TargetFramework.Contains('net7.0'))">
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[7.0.0,)" />
-	</ItemGroup>
-	
+  
 	<ItemGroup Condition="$(TargetFramework.Contains('net8.0'))">
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.0,)" />
 	</ItemGroup>
 
+	<ItemGroup Condition="$(TargetFramework.Contains('net9.0'))">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.0,)" />
+	</ItemGroup>
+
   <!--Platform-specific package references-->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
-    <PackageReference Include="Xamarin.Firebase.Messaging" Version="123.1.2.2" />
-    <PackageReference Include="Xamarin.Firebase.Common" Version="120.3.3.1" />
-    <PackageReference Include="Xamarin.GooglePlayServices.Tasks" Version="118.0.2.3" />
-
-    <!--Temporary workaround for issue in AndroidX: https://github.com/xamarin/AndroidX/issues/742-->
-    <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2.1" />
-    <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2.1" />
+    <PackageReference Include="Xamarin.Firebase.Messaging" Version="124.1.1.2" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
-    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="11.10.0" />
+    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="[11.10.0,)" />
   </ItemGroup>
 </Project>
