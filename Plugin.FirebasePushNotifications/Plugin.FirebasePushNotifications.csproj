@@ -39,55 +39,7 @@
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
-		<PackageReleaseNotes>4.0
-- Improved notification channel handling during app startup.
-- Data-only notifications are no longer displayed in the notification tray.
-- NotificationBuilder support for Android API 26 and below (where no notification channels are available).
-- OpenNotificationSettings now also works for Android API 26 and below.
-- Synchronized notification handling behavior between Android and iOS.
-- Renamed topic methods to follow the Async pattern: SubscribeToTopicAsync, UnsubscribeFromTopicAsync, etc.
-- Use AddOnCompleteListener for asynchronous tasks in Android.
-- Add target framework net9.0, net9.0-android and net9.0-ios.
-- Remove target framework net7.0, net7.0-android and net7.0-ios.
-- Bug fixes and refactorings.
-
-3.2
-- Improved default notification channel handling.
-- Bug fixes and refactorings.
-
-3.1
-- Extend INotificationChannels to manage notification channel groups.
-- Internal refactoring of INotificationChannels implementation.
-- Removed properties IsActive and IsDefault from NotificationChannelRequest. Set the default notification channel via UseFirebasePushNotifications(o => o.Android.DefaultNotificationChannelId = ...).
-- Configure initial list of notification channels via o.Android.NotificationChannels and notification groups via o.Android.NotificationChannelGroups.
-
-3.0
-- Update firebase-ios-sdk by replacing nuget package Xamarin.Firebase.iOS.CloudMessaging with AdamE.Firebase.iOS.CloudMessaging.
-
-2.5
-- Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions.
-- iOS 18 workaround for duplicate notifications in foreground mode.
-- iOS options to override default UNNotificationPresentationOptions for notifications received in foreground mode.
-- Handle gcm.notification.click_action payload as click_action in Android.
-      
-2.4
-- Refactor instanciation of IFirebasePushNotification.
-- Refactor startup procedure of platform-specific services.
-- Add singleton instance INotificationPermissions.Current.
-
-2.3
-- General bug fixes and code cleanup.
-- Bug fixes in the area of topic subscriptions.
-- IFirebasePushNotification.Current.
-- Add singleton instance IFirebasePushNotification.Current and INotificationPermissions.Current.
-
-2.2
-- Complete refactoring of the original 1.x implementation.
-- Simplified APIs, less static code, support for dependency injection.
-
-1.0
-- Initial release.
-		</PackageReleaseNotes>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../ReleaseNotes.txt"))</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedAllSources>true</EmbedAllSources>
