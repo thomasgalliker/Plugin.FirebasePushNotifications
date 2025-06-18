@@ -3,9 +3,9 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:b="clr-namespace:Superdev.Maui.Behaviors;assembly=Superdev.Maui"
     xmlns:controls="clr-namespace:MauiSampleApp.Controls"
     xmlns:itemTemplates="clr-namespace:MauiSampleApp.Views.ItemTemplates"
-    xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:MauiSampleApp.ViewModels"
     x:Class="MauiSampleApp.Views.MainPage"
     Title="Firebase Push Notifications"
@@ -29,7 +29,7 @@
     </ContentPage.Resources>
 
     <ContentPage.Behaviors>
-        <mct:EventToCommandBehavior
+        <b:EventToCommandBehavior
             Command="{Binding AppearingCommand}"
             EventName="Appearing" />
     </ContentPage.Behaviors>
