@@ -129,9 +129,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui" Version="12.0.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="12.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.7" />
 		<PackageReference Include="NLog.Extensions.Logging" Version="5.5.0" />
 		<PackageReference Include="Sentry.Maui" Version="5.10.0" />
 		<PackageReference Include="Superdev.Maui" Version="1.0.107-pre" />
