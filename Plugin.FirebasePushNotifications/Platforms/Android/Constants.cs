@@ -32,7 +32,7 @@
         public const string IconKey = "icon";
         public const string LargeIconKey = "large_icon";
         public const string SoundKey = "sound";
-        public const string ChannelIdKey = "channel_id";
+        public const string ChannelIdKey = "gcm.notification.android_channel_id";
         public const string ShowWhenKey = "show_when";
         public const string BigTextStyleKey = "bigtextstyle";
 
