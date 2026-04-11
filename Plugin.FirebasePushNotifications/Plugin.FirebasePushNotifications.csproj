@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net8.0-android34.0;net8.0-ios17.0;net9.0;net9.0-android35.0;net9.0-ios18.0</TargetFrameworks>
+		<TargetFrameworks>net9.0;net9.0-android35.0;net9.0-ios18.0;net10.0;net10.0-android36.0;net10.0-ios26.0</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<UseMaui>true</UseMaui>
-		<MauiVersion Condition="$(TargetFramework.Contains('net8.0'))">8.0.3</MauiVersion>
 		<MauiVersion Condition="$(TargetFramework.Contains('net9.0'))">9.0.0</MauiVersion>
+    <MauiVersion Condition="$(TargetFramework.Contains('net10.0'))">10.0.0</MauiVersion>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<IsPackable>true</IsPackable>
+    
 
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' and $(TargetFramework.Contains('net8.0'))">12.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' and $(TargetFramework.Contains('net9.0'))">12.2</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.2</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
 
 		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
@@ -57,32 +57,38 @@
   </PropertyGroup>
 
   <ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="[13.0.3,)" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	</ItemGroup>
   
-	<ItemGroup Condition="$(TargetFramework.Contains('net8.0'))">
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.0,)" />
+	<ItemGroup Condition="$(TargetFramework.Contains('net9.0'))">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
 	</ItemGroup>
 
-	<ItemGroup Condition="$(TargetFramework.Contains('net9.0'))">
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.0,)" />
+	<ItemGroup Condition="$(TargetFramework.Contains('net10.0'))">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
 	</ItemGroup>
 
   <!--Platform-specific package references-->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
-    <PackageReference Include="Xamarin.Firebase.Messaging" Version="124.1.1.2" />
+    <PackageReference Include="Xamarin.Firebase.Messaging" Version="125.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
+  <ItemGroup Condition="$(TargetFramework.Contains('net9.0-ios'))">    
     <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="[11.10.0,)" />
   </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('net10.0-ios'))">
+    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="12.5.0.4" />
+  </ItemGroup>
+
 
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
     <ProguardConfiguration Include="Platforms\Android\proguard.cfg" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
-    <TrimmerRootDescriptor Include="ILLink.Descriptors.xml" RootMode="All" />
+    <TrimmerRootDescriptor Include="Platforms\Android\ILLink.Descriptors.xml" RootMode="All" />
     <EmbeddedResource Include="Platforms\Android\ILLink.Descriptors.xml" LogicalName="ILLink.Descriptors.xml" />
   </ItemGroup>
+
 </Project>
