@@ -6,7 +6,8 @@
         {
             return MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                 await Application.Current.MainPage.DisplayAlert(title, message, cancel);
+                var application = Application.Current ?? throw new InvalidOperationException("Application.Current is not available.");
+                await application.GetCurrentPage().DisplayAlertAsync(title, message, cancel);
             });
         }
     }
