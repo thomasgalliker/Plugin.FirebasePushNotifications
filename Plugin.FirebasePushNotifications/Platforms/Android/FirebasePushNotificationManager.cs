@@ -187,7 +187,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 if (!intent.GetBooleanExtra(intentAlreadyHandledKey, false))
                 {
                     intent.PutExtra(intentAlreadyHandledKey, true);
-                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} not present --> Process notification");
+                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} not present → Process notification");
 
                     if (extras.TryGetInt(Constants.ActionNotificationIdKey, out var notificationId))
                     {
@@ -216,7 +216,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 }
                 else
                 {
-                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} is present --> Notification already processed");
+                    this.logger.LogDebug($"ProcessIntent: {intentAlreadyHandledKey} is present → Notification already processed");
                 }
             }
         }
