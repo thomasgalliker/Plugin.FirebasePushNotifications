@@ -79,12 +79,12 @@ namespace Plugin.FirebasePushNotifications.Platforms
         public string NotificationBodyKey { get; set; }
 
         /// <summary>
-        /// The notification importance used by default
-        /// - if the notification data does not contain any "priority" flags.
-        /// - as notification importance for the default notification channel (if not specified).
-        /// Default value: <c>NotificationImportance.Default</c>
+        /// The notification importance used in following cases:
+        /// - If the notification data does not contain any "priority" flags.
+        /// - As notification importance for the default notification channel.
+        /// Default value: <c>NotificationImportance.High</c>
         /// </summary>
-        public NotificationImportance DefaultNotificationImportance { get; set; } = NotificationImportance.Default;
+        public NotificationImportance DefaultNotificationImportance { get; set; } = NotificationImportance.High;
 
         public int? DefaultIconResource { get; set; }
 

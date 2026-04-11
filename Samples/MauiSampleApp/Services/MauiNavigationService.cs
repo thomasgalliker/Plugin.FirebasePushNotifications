@@ -12,12 +12,14 @@
         public async Task PushAsync<TPage>() where TPage : Page
         {
             var page = this.serviceProvider.GetRequiredService<TPage>();
-            await Application.Current.MainPage.Navigation.PushAsync(page);
+            var application = Application.Current ?? throw new InvalidOperationException("Application.Current is not available.");
+            await application.GetRootPage().Navigation.PushAsync(page);
         }
 
         public async Task PopAsync()
         {
-            await Application.Current.MainPage.Navigation.PopAsync();
+            var application = Application.Current ?? throw new InvalidOperationException("Application.Current is not available.");
+            await application.GetRootPage().Navigation.PopAsync();
         }
     }
 }

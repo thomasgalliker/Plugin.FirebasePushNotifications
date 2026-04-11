@@ -311,8 +311,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        public void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo,
-            Action<UIBackgroundFetchResult> completionHandler)
+        public void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler)
         {
             this.logger.LogDebug("DidReceiveRemoteNotification(UIApplication, NSDictionary, Action<UIBackgroundFetchResult>)");
 
@@ -334,8 +333,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
             this.HandleNotificationReceived(data);
         }
 
-        private void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification,
-            Action<UNNotificationPresentationOptions> completionHandler)
+        private void WillPresentNotification(UNUserNotificationCenter center, UNNotification notification, Action<UNNotificationPresentationOptions> completionHandler)
         {
             if (OperatingSystem.IsIOSVersionAtLeast(18))
             {
@@ -361,11 +359,9 @@ namespace Plugin.FirebasePushNotifications.Platforms
             completionHandler(notificationPresentationOptions);
         }
 
-        private static UNNotificationPresentationOptions GetNotificationPresentationOptions(
-            IDictionary<string, object> data,
-            UNNotificationPresentationOptions defaultNotificationPresentationOptions)
+        private static UNNotificationPresentationOptions GetNotificationPresentationOptions(IDictionary<string, object> data, UNNotificationPresentationOptions notificationPresentationOptions)
         {
-            var notificationPresentationOptions = defaultNotificationPresentationOptions;
+            var options = notificationPresentationOptions;
 
             var priority = GetPriorityValue(data);
             if (!string.IsNullOrEmpty(priority))
@@ -374,21 +370,21 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List))
+                        if (!options.HasFlag(UNNotificationPresentationOptions.List))
                         {
-                            notificationPresentationOptions |= UNNotificationPresentationOptions.List;
+                            options |= UNNotificationPresentationOptions.List;
                         }
 
-                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Banner))
+                        if (!options.HasFlag(UNNotificationPresentationOptions.Banner))
                         {
-                            notificationPresentationOptions |= UNNotificationPresentationOptions.Banner;
+                            options |= UNNotificationPresentationOptions.Banner;
                         }
                     }
                     else
                     {
-                        if (!notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                        if (!options.HasFlag(UNNotificationPresentationOptions.Alert))
                         {
-                            notificationPresentationOptions |= UNNotificationPresentationOptions.Alert;
+                            options |= UNNotificationPresentationOptions.Alert;
                         }
                     }
                 }
@@ -396,27 +392,27 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 {
                     if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
                     {
-                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.List))
+                        if (options.HasFlag(UNNotificationPresentationOptions.List))
                         {
-                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.List;
+                            options &= ~UNNotificationPresentationOptions.List;
                         }
 
-                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Banner))
+                        if (options.HasFlag(UNNotificationPresentationOptions.Banner))
                         {
-                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.Banner;
+                            options &= ~UNNotificationPresentationOptions.Banner;
                         }
                     }
                     else
                     {
-                        if (notificationPresentationOptions.HasFlag(UNNotificationPresentationOptions.Alert))
+                        if (options.HasFlag(UNNotificationPresentationOptions.Alert))
                         {
-                            notificationPresentationOptions &= ~UNNotificationPresentationOptions.Alert;
+                            options &= ~UNNotificationPresentationOptions.Alert;
                         }
                     }
                 }
             }
 
-            return notificationPresentationOptions;
+            return options;
         }
 
         private static string GetPriorityValue(IDictionary<string,object> data)
@@ -437,16 +433,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
         }
 
         /// <inheritdoc />
-        public void SubscribeTopics(string[] topics)
+        public async Task SubscribeTopicsAsync(string[] topics)
         {
-            foreach (var t in topics)
+            foreach (var topic in topics)
             {
-                this.SubscribeTopic(t);
+                await this.SubscribeTopicAsync(topic);
             }
         }
 
         /// <inheritdoc />
-        public void SubscribeTopic(string topic)
+        public async Task SubscribeTopicAsync(string topic)
         {
             if (topic == null)
             {
@@ -467,36 +463,36 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
             if (!subscribedTopics.Contains(topic))
             {
-                this.logger.LogDebug($"Subscribe: topic=\"{topic}\"");
+                this.logger.LogDebug($"SubscribeTopicAsync: topic=\"{topic}\"");
 
-                Firebase.CloudMessaging.Messaging.SharedInstance.Subscribe(topic);
+                await Firebase.CloudMessaging.Messaging.SharedInstance.SubscribeAsync(topic);
                 subscribedTopics.Add(topic);
 
                 this.SubscribedTopics = subscribedTopics.ToArray();
             }
             else
             {
-                this.logger.LogInformation($"Subscribe: skipping topic \"{topic}\"; topic is already subscribed");
+                this.logger.LogInformation($"SubscribeTopicAsync: skipping topic \"{topic}\"; topic is already subscribed");
             }
         }
 
         /// <inheritdoc />
-        public void UnsubscribeAllTopics()
+        public async Task UnsubscribeAllTopicsAsync()
         {
             var topics = this.SubscribedTopics.ToArray();
-            this.logger.LogDebug($"UnsubscribeAllTopics: topics=[{string.Join(',', topics)}]");
+            this.logger.LogDebug($"UnsubscribeAllTopicsAsync: topics=[{string.Join(',', topics)}]");
 
             foreach (var topic in topics)
             {
-                this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
-                Firebase.CloudMessaging.Messaging.SharedInstance.Unsubscribe(topic);
+                this.logger.LogDebug($"UnsubscribeAsync: topic=\"{topic}\"");
+                await Firebase.CloudMessaging.Messaging.SharedInstance.UnsubscribeAsync(topic);
             }
 
             this.SubscribedTopics = null;
         }
 
         /// <inheritdoc />
-        public void UnsubscribeTopics(string[] topics)
+        public async Task UnsubscribeTopicsAsync(string[] topics)
         {
             if (topics == null)
             {
@@ -504,14 +500,14 @@ namespace Plugin.FirebasePushNotifications.Platforms
             }
 
             // TODO: Improve efficiency here (move to base class maybe)
-            foreach (var t in topics)
+            foreach (var topic in topics)
             {
-                this.UnsubscribeTopic(t);
+                await this.UnsubscribeTopicAsync(topic);
             }
         }
 
         /// <inheritdoc />
-        public void UnsubscribeTopic(string topic)
+        public async Task UnsubscribeTopicAsync(string topic)
         {
             if (topic == null)
             {
@@ -532,16 +528,16 @@ namespace Plugin.FirebasePushNotifications.Platforms
             var subscribedTopics = new HashSet<string>(this.SubscribedTopics);
             if (subscribedTopics.Contains(topic))
             {
-                this.logger.LogDebug($"Unsubscribe: topic=\"{topic}\"");
+                this.logger.LogDebug($"UnsubscribeTopicAsync: topic=\"{topic}\"");
 
-                Firebase.CloudMessaging.Messaging.SharedInstance.Unsubscribe(topic);
+                await Firebase.CloudMessaging.Messaging.SharedInstance.UnsubscribeAsync(topic);
                 subscribedTopics.Remove(topic);
 
                 this.SubscribedTopics = subscribedTopics.ToArray();
             }
             else
             {
-                this.logger.LogInformation($"Unsubscribe: skipping topic \"{topic}\"; topic is not subscribed");
+                this.logger.LogInformation($"UnsubscribeTopicAsync: skipping topic \"{topic}\"; topic is not subscribed");
             }
         }
 
@@ -601,10 +597,10 @@ namespace Plugin.FirebasePushNotifications.Platforms
 
             this.HandleTokenRefresh(fcmToken);
 
-            this.TryDequeuePendingTopics();
+            _ = this.TryDequeuePendingTopicsAsync();
         }
 
-        private void TryDequeuePendingTopics()
+        private async Task TryDequeuePendingTopicsAsync()
         {
             if (!HasApnsToken)
             {
@@ -615,11 +611,11 @@ namespace Plugin.FirebasePushNotifications.Platforms
             {
                 if (pendingTopic.Subscribe)
                 {
-                    this.SubscribeTopic(pendingTopic.Topic);
+                    await this.SubscribeTopicAsync(pendingTopic.Topic);
                 }
                 else
                 {
-                    this.UnsubscribeTopic(pendingTopic.Topic);
+                    await this.UnsubscribeTopicAsync(pendingTopic.Topic);
                 }
             }
         }
@@ -646,6 +642,7 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 .Where(u => $"{u.Request.Content.UserInfo[notificationIdKey]}".Equals($"{id}"))
                 .Select(s => s.Request.Identifier)
                 .ToArray();
+
             if (deliveredNotificationsMatches.Length > 0)
             {
                 UNUserNotificationCenter.Current.RemoveDeliveredNotifications(deliveredNotificationsMatches);

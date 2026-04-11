@@ -23,16 +23,16 @@ namespace MauiSampleApp.ViewModels
             });
             yield return new NotificationCategory("contract", new[]
             {
-                new NotificationAction("Accept", "Accept", NotificationActionType.Default, "accept"),
-                new NotificationAction("Reject", "Reject", NotificationActionType.Default, "reject")
+                new NotificationAction("Accept", "Accept", NotificationActionType.Default, "ic_radiobox_checked"),
+                new NotificationAction("Reject", "Reject", NotificationActionType.Default, "ic_radiobox_unchecked")
             });
             yield return new NotificationCategory("dismiss",new []
             {
-                new NotificationAction("dismiss","Dismiss", NotificationActionType.Default),
+                new NotificationAction("dismiss","Dismiss", NotificationActionType.Destructive),
             });
             yield return new NotificationCategory("navigate", new []
             {
-                new NotificationAction("dismiss", "Dismiss", NotificationActionType.Default),
+                new NotificationAction("dismiss", "Dismiss", NotificationActionType.Destructive),
                 new NotificationAction("navigate", "Navigate To", NotificationActionType.Foreground)
             });
         }

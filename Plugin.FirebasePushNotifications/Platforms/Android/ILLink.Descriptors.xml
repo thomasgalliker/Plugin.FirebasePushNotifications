@@ -1,0 +1,3 @@
+<linker>
+    <assembly fullname="Plugin.FirebasePushNotifications"/>
+</linker>

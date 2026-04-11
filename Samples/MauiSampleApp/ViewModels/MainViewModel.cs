@@ -546,7 +546,10 @@ namespace MauiSampleApp.ViewModels
             {
 #if ANDROID
                 var defaultNotificationChannel = this.notificationChannels.Channels.GetDefault();
-                this.notificationChannels.OpenNotificationChannelSettings(defaultNotificationChannel.Id);
+                if (defaultNotificationChannel != null)
+                {
+                    this.notificationChannels.OpenNotificationChannelSettings(defaultNotificationChannel.Id);
+                }
 #endif
             }
             catch (Exception ex)
@@ -674,7 +677,12 @@ namespace MauiSampleApp.ViewModels
                         this.UpdateNotificationChannels();
                     }
 
-                    return new NotificationChannelViewModel(notificationChannelViewModelLogger, this.dialogService, DeleteNotificationChannel, c);
+                    return new NotificationChannelViewModel(
+                        notificationChannelViewModelLogger,
+                        this.dialogService,
+                        this.notificationChannels,
+                        DeleteNotificationChannel,
+                        c);
                 })
                 .ToArray();
 
@@ -738,7 +746,7 @@ namespace MauiSampleApp.ViewModels
             try
             {
                 var topic = this.Topic;
-                this.firebasePushNotification.SubscribeTopic(topic);
+                await this.firebasePushNotification.SubscribeTopicAsync(topic);
                 this.UpdateSubscribedTopics();
                 this.Topic = null;
             }
@@ -753,7 +761,7 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                this.firebasePushNotification.UnsubscribeTopic(topic);
+                await this.firebasePushNotification.UnsubscribeTopicAsync(topic);
                 this.UpdateSubscribedTopics();
             }
             catch (Exception ex)
@@ -772,7 +780,7 @@ namespace MauiSampleApp.ViewModels
         {
             try
             {
-                this.firebasePushNotification.UnsubscribeAllTopics();
+                await this.firebasePushNotification.UnsubscribeAllTopicsAsync();
                 this.UpdateSubscribedTopics();
             }
             catch (Exception ex)
@@ -930,9 +938,10 @@ namespace MauiSampleApp.ViewModels
             }
         }
 
-        public void OnResume()
+        public async void OnResume()
         {
-            _ = this.UpdateAuthorizationStatusAsync();
+            await this.UpdateAuthorizationStatusAsync();
+            await this.GetNotificationChannelsAsync();
         }
     }
 }

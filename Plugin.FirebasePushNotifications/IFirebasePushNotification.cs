@@ -97,27 +97,27 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Subscribe to <paramref name="topic"/>.
         /// </summary>
-        void SubscribeTopic(string topic);
+        Task SubscribeTopicAsync(string topic);
 
         /// <summary>
         /// Subscribe to list of <paramref name="topics"/>.
         /// </summary>
-        void SubscribeTopics(string[] topics);
+        Task SubscribeTopicsAsync(string[] topics);
 
         /// <summary>
         /// Unsubscribe from <paramref name="topic"/>.
         /// </summary>
-        void UnsubscribeTopic(string topic);
+        Task UnsubscribeTopicAsync(string topic);
 
         /// <summary>
         /// Unsubscribe from list of <paramref name="topics"/>.
         /// </summary>
-        void UnsubscribeTopics(string[] topics);
+        Task UnsubscribeTopicsAsync(string[] topics);
 
         /// <summary>
         /// Unsubscribe all topics.
         /// </summary>
-        void UnsubscribeAllTopics();
+        Task UnsubscribeAllTopicsAsync();
 
         /// <summary>
         /// Register for push notifications.

@@ -29,10 +29,11 @@ If you receive an HTTP 429 you may need to back-off and send your messages later
 ### Why are my notifications not being delivered?
 Common reasons for notification delivery issues include:
 - Incorrect Firebase configuration: Wrong package name or bundle identifier. Wrong google-services.json or GoogleService-Info.plist file used.
-- The app being killed or not running in the background.
-- Notification permissions not configured in AndroidManifest and/or user not asked for giving consent.
-- Notification events not subscribed.
-- Network connectivity issues.
+- Notification permissions not configured in AndroidManifest.xml.
+- Notification permissions not requested from user.
+- Notification events such as NotificationReceived not subscribed.
+- Network connectivity issues on the receiving device. Particularly, if you use a simulator/emulator on a computer which is connected to slow/fragile network connectivity.
+- Wait some seconds. Delivery of push notifications is not always immediate.
 
 ### How can I debug notification issues?
 - Verify your Firebase configuration and ensure that the correct services files are being used.

@@ -23,16 +23,34 @@ namespace MauiSampleApp.Platforms.Notifications
             {
                 ChannelId = "test_channel_1",
                 ChannelName = "Test Channel 1",
-                Description = "Description for test channel 1",
+                Description = "Low priority test channel",
                 LockscreenVisibility = NotificationVisibility.Public,
-                Importance = NotificationImportance.High,
+                Importance = NotificationImportance.Low,
             };
 
             yield return new NotificationChannelRequest
             {
                 ChannelId = "test_channel_2",
                 ChannelName = "Test Channel 2",
-                Description = "Description for test channel 2",
+                Description = "Default priority test channel",
+                LockscreenVisibility = NotificationVisibility.Public,
+                Importance = NotificationImportance.Default,
+            };
+
+            yield return new NotificationChannelRequest
+            {
+                ChannelId = "test_channel_3",
+                ChannelName = "Test Channel 3",
+                Description = "High priority test channel",
+                LockscreenVisibility = NotificationVisibility.Public,
+                Importance = NotificationImportance.High,
+            };
+
+            yield return new NotificationChannelRequest
+            {
+                ChannelId = "test_channel_4",
+                ChannelName = "Test Channel 4",
+                Description = "Test channel assigned to group 1",
                 Group = NotificationChannelGroupSamples.TestGroup1.GroupId,
                 LockscreenVisibility = NotificationVisibility.Public,
                 Importance = NotificationImportance.High,
@@ -40,9 +58,9 @@ namespace MauiSampleApp.Platforms.Notifications
 
             yield return new NotificationChannelRequest
             {
-                ChannelId = "test_channel_3",
-                ChannelName = "Test Channel 3",
-                Description = "Description for test channel 3",
+                ChannelId = "test_channel_5",
+                ChannelName = "Test Channel 5",
+                Description = "Test channel assigned to group 1",
                 Group = NotificationChannelGroupSamples.TestGroup1.GroupId,
                 LockscreenVisibility = NotificationVisibility.Public,
                 Importance = NotificationImportance.High,

@@ -36,12 +36,14 @@ namespace Plugin.FirebasePushNotifications.Tests
         {
         }
 
-        public void SubscribeTopic(string topic)
+        public Task SubscribeTopicAsync(string topic)
         {
+            return Task.CompletedTask;
         }
 
-        public void SubscribeTopics(string[] topics)
+        public Task SubscribeTopicsAsync(string[] topics)
         {
+            return Task.CompletedTask;
         }
 
         public Task UnregisterForPushNotificationsAsync()
@@ -49,16 +51,19 @@ namespace Plugin.FirebasePushNotifications.Tests
             return Task.CompletedTask;
         }
 
-        public void UnsubscribeAllTopics()
+        public Task UnsubscribeAllTopicsAsync()
         {
+            return Task.CompletedTask;
         }
 
-        public void UnsubscribeTopic(string topic)
+        public Task UnsubscribeTopicAsync(string topic)
         {
+            return Task.CompletedTask;
         }
 
-        public void UnsubscribeTopics(string[] topics)
+        public Task UnsubscribeTopicsAsync(string[] topics)
         {
+            return Task.CompletedTask;
         }
     }
 }

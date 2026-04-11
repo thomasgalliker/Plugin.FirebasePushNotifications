@@ -7,6 +7,7 @@ using Plugin.FirebasePushNotifications;
 using Plugin.FirebasePushNotifications.Model.Queues;
 using MauiSampleApp.Services.Logging;
 using NLog.Extensions.Logging;
+using Superdev.Maui;
 
 #if ANDROID
 using Android.App;
@@ -66,6 +67,7 @@ namespace MauiSampleApp
                     // o.iOS.iOS18Workaround.Enable = true;
 #endif
                 })
+                .UseSuperdevMaui()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("IBMPlexSans-Regular.ttf", "IBMPlexSans");

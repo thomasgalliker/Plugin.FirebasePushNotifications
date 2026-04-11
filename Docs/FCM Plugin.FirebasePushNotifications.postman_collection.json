@@ -36,7 +36,113 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body sent @ {{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"Notification body @ {{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with priority=low",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"Low priority notification message @ {{currentDateTime}}\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"low\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with priority=default",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"Default priority notification message @ {{currentDateTime}}\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"default\"\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -65,6 +171,20 @@
 				},
 				{
 					"name": "Notification Message with priority=high",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -75,7 +195,60 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\"\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"High priority notification message @ {{currentDateTime}}\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with priority=high (2)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"High priority notification message @ {{currentDateTime}}\"\r\n        },\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"data\": {\r\n            \"eventId\": \"32935962\",\r\n            \"product_id\": \"111881503\",\r\n            \"location\": \"{\\\"Timestamp\\\":1749168728,\\\"DateTime\\\":\\\"2025-06-06T00:12:08Z\\\",\\\"Longitude\\\":0,\\\"Latitude\\\":0,\\\"Altitude\\\":0,\\\"Accuracy\\\":17.0,\\\"Course\\\":null,\\\"Speed\\\":null}\",\r\n            \"priority\": \"high\"\r\n        },\r\n        \"android\": {\r\n            \"priority\": \"HIGH\",\r\n            \"ttl\": \"2419200s\"\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -153,7 +326,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\",\r\n            \"large_icon\": \"ic_notification_icon_large\"\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"large_icon\": \"ic_notification_icon_large\"\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -192,46 +365,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\",\r\n            \"large_icon\": \"https://firebase.google.com/static/images/brand-guidelines/logo-vertical.png\",\r\n            \"bigtextstyle\": \"0\"\r\n        }\r\n    }\r\n}"
-						},
-						"url": {
-							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
-							"protocol": "https",
-							"host": [
-								"fcm",
-								"googleapis",
-								"com"
-							],
-							"path": [
-								"v1",
-								"projects",
-								"{{project_id}}",
-								"messages:send"
-							],
-							"query": [
-								{
-									"key": "",
-									"value": null,
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Notification Message with priority=low",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"low\"\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"large_icon\": \"https://firebase.google.com/static/images/brand-guidelines/logo-vertical.png\",\r\n            \"bigtextstyle\": \"0\"\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -515,7 +649,46 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"channel_id\": \"test_channel_1\"\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification test_channel_1\",\r\n            \"body\": \"Notification to channel_id=test_channel_1\"\r\n        },\r\n        \"data\": {\r\n            \"channel_id\": \"test_channel_1\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with channel_id=test_channel_2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"token\": \"{{fcm_token}}\",\r\n        \"notification\": {\r\n            \"title\": \"Notification test_channel_2\",\r\n            \"body\": \"Notification to channel_id=test_channel_2\"\r\n        },\r\n        \"data\": {\r\n            \"channel_id\": \"test_channel_2\"\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -583,7 +756,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Topic Title\",\r\n            \"body\": \"Topic Body @ {{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"Topic body @ {{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -599,12 +772,13 @@
 								"{{project_id}}",
 								"messages:send"
 							]
-						}
+						},
+						"description": "## Send Message to Topic\n\nThis endpoint allows you to send a message to a specified topic in Firebase Cloud Messaging (FCM). It is useful for broadcasting notifications to multiple subscribers who are subscribed to the given topic.\n\n### Request\n\nThe request is a POST request to the following URL:\n\n```\nPOST https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send\n\n ```\n\n#### Request Body\n\nThe request body must be in JSON format and contains the following parameters:\n\n- `message`: An object that defines the message to be sent.\n    \n    - `topic`: A string that specifies the topic to which the message is sent.\n        \n    - `notification`: An object that contains the notification details.\n        \n        - `title`: A string representing the title of the notification.\n            \n        - `body`: A string that contains the body text of the notification.\n            \n\n**Example Request Body:**\n\n``` json\n{\n  \"message\": {\n    \"topic\": \"general\",\n    \"notification\": {\n      \"title\": \"Topic Title\",\n      \"body\": \"Topic Body @ {{currentDateTime}}\"\n    }\n  }\n}\n\n ```\n\n### Response\n\nUpon successful execution, the API will return a response with the following characteristics:\n\n- **Status Code**: `200 OK`\n    \n- **Content-Type**: `application/json`\n    \n- **Response Body**: An object that contains a `name` field, which indicates the identifier of the sent message.\n    \n\n**Example Response:**\n\n``` json\n{\n  \"name\": \"\"\n}\n\n ```\n\n### Usage Notes\n\n- Ensure that the `topic` specified in the request matches an existing topic that subscribers are registered to.\n    \n- The `title` and `body` fields in the notification are customizable to provide relevant information to the users receiving the notifications.\n    \n- This endpoint is part of the Firebase Cloud Messaging service, and appropriate authentication and permissions must be set up to use it effectively."
 					},
 					"response": []
 				},
 				{
-					"name": "Data Message with topic=general",
+					"name": "Notification Message with topic=general, tag=chat_111",
 					"event": [
 						{
 							"listen": "test",
@@ -621,7 +795,6 @@
 							"script": {
 								"exec": [
 									"var moment = require('moment');",
-									"",
 									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
 									""
 								],
@@ -640,7 +813,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"{{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"Topic body @ {{currentDateTime}}\"\r\n        },\r\n        \"data\": {\r\n            \"tag\": \"chat_111\",\r\n            \"id\": \"1\"\r\n        },\r\n        \"apns\": {\r\n            \"headers\": {\r\n                \"apns-collapse-id\": \"1\"\r\n            }\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -655,6 +828,370 @@
 								"projects",
 								"{{project_id}}",
 								"messages:send"
+							]
+						},
+						"description": "## Send Message to Topic\n\nThis endpoint allows you to send a message to a specified topic in Firebase Cloud Messaging (FCM). It is useful for broadcasting notifications to multiple subscribers who are subscribed to the given topic.\n\n### Request\n\nThe request is a POST request to the following URL:\n\n```\nPOST https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send\n\n ```\n\n#### Request Body\n\nThe request body must be in JSON format and contains the following parameters:\n\n- `message`: An object that defines the message to be sent.\n    \n    - `topic`: A string that specifies the topic to which the message is sent.\n        \n    - `notification`: An object that contains the notification details.\n        \n        - `title`: A string representing the title of the notification.\n            \n        - `body`: A string that contains the body text of the notification.\n            \n\n**Example Request Body:**\n\n``` json\n{\n  \"message\": {\n    \"topic\": \"general\",\n    \"notification\": {\n      \"title\": \"Topic Title\",\n      \"body\": \"Topic Body @ {{currentDateTime}}\"\n    }\n  }\n}\n\n ```\n\n### Response\n\nUpon successful execution, the API will return a response with the following characteristics:\n\n- **Status Code**: `200 OK`\n    \n- **Content-Type**: `application/json`\n    \n- **Response Body**: An object that contains a `name` field, which indicates the identifier of the sent message.\n    \n\n**Example Response:**\n\n``` json\n{\n  \"name\": \"\"\n}\n\n ```\n\n### Usage Notes\n\n- Ensure that the `topic` specified in the request matches an existing topic that subscribers are registered to.\n    \n- The `title` and `body` fields in the notification are customizable to provide relevant information to the users receiving the notifications.\n    \n- This endpoint is part of the Firebase Cloud Messaging service, and appropriate authentication and permissions must be set up to use it effectively."
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with topic=general, tag=chat_222",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"Topic body @ {{currentDateTime}}\"\r\n        },\r\n        \"data\": {\r\n            \"tag\": \"chat_222\",\r\n            \"id\": \"1\"\r\n        },\r\n        \"apns\": {\r\n            \"headers\": {\r\n                \"apns-collapse-id\": \"1\"\r\n            }\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							]
+						},
+						"description": "## Send Message to Topic\n\nThis endpoint allows you to send a message to a specified topic in Firebase Cloud Messaging (FCM). It is useful for broadcasting notifications to multiple subscribers who are subscribed to the given topic.\n\n### Request\n\nThe request is a POST request to the following URL:\n\n```\nPOST https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send\n\n ```\n\n#### Request Body\n\nThe request body must be in JSON format and contains the following parameters:\n\n- `message`: An object that defines the message to be sent.\n    \n    - `topic`: A string that specifies the topic to which the message is sent.\n        \n    - `notification`: An object that contains the notification details.\n        \n        - `title`: A string representing the title of the notification.\n            \n        - `body`: A string that contains the body text of the notification.\n            \n\n**Example Request Body:**\n\n``` json\n{\n  \"message\": {\n    \"topic\": \"general\",\n    \"notification\": {\n      \"title\": \"Topic Title\",\n      \"body\": \"Topic Body @ {{currentDateTime}}\"\n    }\n  }\n}\n\n ```\n\n### Response\n\nUpon successful execution, the API will return a response with the following characteristics:\n\n- **Status Code**: `200 OK`\n    \n- **Content-Type**: `application/json`\n    \n- **Response Body**: An object that contains a `name` field, which indicates the identifier of the sent message.\n    \n\n**Example Response:**\n\n``` json\n{\n  \"name\": \"\"\n}\n\n ```\n\n### Usage Notes\n\n- Ensure that the `topic` specified in the request matches an existing topic that subscribers are registered to.\n    \n- The `title` and `body` fields in the notification are customizable to provide relevant information to the users receiving the notifications.\n    \n- This endpoint is part of the Firebase Cloud Messaging service, and appropriate authentication and permissions must be set up to use it effectively."
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with topic=general, priority=low",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"Low priority notification message @ {{currentDateTime}}\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"low\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with topic=general, priority=default",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"Default priority notification message @ {{currentDateTime}}\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"default\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with topic=general, priority=high",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification Title\",\r\n            \"body\": \"High priority notification message @ {{currentDateTime}}\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with topic=general, icon=ic_number_one",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\",\r\n            \"icon\": \"ic_number_one\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with topic=general, large_icon=ic_notification_icon_large",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"large_icon\": \"ic_notification_icon_large\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification Message with topic=general, large_icon=url",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Notification title\",\r\n            \"body\": \"Notification body\"\r\n        },\r\n        \"data\": {\r\n            \"large_icon\": \"https://firebase.google.com/static/images/brand-guidelines/logo-vertical.png\",\r\n            \"bigtextstyle\": \"0\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -694,7 +1231,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\":{\r\n    \"topic\":\"subscriber-updates\",\r\n    \"notification\":{\r\n      \"title\" : \"NewsMagazine.com\",\r\n      \"body\" : \"This week's edition is now available.\"\r\n    },\r\n    \"data\" : {\r\n      \"volume\" : \"3.21.15\",\r\n      \"contents\" : \"http://www.news-magazine.com/world-week/1234\"\r\n    },\r\n    \"android\":{\r\n      \"priority\":\"normal\"\r\n    },\r\n    \"apns\":{\r\n      \"headers\":{\r\n        \"apns-priority\":\"5\"\r\n      }\r\n    }\r\n  }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"subscriber-updates\",\r\n        \"notification\": {\r\n            \"title\": \"NewsMagazine.com\",\r\n            \"body\": \"This week's edition is now available.\"\r\n        },\r\n        \"data\": {\r\n            \"volume\": \"3.21.15\",\r\n            \"contents\": \"http://www.news-magazine.com/world-week/1234\"\r\n        },\r\n        \"android\": {\r\n            \"priority\": \"normal\"\r\n        },\r\n        \"apns\": {\r\n            \"headers\": {\r\n                \"apns-priority\": \"5\"\r\n            }\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
@@ -741,6 +1278,115 @@
 								"projects",
 								"{{project_id}}",
 								"messages:send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Data Message with topic=general",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"{{currentDateTime}}\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Data Message with topic=general, priority=high",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"pm.environment.set('currentDateTime', moment().format((\"YYYY-MM-DD HH:mm:ss\")));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"data\": {\r\n            \"key1\": \"value1\",\r\n            \"key2\": \"{{currentDateTime}}\",\r\n            \"priority\": \"high\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -1412,38 +2058,6 @@
 					"response": []
 				},
 				{
-					"name": "navigate with priority=high",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Navigation\",\r\n            \"body\": \"Want start navigation?\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\",\r\n            \"click_action\": \"navigate\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"navigate\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
-						},
-						"url": {
-							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
-							"protocol": "https",
-							"host": [
-								"fcm",
-								"googleapis",
-								"com"
-							],
-							"path": [
-								"v1",
-								"projects",
-								"{{project_id}}",
-								"messages:send"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "meeting_invitation with priority=default",
 					"request": {
 						"method": "POST",
@@ -1477,7 +2091,7 @@
 					"response": []
 				},
 				{
-					"name": "contract with priority=default",
+					"name": "message with priority=high",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -1488,7 +2102,72 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Contract\",\r\n            \"body\": \"Accept contract?\"\r\n        },\r\n        \"data\": {\r\n            \"click_action\": \"contract\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"contract\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Message\",\r\n            \"body\": \"Hello, how are you?\"\r\n        },\r\n        \"data\": {\r\n            \"click_action\": \"message\",\r\n            \"priority\": \"high\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"message\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							]
+						},
+						"description": "- meeting_invitation\n    \n- priority: default"
+					},
+					"response": []
+				},
+				{
+					"name": "contract with priority=high",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Contract\",\r\n            \"body\": \"Accept contract?\"\r\n        },\r\n        \"data\": {\r\n            \"click_action\": \"contract\",\r\n            \"priority\": \"high\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"contract\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",
+							"protocol": "https",
+							"host": [
+								"fcm",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"projects",
+								"{{project_id}}",
+								"messages:send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "navigate with priority=high",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": {\r\n        \"topic\": \"general\",\r\n        \"notification\": {\r\n            \"title\": \"Navigation\",\r\n            \"body\": \"Want start navigation?\"\r\n        },\r\n        \"data\": {\r\n            \"priority\": \"high\",\r\n            \"click_action\": \"navigate\"\r\n        },\r\n        \"apns\": {\r\n            \"payload\": {\r\n                \"aps\": {\r\n                    \"category\": \"navigate\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://fcm.googleapis.com/v1/projects/{{project_id}}/messages:send",

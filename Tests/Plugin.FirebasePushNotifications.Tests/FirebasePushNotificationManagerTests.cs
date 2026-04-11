@@ -31,7 +31,7 @@ namespace Plugin.FirebasePushNotifications.Tests
         public void OnTokenRefresh_ShouldDeliverImmediately_IfEventIsSubscribed()
         {
             // Arrange
-            var firebasePushNotificationPreferences = this.autoMocker.GetMock<IFirebasePushNotificationPreferences>();
+            var firebasePushNotificationPreferencesMock = this.autoMocker.GetMock<IFirebasePushNotificationPreferences>();
 
             var listOfEventArgs = new List<EventArgs>();
 
@@ -48,8 +48,8 @@ namespace Plugin.FirebasePushNotifications.Tests
             listOfEventArgs.Should().HaveCount(2);
             listOfEventArgs.Should().AllBeOfType<FirebasePushNotificationTokenEventArgs>();
 
-            firebasePushNotificationPreferences.Verify(p => p.Set(Constants.Preferences.TokenKey, token), Times.Exactly(2));
-            firebasePushNotificationPreferences.VerifyNoOtherCalls();
+            firebasePushNotificationPreferencesMock.Verify(p => p.Set(Constants.Preferences.TokenKey, token), Times.Exactly(2));
+            firebasePushNotificationPreferencesMock.VerifyNoOtherCalls();
         }
 
         [Fact]

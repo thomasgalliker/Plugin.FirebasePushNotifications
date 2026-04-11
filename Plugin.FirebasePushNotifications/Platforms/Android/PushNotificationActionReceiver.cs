@@ -28,18 +28,17 @@ namespace Plugin.FirebasePushNotifications.Platforms
                 var firebasePushNotification = IFirebasePushNotification.Current;
                 firebasePushNotification.HandleNotificationAction(extras, notificationCategoryId, notificationActionId, NotificationCategoryType.Default);
 
-                var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
-                var notificationId = extras.GetValueOrDefault(Constants.ActionNotificationIdKey, -1);
-                if (notificationId != -1)
+                var notificationManager = context.GetSystemService(Context.NotificationService) as NotificationManager;
+                if (extras.TryGetInt(Constants.ActionNotificationIdKey, out var notificationId))
                 {
                     var notificationTag = extras.GetStringOrDefault(Constants.ActionNotificationTagKey, null);
                     if (notificationTag == null)
                     {
-                        manager.Cancel(notificationId);
+                        notificationManager.Cancel(notificationId);
                     }
                     else
                     {
-                        manager.Cancel(notificationTag, notificationId);
+                        notificationManager.Cancel(notificationTag, notificationId);
                     }
                 }
             }

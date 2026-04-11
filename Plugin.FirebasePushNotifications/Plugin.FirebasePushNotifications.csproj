@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net7.0-android33.0;net7.0-ios;net8.0;net8.0-android34.0;net8.0-ios17.0</TargetFrameworks>
+		<TargetFrameworks>net9.0;net9.0-android35.0;net9.0-ios18.0;net10.0;net10.0-android36.0;net10.0-ios26.0</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<UseMaui>true</UseMaui>
-		<MauiVersion Condition="$(TargetFramework.Contains('net8.0'))">8.0.3</MauiVersion>
-		<MauiVersion Condition="$(TargetFramework.Contains('net7.0'))">7.0.49</MauiVersion>
+		<MauiVersion Condition="$(TargetFramework.Contains('net9.0'))">9.0.0</MauiVersion>
+    <MauiVersion Condition="$(TargetFramework.Contains('net10.0'))">10.0.0</MauiVersion>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<IsPackable>true</IsPackable>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+    
 
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.2</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
 
 		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
@@ -32,46 +32,18 @@
 		<PackageTags>firebase;push;notification;notifications</PackageTags>
     <PackageIcon>logo.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageProjectUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/thomasgalliker/Plugin.FirebasePushNotifications</RepositoryUrl>
 		<Company>superdev GmbH</Company>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageReleaseNotes>3.1
-- Extend INotificationChannels to manage notification channel groups.
-- Internal refactoring of INotificationChannels implementation.
-- Removed properties IsActive and IsDefault from NotificationChannelRequest. Set the default notification channel via UseFirebasePushNotifications(o => o.Android.DefaultNotificationChannelId = ...).
-- Configure initial list of notification channels via o.Android.NotificationChannels and notification groups via o.Android.NotificationChannelGroups.
-
-3.0
-- Update firebase-ios-sdk by replacing nuget package Xamarin.Firebase.iOS.CloudMessaging with AdamE.Firebase.iOS.CloudMessaging.
-
-2.5
-- Move static properties from Android's FirebasePushNotificationManager to FirebasePushNotificationAndroidOptions.
-- iOS 18 workaround for duplicate notifications in foreground mode.
-- iOS options to override default UNNotificationPresentationOptions for notifications received in foreground mode.
-- Handle gcm.notification.click_action payload as click_action in Android.
-      
-2.4
-- Refactor instanciation of IFirebasePushNotification.
-- Refactor startup procedure of platform-specific services.
-- Add singleton instance INotificationPermissions.Current.
-
-2.3
-- General bug fixes and code cleanup.
-- Bug fixes in the area of topic subscriptions.
-- IFirebasePushNotification.Current.
-- Add singleton instance IFirebasePushNotification.Current and INotificationPermissions.Current.
-
-2.2
-- Complete refactoring of the original 1.x implementation.
-- Simplified APIs, less static code, support for dependency injection.
-
-1.0
-- Initial release.
-		</PackageReleaseNotes>
-		<Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../ReleaseNotes.txt"))</PackageReleaseNotes>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedAllSources>true</EmbedAllSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -80,30 +52,43 @@
     <None Include="..\Images\logo.png" Pack="True" PackagePath="\" />
   </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="[13.0.3,)" />
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	</ItemGroup>
-	
-	<ItemGroup Condition="$(TargetFramework.Contains('net7.0'))">
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[7.0.0,)" />
+  
+	<ItemGroup Condition="$(TargetFramework.Contains('net9.0'))">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
 	</ItemGroup>
-	
-	<ItemGroup Condition="$(TargetFramework.Contains('net8.0'))">
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.0,)" />
+
+	<ItemGroup Condition="$(TargetFramework.Contains('net10.0'))">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
 	</ItemGroup>
 
   <!--Platform-specific package references-->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
-    <PackageReference Include="Xamarin.Firebase.Messaging" Version="123.1.2.2" />
-    <PackageReference Include="Xamarin.Firebase.Common" Version="120.3.3.1" />
-    <PackageReference Include="Xamarin.GooglePlayServices.Tasks" Version="118.0.2.3" />
-
-    <!--Temporary workaround for issue in AndroidX: https://github.com/xamarin/AndroidX/issues/742-->
-    <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.7.2.1" />
-    <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.7.2.1" />
+    <PackageReference Include="Xamarin.Firebase.Messaging" Version="125.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
-    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="11.6.0" />
+  <ItemGroup Condition="$(TargetFramework.Contains('net9.0-ios'))">    
+    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="[11.10.0,)" />
   </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('net10.0-ios'))">
+    <PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="12.5.0.4" />
+  </ItemGroup>
+
+
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <ProguardConfiguration Include="Platforms\Android\proguard.cfg" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <TrimmerRootDescriptor Include="Platforms\Android\ILLink.Descriptors.xml" RootMode="All" />
+    <EmbeddedResource Include="Platforms\Android\ILLink.Descriptors.xml" LogicalName="ILLink.Descriptors.xml" />
+  </ItemGroup>
+
 </Project>

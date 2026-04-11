@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#FDA612</color>
-    <color name="colorPrimaryDark">#F6820C</color>
-    <color name="colorAccent">#F6820C</color>
+    <color name="colorPrimaryDark">#FDA612</color>
+    <color name="colorAccent">#FDA612</color>
     <color name="ic_default_notification_color">#FF00FF</color>
 </resources>
