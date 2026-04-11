@@ -6,8 +6,8 @@
 - Synchronized notification handling behavior between Android and iOS.
 - Renamed topic methods to follow the Async pattern: SubscribeToTopicAsync, UnsubscribeFromTopicAsync, etc.
 - Use AddOnCompleteListener for asynchronous tasks in Android.
-- Add target framework net9.0, net9.0-android and net9.0-ios.
-- Remove target framework net7.0, net7.0-android and net7.0-ios.
+- Remove support for net7.0 and net8.0.
+- Add support for net9.0 and net10.0.
 - Bug fixes and refactorings.
 
 3.2

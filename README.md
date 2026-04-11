@@ -21,8 +21,6 @@ Use the following command to install Plugin.FirebasePushNotifications using NuGe
 
     PM> Install-Package Plugin.FirebasePushNotifications
 
-You can use this library in any .NET MAUI project compatible to .NET 7 and higher.
-
 ## Setup
 
 ### Setup Firebase Push Notifications
