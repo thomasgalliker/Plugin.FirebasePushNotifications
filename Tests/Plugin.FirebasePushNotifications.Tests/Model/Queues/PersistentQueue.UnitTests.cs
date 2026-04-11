@@ -89,7 +89,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
             public ValidQueueContentTestData()
             {
                 this.Add("[]", 0);
-                this.Add("[{Id: 1},{Id: 2}]", 2);
+                this.Add("[{\"Id\":1},{\"Id\":2}]", 2);
             }
         }
 
@@ -124,6 +124,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model.Queues
                 this.Add("");
                 this.Add(" ");
                 this.Add("invalid content");
+                this.Add("[{Id: 1},{Id: 2}]");
             }
         }
 

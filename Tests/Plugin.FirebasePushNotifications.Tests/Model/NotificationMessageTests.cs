@@ -6,7 +6,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
     public class NotificationMessageTests
     {
         [Fact]
-        public void ShouldCreatenotificationMessage_WithTitleAndBody()
+        public void ShouldCreateNotificationMessage_WithTitleAndBody()
         {
             // Act
             const string title = "Title";

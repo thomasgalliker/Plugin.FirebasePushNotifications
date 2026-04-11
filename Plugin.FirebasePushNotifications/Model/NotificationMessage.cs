@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 using Plugin.FirebasePushNotifications.Internals;
 using Plugin.FirebasePushNotifications.Extensions;
 
@@ -21,28 +21,28 @@ namespace Plugin.FirebasePushNotifications.Model
             this.Data = data ?? new Dictionary<string, string>();
         }
 
-        [JsonProperty(Constants.NotificationTitleKey)]
+        [JsonPropertyName(Constants.NotificationTitleKey)]
         public string Title
         {
             get => this.Data.GetValueOrDefault(Constants.NotificationTitleKey);
             set => this.Data[Constants.NotificationTitleKey] = value;
         }
 
-        [JsonProperty(Constants.NotificationBodyKey)]
+        [JsonPropertyName(Constants.NotificationBodyKey)]
         public string Body
         {
             get => this.Data.GetValueOrDefault(Constants.NotificationBodyKey);
             set => this.Data[Constants.NotificationBodyKey] = value;
         }
 
-        [JsonProperty(Constants.NotificationTagKey)]
+        [JsonPropertyName(Constants.NotificationTagKey)]
         public string Tag
         {
             get => this.Data.GetValueOrDefault(Constants.NotificationTagKey);
             set => this.Data[Constants.NotificationTagKey] = value;
         }
 
-        [JsonProperty(Constants.NotificationDataKey)]
+        [JsonPropertyName(Constants.NotificationDataKey)]
         public IDictionary<string, string> Data { get; private set; } = new Dictionary<string, string>();
 
         public override string ToString()

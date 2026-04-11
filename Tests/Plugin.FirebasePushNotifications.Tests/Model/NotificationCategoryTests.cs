@@ -1,10 +1,15 @@
-﻿using FluentAssertions;
-using Newtonsoft.Json;
+﻿using System.Text.Json;
+using FluentAssertions;
 
 namespace Plugin.FirebasePushNotifications.Tests.Model
 {
     public class NotificationCategoryTests
     {
+        private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
         [Fact]
         public void ShouldCreateNotificationCategory()
         {
@@ -33,7 +38,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
             var notificationCategory = new NotificationCategory("category1", notificationActions);
 
             // Act
-            var notificationCategoryJson = JsonConvert.SerializeObject(notificationCategory);
+            var notificationCategoryJson = JsonSerializer.Serialize(notificationCategory, JsonSerializerOptions);
 
             // Assert
             notificationCategoryJson.Should().Be(
@@ -61,7 +66,7 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
                 "\"type\":2}";
 
             // Act
-            var notificationCategory = JsonConvert.DeserializeObject<NotificationCategory>(notificationCategoryJson);
+            var notificationCategory = JsonSerializer.Deserialize<NotificationCategory>(notificationCategoryJson, JsonSerializerOptions);
 
             // Assert
             notificationCategory.CategoryId.Should().Be("category1");
@@ -73,6 +78,23 @@ namespace Plugin.FirebasePushNotifications.Tests.Model
 
             var action2 = notificationCategory.Actions.ElementAt(1);
             action2.Should().BeEquivalentTo(new NotificationAction("action2", "title2", NotificationActionType.Destructive));
+        }
+
+        [Fact]
+        public void ShouldDeserializeNotificationAction()
+        {
+            // Arrange
+            const string json = "{\"id\":\"action1\",\"title\":\"title1\",\"type\":1,\"icon\":null}";
+
+            // Act
+            var action = JsonSerializer.Deserialize<NotificationAction>(json, JsonSerializerOptions);
+
+            // Assert
+            action.Should().NotBeNull();
+            action.Id.Should().Be("action1");
+            action.Title.Should().Be("title1");
+            action.Type.Should().Be(NotificationActionType.Foreground);
+            action.Icon.Should().BeNull();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -8,14 +8,14 @@ namespace Plugin.FirebasePushNotifications
     {
         [JsonConstructor]
         public NotificationAction(
-            [JsonProperty("id")] string id,
-            [JsonProperty("title")] string title,
-            [JsonProperty("type")] NotificationActionType notificationActionType,
-            [JsonProperty("icon")] string icon)
+            string id,
+            string title,
+            NotificationActionType type,
+            string icon)
         {
             this.Id = id ?? throw new ArgumentNullException(nameof(id));
             this.Title = title ?? throw new ArgumentNullException(nameof(title));
-            this.Type = notificationActionType;
+            this.Type = type;
             this.Icon = icon;
         }
 
@@ -24,16 +24,16 @@ namespace Plugin.FirebasePushNotifications
         {
         }
 
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public string Id { get; }
 
-        [JsonProperty("title")]
+        [JsonPropertyName("title")]
         public string Title { get; }
 
-        [JsonProperty("type")]
+        [JsonPropertyName("type")]
         public NotificationActionType Type { get; }
 
-        [JsonProperty("icon")]
+        [JsonPropertyName("icon")]
         public string Icon { get; }
 
         public override string ToString()

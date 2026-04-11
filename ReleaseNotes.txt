@@ -8,6 +8,7 @@
 - Use AddOnCompleteListener for asynchronous tasks in Android.
 - Remove support for net7.0 and net8.0.
 - Add support for net9.0 and net10.0.
+- Replace Newtonsoft.Json with System.Text.Json.
 - Bug fixes and refactorings.
 
 3.2

@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Newtonsoft.Json;
 using Plugin.FirebasePushNotifications.Internals;
 
 namespace Plugin.FirebasePushNotifications.Model.Queues
@@ -20,7 +21,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
         private readonly ILogger logger;
         private readonly IQueue<T> internalQueue;
         private readonly IFileInfo fileInfo;
-        private readonly JsonSerializerSettings jsonSerializerSettings;
+        private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly object lockObj = new object();
 
         internal PersistentQueue(
@@ -30,14 +31,14 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
             this.logger = logger ?? new NullLogger<PersistentQueue<T>>();
             this.fileInfo = fileInfo ?? throw new ArgumentNullException(nameof(fileInfo));
 
-            this.jsonSerializerSettings = new JsonSerializerSettings
+            this.jsonSerializerOptions = new JsonSerializerOptions
             {
-                NullValueHandling = NullValueHandling.Ignore,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                PropertyNameCaseInsensitive = true,
             };
 
             this.internalQueue = this.ReadQueueFile(this.fileInfo);
-            this.logger = logger;
         }
 
         /// <inheritdoc cref="System.Collections.Generic.Queue{T}.Count" />
@@ -135,7 +136,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
                         var json = streamReader.ReadToEnd();
                         if (!string.IsNullOrEmpty(json))
                         {
-                            items = JsonConvert.DeserializeObject<List<T>>(json, this.jsonSerializerSettings);
+                            items = JsonSerializer.Deserialize<List<T>>(json, this.jsonSerializerOptions);
                         }
                     }
                 }
@@ -166,7 +167,7 @@ namespace Plugin.FirebasePushNotifications.Model.Queues
                 using (var writer = fileInfo.CreateText())
                 {
                     var array = queue.ToArray();
-                    var json = JsonConvert.SerializeObject(array, this.jsonSerializerSettings);
+                    var json = JsonSerializer.Serialize(array, this.jsonSerializerOptions);
                     writer.Write(json);
                 }
             }
