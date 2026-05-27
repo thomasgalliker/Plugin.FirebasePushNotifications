@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using Plugin.FirebasePushNotifications.Model;
 
 namespace Plugin.FirebasePushNotifications.Tests.Model

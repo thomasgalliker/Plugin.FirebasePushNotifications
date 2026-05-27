@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using Microsoft.Maui.Storage;
 using Moq;
 using Moq.AutoMock;
