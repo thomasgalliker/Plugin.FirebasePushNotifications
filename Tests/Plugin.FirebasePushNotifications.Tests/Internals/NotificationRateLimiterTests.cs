@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using FluentAssertions;
+using AwesomeAssertions;
 using Plugin.FirebasePushNotifications.Internals;
 
 namespace Plugin.FirebasePushNotifications.Tests.Internals

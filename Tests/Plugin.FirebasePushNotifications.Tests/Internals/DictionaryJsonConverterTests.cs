@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using Plugin.FirebasePushNotifications.Internals;
 using Xunit.Abstractions;
 

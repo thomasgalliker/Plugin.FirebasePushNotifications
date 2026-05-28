@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Plugin.FirebasePushNotifications
 {
@@ -19,9 +19,9 @@ namespace Plugin.FirebasePushNotifications
 
         [JsonConstructor]
         public NotificationCategory(
-            [JsonProperty("categoryId")] string categoryId,
-            [JsonProperty("actions")] NotificationAction[] actions,
-            [JsonProperty("type")] NotificationCategoryType type)
+            string categoryId,
+            NotificationAction[] actions,
+            NotificationCategoryType type)
         {
             this.CategoryId = categoryId ?? throw new ArgumentNullException(nameof(categoryId));
 
@@ -42,21 +42,20 @@ namespace Plugin.FirebasePushNotifications
         /// <summary>
         /// Identifier of the notification category.
         /// </summary>
-        [JsonProperty("categoryId")]
+        [JsonPropertyName("categoryId")]
         public string CategoryId { get; }
 
         /// <summary>
         /// Notification actions which belong to this notification category.
         /// </summary>
-        [JsonProperty("actions")]
+        [JsonPropertyName("actions")]
         public NotificationAction[] Actions { get; }
 
         /// <summary>
         /// Notification category type, used to display special-purpose
         /// notification categories. Default is <see cref="NotificationCategoryType.Default"/>.
         /// </summary>
-        [JsonProperty("type")]
+        [JsonPropertyName("type")]
         public NotificationCategoryType Type { get; }
-
     }
 }

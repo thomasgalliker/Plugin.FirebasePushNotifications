@@ -55,10 +55,6 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
-
-  <ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-	</ItemGroup>
   
 	<ItemGroup Condition="$(TargetFramework.Contains('net9.0'))">
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />

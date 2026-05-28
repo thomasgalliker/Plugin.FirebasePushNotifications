@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
 using Moq.AutoMock;
 using Plugin.FirebasePushNotifications.Internals;

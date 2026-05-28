@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
 using Plugin.FirebasePushNotifications.Internals;
 using Plugin.FirebasePushNotifications.Model.Queues;

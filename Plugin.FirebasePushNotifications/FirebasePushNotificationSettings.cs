@@ -1,11 +1,16 @@
 ﻿using System.Diagnostics;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Plugin.FirebasePushNotifications.Extensions;
 
 namespace Plugin.FirebasePushNotifications
 {
     public class FirebasePushNotificationPreferences : IFirebasePushNotificationPreferences
     {
+        private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
         private readonly IPreferences preferences;
 
         public FirebasePushNotificationPreferences(IPreferences preferences)
@@ -29,7 +34,7 @@ namespace Plugin.FirebasePushNotifications
 
             if (value is not string serializedValue)
             {
-                serializedValue = JsonConvert.SerializeObject(value);
+                serializedValue = JsonSerializer.Serialize(value, JsonSerializerOptions);
             }
 
             this.preferences.Set(key, serializedValue);
@@ -60,7 +65,7 @@ namespace Plugin.FirebasePushNotifications
                 }
                 else
                 {
-                    value = JsonConvert.DeserializeObject<T>(serializedValue);
+                    value = JsonSerializer.Deserialize<T>(serializedValue, JsonSerializerOptions);
                 }
             }
             catch (Exception ex)
